@@ -7,7 +7,8 @@
 //
 // Same canvas conventions as chart.js: theme colors read from CSS custom
 // properties, devicePixelRatio scaling for crisp lines on any display.
-function drawRadarChart(canvas, axisValues, consistencyByAxis) {
+function drawRadarChart(canvas, axisValues, consistencyByAxis, opts = {}) {
+  const showLabels = opts.showLabels !== false;
   const dpr = window.devicePixelRatio || 1;
   const cssW = canvas.clientWidth || 320, cssH = cssW;
   canvas.width = cssW * dpr;
@@ -22,7 +23,7 @@ function drawRadarChart(canvas, axisValues, consistencyByAxis) {
   const slate = styles.getPropertyValue("--slate").trim() || "#6B6F76";
 
   const cx = cssW / 2, cy = cssH / 2;
-  const radius = Math.min(cssW, cssH) / 2 - 34;
+  const radius = Math.min(cssW, cssH) / 2 - (showLabels ? 34 : 8);
   const keys = AXIS_KEYS;
   const n = keys.length;
   const angleFor = i => (Math.PI * 2 * i) / n - Math.PI / 2;
@@ -74,13 +75,16 @@ function drawRadarChart(canvas, axisValues, consistencyByAxis) {
     ctx.globalAlpha = 1;
   });
 
-  // Axis labels.
-  ctx.font = "11px 'IBM Plex Sans', sans-serif";
-  ctx.fillStyle = slate;
-  keys.forEach((k, i) => {
-    const a = angleFor(i);
-    const x = cx + Math.cos(a) * (radius + 18), y = cy + Math.sin(a) * (radius + 18);
-    ctx.textAlign = Math.cos(a) > 0.3 ? "left" : Math.cos(a) < -0.3 ? "right" : "center";
-    ctx.fillText(AXES[k].label, x, y + 4);
-  });
+  // Axis labels — skipped in compact mode (e.g. the persona-chip tooltip),
+  // where there isn't room for six full labels to stay legible.
+  if (showLabels) {
+    ctx.font = "11px 'IBM Plex Sans', sans-serif";
+    ctx.fillStyle = slate;
+    keys.forEach((k, i) => {
+      const a = angleFor(i);
+      const x = cx + Math.cos(a) * (radius + 18), y = cy + Math.sin(a) * (radius + 18);
+      ctx.textAlign = Math.cos(a) > 0.3 ? "left" : Math.cos(a) < -0.3 ? "right" : "center";
+      ctx.fillText(AXES[k].label, x, y + 4);
+    });
+  }
 }

@@ -370,12 +370,26 @@ function fmt(n) {
 
 function renderPersonaChips() {
   const row = document.getElementById("persona-chips");
-  row.innerHTML = PERSONAS.map(p =>
-    `<button class="chip" data-slug="${esc(p.slug)}" aria-pressed="false">${esc(p.name)}</button>`
+  row.innerHTML = PERSONAS.map(p => `
+    <div class="persona-chip-wrap" data-tooltip>
+      <button class="chip" data-slug="${esc(p.slug)}" aria-pressed="false" aria-describedby="persona-tip-${esc(p.slug)}">${esc(p.name)}</button>
+      <div class="persona-chip-tooltip" id="persona-tip-${esc(p.slug)}">
+        <canvas class="persona-radar" data-radar-slug="${esc(p.slug)}" width="140" height="140"></canvas>
+        <p class="persona-chip-trait">${esc(p.trait)}</p>
+      </div>
+    </div>`
   ).join("");
   row.querySelectorAll(".chip").forEach(chip => {
     chip.addEventListener("click", () => selectPersona(chip.dataset.slug));
   });
+  // Drawn once up front — eleven small canvases is cheap, and this avoids
+  // re-drawing on every hover.
+  if (typeof drawRadarChart === "function") {
+    row.querySelectorAll("[data-radar-slug]").forEach(canvas => {
+      const profile = ARCHETYPE_PROFILES[canvas.dataset.radarSlug];
+      if (profile) drawRadarChart(canvas, profile, {}, { showLabels: false });
+    });
+  }
 }
 
 async function selectPersona(slug, { fromCache = false, seedState = null } = {}) {

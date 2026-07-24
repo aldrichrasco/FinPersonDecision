@@ -45,18 +45,25 @@ const SURFACE_AXIS = {
 
 // Target profile per archetype: where each archetype sits on each axis.
 // Matching finds the archetype whose profile is nearest the learner's.
+// Values chosen so every pair of archetypes sits at least ~35 points apart
+// in six-axis space (min pairwise Euclidean distance, out of a possible 245)
+// — verified by script, not eyeballed. Each value is still grounded in that
+// archetype's description in data.js/deviation.js, not picked purely to
+// maximize separation; where a trade-off existed, distinctness won, since a
+// quiz match that can't reliably tell two archetypes apart isn't realistic
+// either.
 const ARCHETYPE_PROFILES = {
-  steady_saver:            { impulse_regulation: 80, risk_disposition: 25, temporal_orientation: 75, financial_attentiveness: 70, financial_self_efficacy: 70, prosocial_orientation: 50 },
-  cautious_guardian:       { impulse_regulation: 75, risk_disposition: 10, temporal_orientation: 70, financial_attentiveness: 75, financial_self_efficacy: 55, prosocial_orientation: 45 },
-  conscious_spender:       { impulse_regulation: 70, risk_disposition: 40, temporal_orientation: 60, financial_attentiveness: 70, financial_self_efficacy: 65, prosocial_orientation: 55 },
-  ambitious_builder:       { impulse_regulation: 60, risk_disposition: 70, temporal_orientation: 85, financial_attentiveness: 75, financial_self_efficacy: 75, prosocial_orientation: 45 },
-  strategic_risk_taker:    { impulse_regulation: 60, risk_disposition: 80, temporal_orientation: 70, financial_attentiveness: 80, financial_self_efficacy: 75, prosocial_orientation: 45 },
-  overconfident_navigator: { impulse_regulation: 45, risk_disposition: 75, temporal_orientation: 50, financial_attentiveness: 45, financial_self_efficacy: 85, prosocial_orientation: 45 },
-  status_seeker:           { impulse_regulation: 30, risk_disposition: 60, temporal_orientation: 40, financial_attentiveness: 50, financial_self_efficacy: 70, prosocial_orientation: 40 },
-  impulsive_spender:       { impulse_regulation: 15, risk_disposition: 55, temporal_orientation: 25, financial_attentiveness: 45, financial_self_efficacy: 55, prosocial_orientation: 50 },
-  anxious_avoider:         { impulse_regulation: 50, risk_disposition: 25, temporal_orientation: 45, financial_attentiveness: 15, financial_self_efficacy: 20, prosocial_orientation: 45 },
-  passive_drifter:         { impulse_regulation: 45, risk_disposition: 40, temporal_orientation: 25, financial_attentiveness: 25, financial_self_efficacy: 40, prosocial_orientation: 45 },
-  purposeful_giver:        { impulse_regulation: 65, risk_disposition: 40, temporal_orientation: 60, financial_attentiveness: 65, financial_self_efficacy: 60, prosocial_orientation: 90 },
+  steady_saver:            { impulse_regulation: 85, risk_disposition: 25, temporal_orientation: 80, financial_attentiveness: 60, financial_self_efficacy: 70, prosocial_orientation: 50 },
+  cautious_guardian:       { impulse_regulation: 70, risk_disposition: 0,  temporal_orientation: 60, financial_attentiveness: 85, financial_self_efficacy: 45, prosocial_orientation: 35 },
+  conscious_spender:       { impulse_regulation: 65, risk_disposition: 45, temporal_orientation: 55, financial_attentiveness: 70, financial_self_efficacy: 65, prosocial_orientation: 60 },
+  ambitious_builder:       { impulse_regulation: 60, risk_disposition: 65, temporal_orientation: 90, financial_attentiveness: 75, financial_self_efficacy: 75, prosocial_orientation: 40 },
+  strategic_risk_taker:    { impulse_regulation: 55, risk_disposition: 90, temporal_orientation: 65, financial_attentiveness: 85, financial_self_efficacy: 70, prosocial_orientation: 40 },
+  overconfident_navigator: { impulse_regulation: 35, risk_disposition: 75, temporal_orientation: 50, financial_attentiveness: 25, financial_self_efficacy: 92, prosocial_orientation: 40 },
+  status_seeker:           { impulse_regulation: 35, risk_disposition: 55, temporal_orientation: 35, financial_attentiveness: 50, financial_self_efficacy: 65, prosocial_orientation: 20 },
+  impulsive_spender:       { impulse_regulation: 8,  risk_disposition: 50, temporal_orientation: 15, financial_attentiveness: 35, financial_self_efficacy: 45, prosocial_orientation: 55 },
+  anxious_avoider:         { impulse_regulation: 50, risk_disposition: 20, temporal_orientation: 40, financial_attentiveness: 8,  financial_self_efficacy: 12, prosocial_orientation: 45 },
+  passive_drifter:         { impulse_regulation: 45, risk_disposition: 45, temporal_orientation: 12, financial_attentiveness: 30, financial_self_efficacy: 35, prosocial_orientation: 45 },
+  purposeful_giver:        { impulse_regulation: 60, risk_disposition: 35, temporal_orientation: 55, financial_attentiveness: 60, financial_self_efficacy: 55, prosocial_orientation: 92 },
 };
 
 // A neutral starting profile (all midpoints).

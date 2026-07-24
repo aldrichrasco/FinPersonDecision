@@ -17,7 +17,7 @@ const NAV_ITEMS = [
 // goals live now instead of only inside one persona's sandbox drawer.
 const MENU_ITEMS = [
   { href: "learn.html", label: "Learn" },
-  { href: "model.html", label: "The model" },
+  { href: "model.html", label: "Theory" },
   { href: "goals.html", label: "Goals" },
   { href: "achievements.html", label: "Achievements" },
   { href: "donate.html", label: "Donate" },
@@ -63,7 +63,7 @@ function initHeaderMenu() {
   const page = currentPage();
   wrap.innerHTML = `
     <button class="header-menu-btn" id="header-menu-btn" type="button" aria-haspopup="true" aria-expanded="false">
-      Menu <span aria-hidden="true">▾</span>
+      Menu <span class="header-menu-caret" aria-hidden="true">▾</span>
     </button>
     <div class="header-menu-panel" id="header-menu-panel" hidden>
       ${MENU_ITEMS.map(item => `<a href="${item.href}"${item.href.replace(".html", "") === page ? ' aria-current="page"' : ""}>${item.label}</a>`).join("")}

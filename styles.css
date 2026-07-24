@@ -1404,6 +1404,8 @@ body.has-app-nav .study-badge{bottom:84px;}
   padding:8px 14px;font-family:var(--font-body);font-size:13px;color:var(--ink);cursor:pointer;}
 .header-menu-btn:hover{border-color:var(--ink);}
 .header-menu-btn:focus-visible{outline:2px solid var(--ink);outline-offset:2px;}
+.header-menu-caret{display:inline-block;transition:transform .15s ease;}
+.header-menu-btn[aria-expanded="true"] .header-menu-caret{transform:rotate(180deg);}
 .header-menu-panel{position:absolute;top:calc(100% + 8px);right:0;z-index:50;
   min-width:180px;padding:6px;border:1px solid var(--line);border-radius:12px;
   background:var(--paper-raised);box-shadow:0 12px 30px -10px color-mix(in srgb, var(--ink) 40%, transparent);
@@ -1416,6 +1418,17 @@ body.has-app-nav .study-badge{bottom:84px;}
 .zone-status-line{font-size:13px;font-weight:500;margin:6px 0 0;}
 .zone-status-line.zone-homeostasis{color:var(--teal);}
 .zone-status-line.zone-breakdown,.zone-status-line.zone-distortion{color:var(--brick, #A6402F);}
+
+.persona-chip-wrap{position:relative;display:inline-block;}
+.persona-chip-tooltip{position:absolute;left:50%;bottom:calc(100% + 8px);z-index:20;
+  transform:translate(-50%,4px);width:180px;text-align:center;
+  background:var(--ink);color:var(--paper-raised);border-radius:12px;
+  padding:12px;opacity:0;pointer-events:none;transition:opacity .15s ease,transform .15s ease;
+  box-shadow:0 10px 24px -10px rgba(0,0,0,0.4);}
+.persona-chip-wrap:hover .persona-chip-tooltip,
+.persona-chip-wrap:focus-within .persona-chip-tooltip{opacity:1;transform:translate(-50%,0);}
+.persona-radar{width:100%;height:auto;aspect-ratio:1;}
+.persona-chip-trait{margin:6px 0 0;font-size:11.5px;line-height:1.4;color:var(--paper-raised);}
 
 /* -------------------------------------------------------- metric tooltips */
 .metric-card[data-tooltip]{position:relative;cursor:help;}
