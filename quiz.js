@@ -287,6 +287,11 @@ function maybeAskTiebreaker() {
   const situation = situationId && typeof getSituation === "function" ? getSituation(situationId) : null;
   const situationLabel = situation ? situation.label : "";
 
+  // The generated-question fetch can take a few seconds — without this the
+  // last answered question just sits on screen looking frozen/stuck.
+  document.getElementById("quiz-progress").textContent = "One more, to be sure";
+  document.getElementById("quiz-body").innerHTML = `<p class="quiz-loading">Thinking of one more question&hellip;</p>`;
+
   if (typeof fetchGeneratedQuizQuestion === "function") {
     fetchGeneratedQuizQuestion(situationLabel, axisA, axisB)
       .then(generated => renderTiebreakerQuestion(generated || fallback))
