@@ -732,6 +732,7 @@ h1{
 .chat-context{display:flex;align-items:center;gap:9px;flex-wrap:wrap;
   padding:9px 13px;margin-bottom:12px;border:1px solid var(--line);
   border-radius:10px;background:var(--paper-raised);font-size:12px;}
+.chat-context[hidden]{display:none;}
 .ctx-icon{color:var(--teal);font-size:9px;line-height:1;}
 .ctx-text{flex:1;min-width:180px;color:var(--slate);line-height:1.45;}
 .ctx-text strong{color:var(--ink);font-weight:500;}
