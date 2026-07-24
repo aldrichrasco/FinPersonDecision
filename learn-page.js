@@ -182,3 +182,11 @@
     });
   }
 })();
+
+if (typeof runAchievementCheck === "function") {
+  runAchievementCheck((newly) => {
+    if (newly.length && typeof toast === "function") {
+      toast(`Unlocked: ${newly.map(a => a.title).join(", ")}`, { tone: "good", duration: 4500 });
+    }
+  });
+}

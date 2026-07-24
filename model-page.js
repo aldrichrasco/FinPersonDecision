@@ -1,4 +1,6 @@
 (function () {
+  try { localStorage.setItem("finperson_visited_model", "1"); } catch (e) {}
+
   const C_ORDER = ["C0", "C1", "C2", "C3"];
 
   function renderCalibration() {

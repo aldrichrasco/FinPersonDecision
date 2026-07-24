@@ -1398,6 +1398,25 @@ body.has-app-nav .study-badge{bottom:84px;}
 .model-axis-poles{display:flex;align-items:center;gap:10px;margin-top:10px;font-size:11.5px;color:var(--slate);}
 .model-archetype-row{font-size:13px;line-height:1.5;color:var(--ink);margin:0 0 6px;}
 
+/* ---------------------------------------------------------------- header menu */
+.header-menu{position:relative;}
+.header-menu-btn{background:transparent;border:1px solid var(--line);border-radius:999px;
+  padding:8px 14px;font-family:var(--font-body);font-size:13px;color:var(--ink);cursor:pointer;}
+.header-menu-btn:hover{border-color:var(--ink);}
+.header-menu-btn:focus-visible{outline:2px solid var(--ink);outline-offset:2px;}
+.header-menu-panel{position:absolute;top:calc(100% + 8px);right:0;z-index:50;
+  min-width:180px;padding:6px;border:1px solid var(--line);border-radius:12px;
+  background:var(--paper-raised);box-shadow:0 12px 30px -10px color-mix(in srgb, var(--ink) 40%, transparent);
+  display:flex;flex-direction:column;}
+.header-menu-panel a{display:block;padding:9px 12px;border-radius:8px;font-size:14px;
+  color:var(--ink);text-decoration:none;}
+.header-menu-panel a:hover{background:var(--paper);}
+.header-menu-panel a[aria-current="page"]{font-weight:500;color:var(--teal);}
+
+.zone-status-line{font-size:13px;font-weight:500;margin:6px 0 0;}
+.zone-status-line.zone-homeostasis{color:var(--teal);}
+.zone-status-line.zone-breakdown,.zone-status-line.zone-distortion{color:var(--brick, #A6402F);}
+
 /* -------------------------------------------------------- metric tooltips */
 .metric-card[data-tooltip]{position:relative;cursor:help;}
 .metric-tooltip{position:absolute;left:0;right:0;bottom:calc(100% + 8px);z-index:20;

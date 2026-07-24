@@ -16,18 +16,6 @@
   const changeLabel = change > 0 ? `+${change}` : `${change}`;
   const changeClass = change > 0 ? "status-good" : change < 0 ? "status-bad" : "status-watch";
 
-  const axisRows = AXIS_KEYS.map(k => {
-    const v = saved.profile[k] ?? 50;
-    return `
-      <div class="axis-row">
-        <div class="axis-top">
-          <span class="axis-label">${esc(AXES[k].label)}<span class="axis-sub">${esc(AXES[k].sub)}</span></span>
-          <span class="axis-read">${esc(describeAxis(k, v))}</span>
-        </div>
-        <div class="axis-track"><div class="axis-fill" style="width:${v}%"></div></div>
-      </div>`;
-  }).join("");
-
   const daysTracked = history.length > 1
     ? Math.max(1, Math.round((history[history.length - 1].at - history[0].at) / 86400000))
     : 0;
@@ -112,6 +100,10 @@
 
     ${goalsHtml}
 
+    <p class="chart-title">Your six axes</p>
+    <p class="chart-sub" style="margin:-6px 0 12px;font-size:13px;color:var(--slate);">Spoke length is your quiz score; a faded point means your sandbox decisions on that axis have been less consistent than a solid one.</p>
+    <canvas id="radar-chart" width="360" height="360" style="width:100%;max-width:360px;height:auto;aspect-ratio:1;display:block;margin:0 auto 28px;"></canvas>
+
     <p class="chart-title">What I picked up about you</p>
     <div class="pattern-panel tone-neutral" style="margin-bottom:26px;">
       <p class="pattern-body" style="font-size:15px;color:var(--ink);">${esc(characterise(saved.profile, saved.archetype))}</p>
@@ -130,6 +122,16 @@
   const canvas = document.getElementById("cap-chart");
   const pts = history.length ? history.map(h => h.capability) : [latest];
   drawTrend(canvas, pts, "Take the quiz again later to see your trend.");
+
+  // Radar: draw immediately from the quiz profile alone, then redraw once
+  // per-axis consistency (signed-in only) resolves.
+  const radarCanvas = document.getElementById("radar-chart");
+  if (radarCanvas && typeof drawRadarChart === "function") {
+    drawRadarChart(radarCanvas, saved.profile, {});
+    fetchAxisConsistency().then(byAxis => {
+      drawRadarChart(radarCanvas, saved.profile, byAxis);
+    });
+  }
 
   // Fetch and draw the real sandbox wellbeing trajectory (signed-in users
   // only — anonymous gets an empty array back and a clear explanation).

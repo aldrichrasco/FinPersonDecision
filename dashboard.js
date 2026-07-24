@@ -1069,6 +1069,24 @@ function updateMetrics() {
 
   setRatioPill("ratio-emergency", `${emergencyMonths.toFixed(1)} months`, Math.min(100, (emergencyMonths / 6) * 100), emStatus);
   setRatioPill("ratio-dti", `${dtiPct.toFixed(0)}%`, Math.min(100, dtiPct), dtiStatus);
+
+  renderZoneStatusLine();
+}
+
+// A plain-language read of where the chart's shaded band actually puts you
+// right now — the band alone asks the person to interpret a shape; this
+// just says it. Separate from renderPatternPanel(), which only speaks once
+// a pattern across several decisions exists.
+function renderZoneStatusLine() {
+  const el = document.getElementById("zone-status-line");
+  if (!el || !observedTrack.length) return;
+  const zone = zoneStatus(observedTrack[observedTrack.length - 1]);
+  const text = zone === "homeostasis" ? "Right now, you're in a comfortable range."
+    : zone === "breakdown" ? "Right now, you're stretched thin — under-provisioned."
+    : "Right now, you're over-protecting — provisioning at the cost of living.";
+  el.textContent = text;
+  el.hidden = false;
+  el.className = `zone-status-line zone-${zone}`;
 }
 
 function setRatioPill(id, label, fillPct, status) {
@@ -1135,21 +1153,19 @@ function drawChart() {
   });
 }
 
-function initStickyHeader() {
-  const header = document.querySelector(".topbar");
-  if (!header) return;
-  const onScroll = () => header.classList.toggle("scrolled", window.scrollY > 8);
-  window.addEventListener("scroll", onScroll, { passive: true });
-  onScroll();
-}
-
 renderPersonaChips();
 renderPredictionBanner();
 renderDifficultyChips();
-initStickyHeader();
 initHomeostasisChart();
 initCoachPanel();
 if (typeof syncIDMFromServer === "function") syncIDMFromServer();
+if (typeof runAchievementCheck === "function") {
+  runAchievementCheck((newly) => {
+    if (newly.length && typeof toast === "function") {
+      toast(`Unlocked: ${newly.map(a => a.title).join(", ")}`, { tone: "good", duration: 4500 });
+    }
+  });
+}
 
 // Keyboard control. Numbers pick a choice, R rolls a new scenario, D toggles
 // the numbers drawer. Registered through the shared layer so "?" lists them.

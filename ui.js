@@ -12,6 +12,17 @@ const NAV_ITEMS = [
   { href: "progress.html", label: "Progress", icon: "◈", match: ["progress"] },
 ];
 
+// Secondary pages live in the header menu, not the bottom pill — the pill
+// stays reserved for the two things used every session. This is also where
+// goals live now instead of only inside one persona's sandbox drawer.
+const MENU_ITEMS = [
+  { href: "learn.html", label: "Learn" },
+  { href: "model.html", label: "The model" },
+  { href: "goals.html", label: "Goals" },
+  { href: "achievements.html", label: "Achievements" },
+  { href: "donate.html", label: "Donate" },
+];
+
 function currentPage() {
   const path = location.pathname.split("/").pop() || "index.html";
   return path.replace(".html", "");
@@ -37,6 +48,61 @@ function initNav() {
   }).join("");
   document.body.appendChild(nav);
   document.body.classList.add("has-app-nav");
+}
+
+// Small dropdown in the topbar for secondary pages (Learn, The model, Goals,
+// Achievements, Donate). Injected next to #auth-slot the same way initNav()
+// injects the bottom pill — one shared function, no per-page wiring.
+function initHeaderMenu() {
+  const slot = document.getElementById("auth-slot");
+  if (!slot || document.getElementById("header-menu")) return;
+
+  const wrap = document.createElement("div");
+  wrap.id = "header-menu";
+  wrap.className = "header-menu";
+  const page = currentPage();
+  wrap.innerHTML = `
+    <button class="header-menu-btn" id="header-menu-btn" type="button" aria-haspopup="true" aria-expanded="false">
+      Menu <span aria-hidden="true">▾</span>
+    </button>
+    <div class="header-menu-panel" id="header-menu-panel" hidden>
+      ${MENU_ITEMS.map(item => `<a href="${item.href}"${item.href.replace(".html", "") === page ? ' aria-current="page"' : ""}>${item.label}</a>`).join("")}
+    </div>`;
+  slot.parentElement.insertBefore(wrap, slot);
+
+  const btn = document.getElementById("header-menu-btn");
+  const panel = document.getElementById("header-menu-panel");
+  btn.addEventListener("click", (e) => {
+    e.stopPropagation();
+    const open = panel.hidden;
+    panel.hidden = !open;
+    btn.setAttribute("aria-expanded", String(open));
+  });
+  document.addEventListener("click", (e) => {
+    if (!panel.hidden && !wrap.contains(e.target)) {
+      panel.hidden = true;
+      btn.setAttribute("aria-expanded", "false");
+    }
+  });
+  document.addEventListener("keydown", (e) => {
+    if (e.key === "Escape" && !panel.hidden) {
+      panel.hidden = true;
+      btn.setAttribute("aria-expanded", "false");
+      btn.focus();
+    }
+  });
+}
+
+// Adds a background to the sticky top header once scrolled, so page content
+// doesn't visibly pass through it. Previously only wired up on index.html and
+// dashboard.html — every other page's header stayed permanently transparent.
+// Auto-invoked below alongside initNav() so no future page can miss it.
+function initStickyHeader() {
+  const header = document.querySelector(".topbar");
+  if (!header) return;
+  const onScroll = () => header.classList.toggle("scrolled", window.scrollY > 8);
+  window.addEventListener("scroll", onScroll, { passive: true });
+  onScroll();
 }
 
 // ---------------------------------------------------------------- toasts
@@ -175,5 +241,7 @@ function initOfflineWatch() {
 }
 
 initNav();
+initHeaderMenu();
+initStickyHeader();
 initShortcuts();
 initOfflineWatch();

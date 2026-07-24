@@ -282,6 +282,16 @@ def my_wellbeing_history():
     return jsonify({"history": db.get_wellbeing_history(uid)})
 
 
+@app.route("/api/my/axis-consistency")
+def my_axis_consistency():
+    """Per-axis decision consistency for progress.html's radar chart. Own
+    data only — same auth boundary as /api/me/export."""
+    uid = current_user_id()
+    if not uid:
+        return jsonify({"by_axis": {}})
+    return jsonify({"by_axis": db.get_axis_consistency(uid)})
+
+
 @app.route("/api/me/delete", methods=["POST"])
 @rate_limit(limit=5, window=3600, scope="delete")
 def delete_me():
@@ -421,6 +431,30 @@ def idm_state():
     if not isinstance(payload, dict) or not isinstance(payload.get("state"), dict):
         return jsonify({"error": "invalid JSON body"}), 400
     db.save_idm_state(uid, payload["state"])
+    return jsonify({"ok": True})
+
+
+@app.route("/api/achievements", methods=["GET", "POST"])
+@rate_limit(limit=120, window=60, scope="state")
+def achievements():
+    """Persist unlocked achievement ids for signed-in users; anonymous users
+    get a no-op empty list (client falls back to localStorage-only)."""
+    uid = current_user_id()
+    if not uid:
+        if request.method == "GET":
+            return jsonify({"unlocked": []})
+        payload = request.get_json(silent=True)
+        if not isinstance(payload, dict) or not isinstance(payload.get("unlocked"), list):
+            return jsonify({"error": "invalid JSON body"}), 400
+        return jsonify({"ok": True})
+
+    if request.method == "GET":
+        return jsonify({"unlocked": db.get_achievements(uid)})
+    payload = request.get_json(silent=True)
+    if not isinstance(payload, dict) or not isinstance(payload.get("unlocked"), list):
+        return jsonify({"error": "invalid JSON body"}), 400
+    ids = [str(i)[:64] for i in payload["unlocked"] if isinstance(i, str)][:100]
+    db.save_achievements(uid, ids)
     return jsonify({"ok": True})
 
 

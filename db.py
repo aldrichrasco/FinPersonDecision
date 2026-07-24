@@ -220,6 +220,13 @@ def init_db():
             updated_at REAL
         )
     """
+    ddl_achievements = """
+        CREATE TABLE IF NOT EXISTS achievements (
+            user_id INTEGER PRIMARY KEY,
+            unlocked_json TEXT NOT NULL,
+            updated_at REAL
+        )
+    """
     ddl_research_exports = """
         CREATE TABLE IF NOT EXISTS research_exports (
             id INTEGER PRIMARY KEY {autoinc},
@@ -250,6 +257,7 @@ def init_db():
         cur.execute(ddl_report_entitlements)
         cur.execute(ddl_learning_progress)
         cur.execute(ddl_idm_state)
+        cur.execute(ddl_achievements)
         cur.execute(ddl_research_exports)
     _migrate()
 
@@ -849,6 +857,70 @@ def save_idm_state(user_id, state):
                    SET state_json = excluded.state_json, updated_at = excluded.updated_at""",
                 (user_id, payload, time.time()),
             )
+
+
+def get_achievements(user_id):
+    """List of unlocked achievement ids for this user. Achievements only ever
+    add, never revert, so the server copy is just a set — union-merge on
+    sync, no per-item comparison needed like idm_state requires."""
+    with _conn() as conn:
+        cur = conn.cursor()
+        cur.execute(f"SELECT unlocked_json FROM achievements WHERE user_id = {_ph(1)}", (user_id,))
+        row = cur.fetchone()
+        if not row:
+            return []
+        try:
+            return json.loads(row[0])
+        except (TypeError, ValueError):
+            return []
+
+
+def save_achievements(user_id, unlocked):
+    payload = json.dumps(list(unlocked))[:20000]
+    with _conn() as conn:
+        cur = conn.cursor()
+        if IS_POSTGRES:
+            cur.execute(
+                """INSERT INTO achievements (user_id, unlocked_json, updated_at)
+                   VALUES (%s, %s, %s)
+                   ON CONFLICT (user_id) DO UPDATE
+                   SET unlocked_json = EXCLUDED.unlocked_json, updated_at = EXCLUDED.updated_at""",
+                (user_id, payload, time.time()),
+            )
+        else:
+            cur.execute(
+                """INSERT INTO achievements (user_id, unlocked_json, updated_at)
+                   VALUES (?, ?, ?)
+                   ON CONFLICT (user_id) DO UPDATE
+                   SET unlocked_json = excluded.unlocked_json, updated_at = excluded.updated_at""",
+                (user_id, payload, time.time()),
+            )
+
+
+def get_axis_consistency(user_id):
+    """Per-axis decision consistency: how much wellbeing swings among this
+    user's own decisions tagged with each primary_axis (see fbm.js
+    SURFACE_AXIS). Low variance = decisions on that axis land in a similar
+    place each time; high variance = erratic. Population variance computed
+    in plain Python since SQLite has no built-in STDDEV/VARIANCE."""
+    with _conn() as conn:
+        cur = conn.cursor()
+        cur.execute(
+            f"""SELECT primary_axis, wellbeing FROM scenario_choices
+                WHERE user_id = {_ph(1)} AND primary_axis IS NOT NULL AND wellbeing IS NOT NULL""",
+            (user_id,),
+        )
+        by_axis = {}
+        for axis, wellbeing in cur.fetchall():
+            by_axis.setdefault(axis, []).append(wellbeing)
+
+    result = {}
+    for axis, values in by_axis.items():
+        n = len(values)
+        mean = sum(values) / n
+        variance = sum((v - mean) ** 2 for v in values) / n
+        result[axis] = {"count": n, "avg_wellbeing": round(mean, 1), "variance": round(variance, 1)}
+    return result
 
 
 def get_wellbeing_history(user_id):

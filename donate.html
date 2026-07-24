@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>FinPerson — Support this project</title>
+<meta name="description" content="FinPerson is free and ad-free. If it's been useful, here's how to support it.">
+<meta name="theme-color" content="#EDEFE6" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#141C2E" media="(prefers-color-scheme: dark)">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="styles.css">
+</head>
+<body>
+<a class="skip-link" href="#main">Skip to content</a>
+
+<header class="topbar">
+  <div class="wrap topbar-inner">
+    <a class="logo" href="index.html" style="text-decoration:none;color:inherit;">FinPerson</a>
+    <div id="auth-slot"></div>
+  </div>
+</header>
+
+<main class="wrap dash" id="main">
+  <h1 style="font-family:var(--font-display);font-weight:500;">Support this project</h1>
+  <p class="lede" style="font-size:16px;">FinPerson is free, ad-free, and doesn't sell your data. If it's been useful, here's how to help keep it that way.</p>
+
+  <!--
+    SETUP REQUIRED: these are placeholder links, same convention as
+    GOOGLE_CLIENT_ID in auth.js. Replace each href with your own account on
+    that platform before this page goes live — this app never processes a
+    payment itself, it only links out to a platform that does.
+  -->
+  <div class="learn-grid" style="margin-top:24px;">
+    <div class="learn-axis-card">
+      <h3>Ko-fi</h3>
+      <p class="learn-axis-blurb">One-off or monthly support, no account needed to give.</p>
+      <a class="btn btn-primary" href="https://ko-fi.com/REPLACE-WITH-YOUR-LINK" target="_blank" rel="noopener noreferrer">Support on Ko-fi</a>
+    </div>
+    <div class="learn-axis-card">
+      <h3>GitHub Sponsors</h3>
+      <p class="learn-axis-blurb">If you're a developer and this codebase itself was useful to you.</p>
+      <a class="btn btn-primary" href="https://github.com/sponsors/REPLACE-WITH-YOUR-LINK" target="_blank" rel="noopener noreferrer">Sponsor on GitHub</a>
+    </div>
+    <div class="learn-axis-card">
+      <h3>Buy Me a Coffee</h3>
+      <p class="learn-axis-blurb">A simple one-time thank-you.</p>
+      <a class="btn btn-primary" href="https://buymeacoffee.com/REPLACE-WITH-YOUR-LINK" target="_blank" rel="noopener noreferrer">Buy a coffee</a>
+    </div>
+  </div>
+
+  <p class="scenario-empty-body" style="margin-top:26px;">Every one of these takes you to that platform's own site to complete — FinPerson never sees or handles your payment details.</p>
+</main>
+
+<footer class="footer">
+  <div class="wrap footer-legal">
+    <p><strong>Not financial advice.</strong> This is an educational practice tool.</p>
+    <p class="footer-copy">&copy; <span id="year">2026</span> FinPerson.</p>
+  </div>
+</footer>
+
+<script src="instruments.js"></script>
+<script src="study.js"></script>
+<script src="data.js"></script>
+<script src="fbm.js"></script>
+<script src="observations.js"></script>
+<script src="api.js"></script>
+<script src="ui.js"></script>
+<script src="legal.js"></script>
+<script src="help.js"></script>
+<script src="https://accounts.google.com/gsi/client" async defer></script>
+<script src="auth.js"></script>
+</body>
+</html>

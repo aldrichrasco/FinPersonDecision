@@ -124,6 +124,25 @@ function logProfileSnapshot(profile, archetype, confidence) {
   }).catch(() => {});
 }
 
+async function fetchAchievements() {
+  try {
+    const res = await fetch(`${API_BASE_URL}/api/achievements`, { credentials: "include" });
+    if (!res.ok) return [];
+    return (await res.json()).unlocked || [];
+  } catch (e) {
+    return [];
+  }
+}
+
+function saveAchievements(unlocked) {
+  fetch(`${API_BASE_URL}/api/achievements`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    credentials: "include",
+    body: JSON.stringify({ unlocked }),
+  }).catch(() => {});
+}
+
 async function fetchIdmState() {
   try {
     const res = await fetch(`${API_BASE_URL}/api/idm-state`, { credentials: "include" });
@@ -141,6 +160,16 @@ function saveIdmState(state) {
     credentials: "include",
     body: JSON.stringify({ state }),
   }).catch(() => {});
+}
+
+async function fetchAxisConsistency() {
+  try {
+    const res = await fetch(`${API_BASE_URL}/api/my/axis-consistency`, { credentials: "include" });
+    if (!res.ok) return {};
+    return (await res.json()).by_axis || {};
+  } catch (e) {
+    return {};
+  }
 }
 
 async function fetchWellbeingHistory() {

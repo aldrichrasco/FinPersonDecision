@@ -21,15 +21,6 @@ function renderSituations() {
   });
 }
 
-// Adds a background once scrolled past the hero so the sticky header stays legible.
-function initStickyHeader() {
-  const header = document.querySelector(".topbar");
-  if (!header) return;
-  const onScroll = () => header.classList.toggle("scrolled", window.scrollY > 8);
-  window.addEventListener("scroll", onScroll, { passive: true });
-  onScroll();
-}
-
 // Scroll reveal. The class is added by JS so that anyone without JS — or with
 // an older browser — gets fully visible content rather than a blank page.
 function initReveal() {
@@ -68,7 +59,6 @@ function stagger(selector, step = 55) {
 
 renderSituations();
 initQuiz();
-initStickyHeader();
 
 document.querySelectorAll(".situations li, .step, .principle, .sandbox-card, .section-title, .lede, .hero-reassure")
   .forEach(el => el.classList.add("reveal"));
