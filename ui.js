@@ -28,6 +28,10 @@ function currentPage() {
   return path.replace(".html", "");
 }
 
+// A separate top-of-page "Menu" button read as an awkward second nav system
+// sitting next to the floating pill. Folding secondary pages into the pill
+// itself (as a "More" item, same visual language as Practise/Coach/Progress)
+// keeps a single, consistent piece of chrome instead of two.
 function initNav() {
   // The landing page is a marketing surface, not part of the app shell.
   const page = currentPage();
@@ -45,28 +49,60 @@ function initNav() {
               <span class="nav-icon" aria-hidden="true">${item.icon}</span>
               <span class="nav-label">${item.label}</span>
             </a>`;
-  }).join("");
+  }).join("") + `
+    <div class="app-nav-more">
+      <button class="app-nav-item app-nav-more-btn" id="app-nav-more-btn" type="button" aria-haspopup="true" aria-expanded="false">
+        <span class="nav-icon" aria-hidden="true">◎</span>
+        <span class="nav-label">More</span>
+      </button>
+      <div class="app-nav-more-panel" id="app-nav-more-panel" hidden>
+        ${MENU_ITEMS.map(item => `<a href="${item.href}"${item.href.replace(".html", "") === page ? ' aria-current="page"' : ""}>${item.label}</a>`).join("")}
+      </div>
+    </div>`;
   document.body.appendChild(nav);
   document.body.classList.add("has-app-nav");
+
+  const btn = document.getElementById("app-nav-more-btn");
+  const panel = document.getElementById("app-nav-more-panel");
+  btn.addEventListener("click", (e) => {
+    e.stopPropagation();
+    const open = panel.hidden;
+    panel.hidden = !open;
+    btn.setAttribute("aria-expanded", String(open));
+  });
+  document.addEventListener("click", (e) => {
+    if (!panel.hidden && !panel.contains(e.target) && e.target !== btn) {
+      panel.hidden = true;
+      btn.setAttribute("aria-expanded", "false");
+    }
+  });
+  document.addEventListener("keydown", (e) => {
+    if (e.key === "Escape" && !panel.hidden) {
+      panel.hidden = true;
+      btn.setAttribute("aria-expanded", "false");
+      btn.focus();
+    }
+  });
 }
 
-// Small dropdown in the topbar for secondary pages (Learn, The model, Goals,
-// Achievements, Donate). Injected next to #auth-slot the same way initNav()
-// injects the bottom pill — one shared function, no per-page wiring.
+// index.html has no bottom pill (it's a marketing surface, not the app
+// shell), so it keeps a small header dropdown as its only way to reach
+// secondary pages.
 function initHeaderMenu() {
+  const page = currentPage();
+  if (page !== "index" && page !== "") return;
   const slot = document.getElementById("auth-slot");
   if (!slot || document.getElementById("header-menu")) return;
 
   const wrap = document.createElement("div");
   wrap.id = "header-menu";
   wrap.className = "header-menu";
-  const page = currentPage();
   wrap.innerHTML = `
     <button class="header-menu-btn" id="header-menu-btn" type="button" aria-haspopup="true" aria-expanded="false">
       Menu <span class="header-menu-caret" aria-hidden="true">▾</span>
     </button>
     <div class="header-menu-panel" id="header-menu-panel" hidden>
-      ${MENU_ITEMS.map(item => `<a href="${item.href}"${item.href.replace(".html", "") === page ? ' aria-current="page"' : ""}>${item.label}</a>`).join("")}
+      ${MENU_ITEMS.map(item => `<a href="${item.href}">${item.label}</a>`).join("")}
     </div>`;
   slot.parentElement.insertBefore(wrap, slot);
 
