@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>FinPerson — coaching chat</title>
+<meta name="description" content="Chat with your behavioral finance coach.">
+<meta name="theme-color" content="#EDEFE6" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#141C2E" media="(prefers-color-scheme: dark)">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="styles.css">
+</head>
+<body>
+<a class="skip-link" href="#main">Skip to content</a>
+
+<header class="topbar">
+  <div class="wrap topbar-inner">
+    <a class="logo" href="index.html" style="text-decoration:none;color:inherit;">FinPerson</a>
+    <div id="auth-slot"></div>
+  </div>
+</header>
+
+<main class="wrap chat-main" id="main">
+  <div class="chat-persona-head" id="chat-persona-head">
+    <a href="index.html" class="chat-back">&larr; All coaches</a>
+    <div class="chat-persona-id">
+      <span class="persona-icon" id="chat-persona-icon"></span>
+      <div>
+        <p class="chat-persona-name" id="chat-persona-name">Coach</p>
+        <p class="chat-persona-trait" id="chat-persona-trait"></p>
+      </div>
+    </div>
+  </div>
+
+  <div class="chat-context" id="chat-context" hidden></div>
+
+  <div class="chat-window" id="chat-window" aria-live="polite"></div>
+
+  <div class="chat-starters" id="chat-starters" hidden></div>
+
+  <div class="sr-only" id="chat-live" aria-live="polite"></div>
+
+  <div class="chat-disclaimer">Educational coaching, not financial advice. Illustrative only.</div>
+
+  <form class="chat-input-row" id="chat-form" autocomplete="off">
+    <input class="chat-input" id="chat-input" type="text" placeholder="Ask your coach…" aria-label="Message" maxlength="2000">
+    <button class="btn btn-primary" id="chat-send" type="submit">Send</button>
+  </form>
+</main>
+
+<div class="quiz-overlay" id="legal-overlay">
+  <div class="quiz-modal legal-modal" role="dialog" aria-modal="true" aria-labelledby="legal-title">
+    <div class="quiz-modal-head">
+      <span id="legal-title">Privacy</span>
+      <button class="quiz-close" id="legal-close" aria-label="Close">&times;</button>
+    </div>
+    <div id="legal-body"></div>
+  </div>
+</div>
+
+<script src="instruments.js"></script>
+<script src="study.js"></script>
+<script src="data.js"></script>
+<script src="fbm.js"></script>
+<script src="api.js"></script>
+<script src="idm.js"></script>
+<script src="chat.js"></script>
+<script src="ui.js"></script>
+<script src="legal.js"></script>
+<script src="help.js"></script>
+<script src="https://accounts.google.com/gsi/client" async defer></script>
+<script src="auth.js"></script>
+</body>
+</html>

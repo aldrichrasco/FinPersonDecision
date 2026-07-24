@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>FinPerson — find your money mindset</title>
+<meta name="description" content="Eleven behavioral coaching personas and a decision sandbox that shows the before-and-after of real money choices.">
+<meta property="og:title" content="FinPerson — find your money mindset">
+<meta property="og:description" content="A financial coach that talks like you think. Eleven behavioral personas, one 30-second quiz.">
+<meta property="og:type" content="website">
+<meta name="theme-color" content="#EDEFE6" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#141C2E" media="(prefers-color-scheme: dark)">
+<meta name="robots" content="index, follow">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%231B2A4A'/%3E%3Ctext x='16' y='22' font-family='Georgia,serif' font-size='17' fill='%23EDEFE6' text-anchor='middle'%3EFP%3C/text%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="styles.css">
+</head>
+<body>
+<a class="skip-link" href="#main">Skip to content</a>
+
+<header class="topbar">
+  <div class="wrap topbar-inner">
+    <span class="logo">FinPerson</span>
+    <div id="auth-slot"></div>
+  </div>
+</header>
+
+<main id="main">
+  <section class="hero">
+    <div class="wrap">
+      <p class="eyebrow">A safe place to practise</p>
+      <h1>Money decisions,<br>without the consequences.</h1>
+      <p class="lede">Practise the calls you find hard, see how they play out, and notice the habits you can't spot from inside them. Nothing here touches your real accounts.</p>
+
+      <p class="situations-prompt">Where are you right now?</p>
+      <ul class="situations" id="situations"></ul>
+
+      <p class="hero-reassure">
+        Free. No account needed. Nothing you enter is real money.<br>
+        <button class="linkish" id="quiz-btn" type="button">Or answer a few questions first</button>
+        &nbsp;·&nbsp;
+        <a class="linkish" href="model.html">See the model behind this &rarr;</a>
+      </p>
+    </div>
+  </section>
+
+  <section class="how-it-works">
+    <div class="wrap">
+      <h2 class="section-title">Three steps. No spreadsheets.</h2>
+      <ol class="steps">
+        <li class="step">
+          <span class="step-num">1</span>
+          <h3>Tell us where you are</h3>
+          <p>One tap. No forms, no sign-up, no questions about your real balances.</p>
+        </li>
+        <li class="step">
+          <span class="step-num">2</span>
+          <h3>Make some decisions</h3>
+          <p>Situations with genuine trade-offs. Every choice moves your numbers, so you feel the cost.</p>
+        </li>
+        <li class="step">
+          <span class="step-num">3</span>
+          <h3>Notice your patterns</h3>
+          <p>Your coach names what you keep doing. Not a score — just what actually happened, three times running.</p>
+        </li>
+      </ol>
+    </div>
+  </section>
+
+  <section class="sandbox-teaser">
+    <div class="wrap sandbox-card">
+      <div>
+        <h3>Financial decision sandbox</h3>
+        <p>Run realistic money scenarios, see the before-and-after on your numbers, and get a plain-language risk read. No persona required.</p>
+      </div>
+      <a class="btn btn-primary" href="dashboard.html">Open sandbox</a>
+    </div>
+  </section>
+</main>
+
+<footer class="footer">
+  <div class="wrap footer-grid">
+    <div class="footer-brand">
+      <span class="logo">FinPerson</span>
+      <p class="footer-tagline">Behavioral finance coaching that meets you where you are.</p>
+    </div>
+    <nav class="footer-links" aria-label="Footer">
+      <a href="#main">Home</a>
+      <a href="dashboard.html">Sandbox</a>
+      <a href="learn.html">Learn</a>
+      <a href="model.html">The model</a>
+      <a href="#" data-legal="privacy">Privacy</a>
+      <a href="#" data-legal="terms">Terms</a>
+    </nav>
+  </div>
+  <div class="wrap footer-legal">
+    <p><strong>Not financial advice.</strong> FinPerson is an educational tool for practicing money decisions with illustrative numbers. It does not provide personalized financial, investment, tax, or legal advice. Figures shown in the sandbox are for practice only and are not your real accounts. Consult a licensed professional before making financial decisions.</p>
+    <p class="footer-copy">&copy; <span id="year">2026</span> FinPerson. All rights reserved.</p>
+  </div>
+</footer>
+
+<div class="quiz-overlay" id="quiz-overlay">
+  <div class="quiz-modal" role="dialog" aria-modal="true" aria-labelledby="quiz-progress">
+    <div class="quiz-modal-head">
+      <span id="quiz-progress">Question 1 of 5</span>
+      <button class="quiz-close" id="quiz-close" aria-label="Close quiz">&times;</button>
+    </div>
+    <div id="quiz-body"></div>
+  </div>
+</div>
+
+<div class="quiz-overlay" id="legal-overlay">
+  <div class="quiz-modal legal-modal" role="dialog" aria-modal="true" aria-labelledby="legal-title">
+    <div class="quiz-modal-head">
+      <span id="legal-title">Privacy</span>
+      <button class="quiz-close" id="legal-close" aria-label="Close">&times;</button>
+    </div>
+    <div id="legal-body"></div>
+  </div>
+</div>
+
+<script src="instruments.js"></script>
+<script src="study.js"></script>
+<script src="data.js"></script>
+<script src="fbm.js"></script>
+<script src="situations.js"></script>
+<script src="observations.js"></script>
+<script src="api.js"></script>
+<script src="quiz.js"></script>
+<script src="script.js"></script>
+<script src="legal.js"></script>
+<script src="help.js"></script>
+<script src="https://accounts.google.com/gsi/client" async defer></script>
+<script src="auth.js"></script>
+</body>
+</html>

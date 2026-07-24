@@ -1,0 +1,253 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>FinPerson — decision sandbox</title>
+<meta name="description" content="Run realistic money scenarios and see the before-and-after on your numbers.">
+<meta name="theme-color" content="#EDEFE6" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#141C2E" media="(prefers-color-scheme: dark)">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%231B2A4A'/%3E%3Ctext x='16' y='22' font-family='Georgia,serif' font-size='17' fill='%23EDEFE6' text-anchor='middle'%3EFP%3C/text%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="styles.css">
+</head>
+<body>
+<a class="skip-link" href="#main">Skip to content</a>
+
+<header class="topbar">
+  <div class="wrap topbar-inner">
+    <a class="logo" href="index.html" style="text-decoration:none;color:inherit;">FinPerson</a>
+    <div id="auth-slot"></div>
+  </div>
+</header>
+
+<main class="wrap dash" id="main">
+
+  <header class="sandbox-heading">
+    <p class="sandbox-kicker">Decision sandbox</p>
+    <h1>Make the trade-off visible.</h1>
+    <p>Choose the option you would actually take. Each choice changes the illustrative numbers below before you continue.</p>
+  </header>
+
+  <section class="dash-setup">
+    <div class="dash-setup-row">
+      <span class="dash-label">Persona</span>
+      <div class="chip-row" id="persona-chips"></div>
+    </div>
+    <div class="dash-setup-row">
+      <span class="dash-label">Difficulty</span>
+      <div class="chip-row" id="difficulty-chips">
+        <button class="chip" data-difficulty="easy" aria-pressed="false">Easy</button>
+        <button class="chip active" data-difficulty="medium" aria-pressed="true">Medium</button>
+        <button class="chip" data-difficulty="hard" aria-pressed="false">Hard</button>
+      </div>
+      <button class="btn btn-ghost" id="restart-btn" style="margin-left:auto;">Restart</button>
+    </div>
+  </section>
+
+  <div class="round-bar" id="round-bar" hidden>
+    <div class="round-meta">
+      <span class="round-label" id="round-label">Round 1</span>
+      <span class="round-count" id="round-count">0 of 6</span>
+    </div>
+    <div class="round-track"><div class="round-fill" id="round-fill" style="width:0%"></div></div>
+  </div>
+
+  <section class="scenario-card" id="scenario-card">
+    <!-- empty / loaded states injected by dashboard.js -->
+  </section>
+
+  <div class="coach-dock">
+    <button class="coach-toggle" id="coach-toggle" type="button"
+            aria-expanded="false" aria-controls="coach-panel">
+      <span class="coach-toggle-icon" aria-hidden="true">◇</span>
+      <span>Talk this one through</span>
+    </button>
+
+    <aside class="coach-panel" id="coach-panel" hidden aria-label="Decision coach">
+      <div class="coach-head">
+        <span class="coach-head-title">Your coach</span>
+        <button class="coach-close" id="coach-close" type="button" aria-label="Close coach">&times;</button>
+      </div>
+      <div class="coach-body" id="coach-body" aria-live="polite"></div>
+      <div class="coach-quick-row">
+        <button class="coach-quick" type="button" data-prompt="What am I actually weighing up here?">What am I weighing?</button>
+        <button class="coach-quick" type="button" data-prompt="Have I done something like this before?">Seen this before?</button>
+        <button class="coach-quick" type="button" data-prompt="What might I be missing about this one?">What am I missing?</button>
+      </div>
+      <form class="coach-form" id="coach-form" autocomplete="off">
+        <input class="coach-input" id="coach-input" type="text"
+               placeholder="Ask your coach…" aria-label="Message your coach" maxlength="500">
+        <button class="btn btn-primary coach-send" type="submit">Send</button>
+      </form>
+      <p class="coach-disclaimer">Educational coaching, not financial advice. Your coach won't tell you what to pick.</p>
+    </aside>
+  </div>
+
+  <details class="detail-drawer" id="detail-drawer" open>
+    <summary>
+      <span class="drawer-title">Your numbers</span>
+      <span class="drawer-hint" id="drawer-hint"></span>
+    </summary>
+  <section class="wellbeing">
+    <div class="wellbeing-head">
+      <h2>Where you stand</h2>
+      <span class="wellbeing-note" id="wellbeing-note" aria-live="polite">Select a persona to load starting numbers.</span>
+    </div>
+
+    <p class="wellbeing-intro">These are simplified monthly numbers so the trade-offs are easy to see. The point is to notice patterns and pressure points, not to pretend these are real accounts.</p>
+    <div class="metric-grid" id="metric-grid">
+      <div class="metric-card" tabindex="0" data-tooltip aria-describedby="m-income-desc">
+        <span class="metric-label">Monthly income</span><span class="metric-value" id="m-income">—</span>
+        <p class="metric-tooltip" id="m-income-desc">What comes in each month, before anything goes out. There's no universal "good" number here — what matters is how it compares to what goes out below.</p>
+      </div>
+      <div class="metric-card" tabindex="0" data-tooltip aria-describedby="m-expenses-desc">
+        <span class="metric-label">Monthly expenses</span><span class="metric-value" id="m-expenses">—</span>
+        <p class="metric-tooltip" id="m-expenses-desc">Everything that goes out each month. A commonly cited general guideline (the "50/30/20" rule) is roughly 50% needs, 30% wants, 20% savings/debt repayment — a reference point, not a rule to force.</p>
+      </div>
+      <div class="metric-card" tabindex="0" data-tooltip aria-describedby="m-savings-desc">
+        <span class="metric-label">Savings buffer</span><span class="metric-value" id="m-savings">—</span>
+        <p class="metric-tooltip" id="m-savings-desc">Cash set aside for emergencies. A commonly cited benchmark is 3–6 months of essential expenses — more if your income is unpredictable.</p>
+      </div>
+      <div class="metric-card" tabindex="0" data-tooltip aria-describedby="m-investments-desc">
+        <span class="metric-label">Investments</span><span class="metric-value" id="m-investments">—</span>
+        <p class="metric-tooltip" id="m-investments-desc">Money working toward longer-term goals. One widely-cited general benchmark suggests roughly 1x your annual income invested by 30, growing from there — a reference point, not a personalized target.</p>
+      </div>
+      <div class="metric-card" tabindex="0" data-tooltip aria-describedby="m-debt-desc">
+        <span class="metric-label">Debt balance</span><span class="metric-value" id="m-debt">—</span>
+        <p class="metric-tooltip" id="m-debt-desc">Total owed across debts. What matters most is this relative to income — see the debt-to-income ratio below. Many guides cite keeping total debt payments under roughly 36% of income as generally more manageable.</p>
+      </div>
+      <div class="metric-card metric-card-networth" tabindex="0" data-tooltip aria-describedby="m-networth-desc">
+        <span class="metric-label">Illustrative net worth</span><span class="metric-value" id="m-net-worth">-</span>
+        <p class="metric-tooltip" id="m-networth-desc">Savings and investments, minus debt. There's no fixed "good" number — it varies hugely by age and circumstances. The trend over time matters more than any single figure.</p>
+      </div>
+    </div>
+    <div class="ratio-row" id="ratio-row">
+      <div class="ratio-pill" id="ratio-emergency">
+        <div class="ratio-top"><span class="ratio-label">Emergency fund</span><span class="ratio-value">—</span></div>
+        <div class="ratio-track"><div class="ratio-fill" style="width:0%"></div></div>
+      </div>
+      <div class="ratio-pill" id="ratio-dti">
+        <div class="ratio-top"><span class="ratio-label">Debt-to-income</span><span class="ratio-value">—</span></div>
+        <div class="ratio-track"><div class="ratio-fill" style="width:0%"></div></div>
+      </div>
+    </div>
+
+    <div class="pattern-panel" id="pattern-panel" hidden></div>
+
+    <figure class="chart-block" id="chart-block">
+      <figcaption class="chart-head">
+        <p class="chart-title">How you're tracking</p>
+        <p class="chart-sub">The shaded band is a comfortable place to be — enough put by, not so much that you're not living.</p>
+      </figcaption>
+      <div class="chart-stage">
+        <canvas id="homeostasis-chart" role="img" tabindex="0"
+                aria-label="Chart of how you're tracking. No decisions yet."
+                aria-describedby="chart-desc"></canvas>
+        <div class="chart-overlay" aria-hidden="true">
+          <div id="chart-callouts"></div>
+          <div class="chart-tooltip" id="chart-tooltip" hidden></div>
+        </div>
+      </div>
+      <p class="sr-only" id="chart-desc">
+        Interactive chart of your position over time. Use the left and right
+        arrow keys to move through each decision.
+      </p>
+      <div class="sr-only" id="chart-live" aria-live="polite"></div>
+      <details class="chart-data-toggle">
+        <summary>View this as a table</summary>
+        <div class="chart-table-wrap"><table id="chart-data-table"></table></div>
+      </details>
+    </figure>
+
+    <figure class="networth-chart-block">
+      <figcaption class="chart-head">
+        <p class="chart-title">Illustrative net worth</p>
+        <p class="chart-sub">Savings and investments, minus debt. This tracks the sandbox figures only.</p>
+      </figcaption>
+      <canvas id="networth-chart" role="img" aria-label="Illustrative net worth over the decisions in this sandbox."></canvas>
+    </figure>
+
+    <div class="log-block">
+      <p class="chart-title">Change log</p>
+      <ul class="change-log" id="change-log" aria-live="polite">
+        <li class="log-empty">No decisions yet.</li>
+      </ul>
+    </div>
+
+    <details class="metrics-help">
+      <summary>What these numbers mean</summary>
+      <p><strong>Emergency fund ratio</strong> — how many months your savings would cover essential expenses. A healthy buffer usually sits around 3–6 months.</p>
+      <p><strong>Debt-to-income ratio</strong> — how much of your income is going toward debt payments. Lower is usually easier to manage.</p>
+      <p><strong>How to read this panel</strong> — the main thing to watch is whether your choices are making you more buffered, more fragile, or more overextended.</p>
+    </details>
+    <section class="goal-diary" aria-labelledby="goal-diary-title">
+      <p class="scenario-eyebrow">Personal finance diary</p>
+      <h3 id="goal-diary-title">Goals and notes</h3>
+      <form class="goal-form" id="goal-form">
+        <input id="goal-title" class="goal-input" maxlength="120" required placeholder="A financial goal you want to work toward" aria-label="Financial goal">
+        <textarea id="goal-note" class="goal-note" maxlength="400" rows="2" placeholder="Why this matters to you (optional)" aria-label="Why this goal matters"></textarea>
+        <button class="btn btn-primary" type="submit">Add goal</button>
+      </form>
+      <ul class="goal-list" id="goal-list" aria-live="polite"></ul>
+    </section>
+  </section>
+  </details>
+
+</main>
+
+<footer class="footer">
+  <div class="wrap footer-grid">
+    <div class="footer-brand">
+      <a class="logo" href="index.html" style="text-decoration:none;color:inherit;">FinPerson</a>
+      <p class="footer-tagline">Behavioral finance coaching that meets you where you are.</p>
+    </div>
+    <nav class="footer-links" aria-label="Footer">
+      <a href="index.html">Home</a>
+      <a href="dashboard.html">Sandbox</a>
+      <a href="learn.html">Learn</a>
+      <a href="model.html">The model</a>
+      <a href="index.html#main">Coaches</a>
+    </nav>
+  </div>
+  <div class="wrap footer-legal">
+    <p><strong>Not financial advice.</strong> The numbers in this sandbox are illustrative and are not your real accounts. FinPerson is an educational tool and does not provide personalized financial, investment, tax, or legal advice. Consult a licensed professional before making financial decisions.</p>
+    <p class="footer-copy">&copy; <span id="year">2026</span> FinPerson. All rights reserved.</p>
+  </div>
+</footer>
+
+<div class="quiz-overlay" id="legal-overlay">
+  <div class="quiz-modal legal-modal" role="dialog" aria-modal="true" aria-labelledby="legal-title">
+    <div class="quiz-modal-head">
+      <span id="legal-title">Privacy</span>
+      <button class="quiz-close" id="legal-close" aria-label="Close">&times;</button>
+    </div>
+    <div id="legal-body"></div>
+  </div>
+</div>
+
+<script src="instruments.js"></script>
+<script src="study.js"></script>
+<script src="data.js"></script>
+<script src="fbm.js"></script>
+<script src="situations.js"></script>
+<script src="observations.js"></script>
+<script src="api.js"></script>
+<script src="deviation.js"></script>
+<script src="idm.js"></script>
+<script src="dlo.js"></script>
+<script src="scaffold.js"></script>
+<script src="chart.js"></script>
+<script src="session.js"></script>
+<script src="dashboard.js"></script>
+<script src="coach-panel.js"></script>
+<script src="probes.js"></script>
+<script src="ui.js"></script>
+<script src="legal.js"></script>
+<script src="help.js"></script>
+<script src="https://accounts.google.com/gsi/client" async defer></script>
+<script src="auth.js"></script>
+</body>
+</html>

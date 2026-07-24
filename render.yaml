@@ -1,0 +1,41 @@
+# Render Blueprint — deploy FinPerson with one click.
+#
+# Push this repo to GitHub, then in Render: New -> Blueprint -> select the
+# repo. Render reads this file and provisions the web service + Postgres
+# database together. After the first deploy:
+#   1. Set GOOGLE_CLIENT_ID in the service's Environment tab
+#      (from https://console.cloud.google.com/apis/credentials)
+#   2. Add your Render URL to "Authorized JavaScript origins" in that
+#      Google Cloud OAuth client
+#   3. Set the same client ID in auth.js, and API_BASE_URL in api.js
+#      can stay "" since the API is same-origin when server.py serves
+#      the frontend — or set it to your full Render URL.
+
+services:
+  - type: web
+    name: finperson
+    runtime: python
+    plan: free
+    buildCommand: pip install -r requirements.txt
+    startCommand: gunicorn -w 2 -b 0.0.0.0:$PORT server:app
+    envVars:
+      - key: DATABASE_URL
+        fromDatabase:
+          name: finperson-db
+          property: connectionString
+      - key: SECRET_KEY
+        generateValue: true
+      - key: GOOGLE_CLIENT_ID
+        sync: false          # set manually in the dashboard
+      - key: ANTHROPIC_API_KEY
+        sync: false          # set manually — powers the coaching chat
+      - key: LLM_PROVIDER
+        value: anthropic
+      - key: COOKIE_SECURE
+        value: "1"
+      - key: PYTHON_VERSION
+        value: "3.12.0"
+
+databases:
+  - name: finperson-db
+    plan: free

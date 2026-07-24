@@ -1,0 +1,9 @@
+# Never commit your real keys
+.env
+
+__pycache__/
+*.pyc
+finperson.db
+backups/
+.DS_Store
+.claude/settings.local.json

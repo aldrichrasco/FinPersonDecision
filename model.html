@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>FinPerson — The model behind this</title>
+<meta name="description" content="How FinPerson thinks about calibration, the six behavioural axes, and each archetype's expected pattern.">
+<meta name="theme-color" content="#EDEFE6" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#141C2E" media="(prefers-color-scheme: dark)">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="styles.css">
+</head>
+<body>
+<a class="skip-link" href="#main">Skip to content</a>
+
+<header class="topbar">
+  <div class="wrap topbar-inner">
+    <a class="logo" href="index.html" style="text-decoration:none;color:inherit;">FinPerson</a>
+    <div id="auth-slot"></div>
+  </div>
+</header>
+
+<main class="wrap dash" id="main">
+  <h1 style="font-family:var(--font-display);font-weight:500;">The model behind this</h1>
+  <p class="lede" style="font-size:16px;">FinPerson isn't scoring you against a target. Here's what it's actually tracking, and why.</p>
+
+  <div class="chip-row" style="margin:0 0 22px;" role="tablist">
+    <button class="chip" id="tabbtn-calibration" type="button" role="tab">Calibration</button>
+    <button class="chip" id="tabbtn-axes" type="button" role="tab">Six Axes</button>
+    <button class="chip" id="tabbtn-archetypes" type="button" role="tab">Archetypes</button>
+  </div>
+
+  <section id="tab-calibration" role="tabpanel"></section>
+  <section id="tab-axes" role="tabpanel" hidden></section>
+  <section id="tab-archetypes" role="tabpanel" hidden></section>
+</main>
+
+<footer class="footer">
+  <div class="wrap footer-legal">
+    <p><strong>Not financial advice.</strong> This is an educational practice tool. Nothing here is a credit score, a diagnosis, or a measure of your worth.</p>
+    <p class="footer-copy">&copy; <span id="year">2026</span> FinPerson.</p>
+  </div>
+</footer>
+
+<script src="instruments.js"></script>
+<script src="study.js"></script>
+<script src="data.js"></script>
+<script src="fbm.js"></script>
+<script src="deviation.js"></script>
+<script src="idm.js"></script>
+<script src="observations.js"></script>
+<script src="api.js"></script>
+<script src="ui.js"></script>
+<script src="legal.js"></script>
+<script src="help.js"></script>
+<script src="model-page.js"></script>
+<script src="https://accounts.google.com/gsi/client" async defer></script>
+<script src="auth.js"></script>
+</body>
+</html>
