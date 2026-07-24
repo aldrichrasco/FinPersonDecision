@@ -1410,6 +1410,7 @@ body.has-app-nav .study-badge{bottom:84px;}
   min-width:180px;padding:6px;border:1px solid var(--line);border-radius:12px;
   background:var(--paper-raised);box-shadow:0 12px 30px -10px color-mix(in srgb, var(--ink) 40%, transparent);
   display:flex;flex-direction:column;}
+.header-menu-panel[hidden]{display:none;}
 .header-menu-panel a{display:block;padding:9px 12px;border-radius:8px;font-size:14px;
   color:var(--ink);text-decoration:none;}
 .header-menu-panel a:hover{background:var(--paper);}
