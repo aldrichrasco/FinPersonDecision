@@ -430,3 +430,5 @@ then, it silently falls back to `PERSONA_FINANCE` and logs a console warning.
    group — e.g. surface debt-related scenarios more often once DTI crosses into
    "watch," so the sandbox responds to how someone's actually doing, not just who
    they picked at the start.
+#   F i n P e r s o n D e c i s i o n  
+ 
