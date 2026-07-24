@@ -162,6 +162,27 @@ function saveIdmState(state) {
   }).catch(() => {});
 }
 
+// Short timeout — a slow/failed generation must never stall the quiz.
+// Caller always has the fixed TIEBREAKER_QUESTIONS bank to fall back to.
+async function fetchGeneratedQuizQuestion(situationLabel, axisA, axisB) {
+  try {
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), 6000);
+    const res = await fetch(`${API_BASE_URL}/api/quiz/generate-question`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      credentials: "include",
+      signal: controller.signal,
+      body: JSON.stringify({ situation: situationLabel, axisA, axisB }),
+    });
+    clearTimeout(timeout);
+    if (!res.ok || res.status === 204) return null;
+    return await res.json();
+  } catch (e) {
+    return null;
+  }
+}
+
 async function fetchAxisConsistency() {
   try {
     const res = await fetch(`${API_BASE_URL}/api/my/axis-consistency`, { credentials: "include" });

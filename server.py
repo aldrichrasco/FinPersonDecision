@@ -51,6 +51,7 @@ import llm
 import safeguarding
 import study
 import scenario_gen
+import quiz_gen
 from ratelimit import rate_limit
 
 try:
@@ -832,6 +833,37 @@ def generate_scenario():
     if not scenario:
         return ("", 204)
     return jsonify(scenario)
+
+
+@app.route("/api/quiz/generate-question", methods=["POST"])
+@rate_limit(limit=40, window=300, scope="scengen")
+def generate_quiz_question():
+    """
+    Generates a tie-breaking quiz question. Returns 204 (not an error) when
+    unavailable, so the client falls back to the fixed TIEBREAKER_QUESTIONS
+    bank in quiz.js silently rather than surfacing a failure mid-quiz.
+    """
+    if not quiz_gen.ENABLED:
+        return ("", 204)
+
+    # Stimulus control: enrolled participants get the fixed bank unless the
+    # protocol explicitly permits generation — same reasoning as
+    # /api/scenario/generate.
+    code = _study_code()
+    if code and study.get_participant(code) and not quiz_gen.ALLOW_IN_STUDY:
+        return ("", 204)
+
+    payload = request.get_json(silent=True) or {}
+    situation = str(payload.get("situation", ""))[:120]
+    axis_a = payload.get("axisA")
+    axis_b = payload.get("axisB")
+    if axis_a not in quiz_gen.VALID_AXES or axis_b not in quiz_gen.VALID_AXES:
+        return ("", 204)
+
+    question = quiz_gen.generate(situation, axis_a, axis_b)
+    if not question:
+        return ("", 204)
+    return jsonify(question)
 
 
 @app.route("/api/chat-info")

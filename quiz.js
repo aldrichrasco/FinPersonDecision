@@ -84,7 +84,102 @@ const QUIZ_QUESTIONS = [
       { label: "Giving to others is part of my identity", d: { prosocial_orientation: +22 } },
     ],
   },
+  {
+    q: "Someone compliments a purchase you made. How do you feel?",
+    options: [
+      { label: "Good — it was for a person or cause, not for me", d: { prosocial_orientation: +18 } },
+      { label: "Good — I picked it because it says something about me", d: { prosocial_orientation: -18, impulse_regulation: +6 } },
+      { label: "I don't really think about it that way", d: { financial_attentiveness: +8, temporal_orientation: +5 } },
+      { label: "Slightly guilty — I hadn't planned to spend that", d: { impulse_regulation: -18 } },
+    ],
+  },
+  {
+    q: "A financial risk goes wrong for someone you know. Your first thought?",
+    options: [
+      { label: "What did they miss — I'd watch for that", d: { financial_attentiveness: +18, risk_disposition: -5 } },
+      { label: "Bad luck, could happen to anyone", d: { risk_disposition: +12, financial_self_efficacy: +12, financial_attentiveness: -8 } },
+      { label: "That's exactly why I avoid risk", d: { risk_disposition: -20, financial_self_efficacy: -8 } },
+      { label: "I'd have caught it early — I watch things closely", d: { financial_attentiveness: +22, risk_disposition: +12 } },
+    ],
+  },
+  {
+    q: "You picture your finances five years from now. What's the picture?",
+    options: [
+      { label: "Already growing something specific I'm building toward", d: { temporal_orientation: +20, risk_disposition: +10 } },
+      { label: "Steady and unremarkable, exactly as planned", d: { temporal_orientation: +15, impulse_regulation: +15 } },
+      { label: "Protected against whatever could go wrong", d: { risk_disposition: -18, financial_attentiveness: +12 } },
+      { label: "Honestly, I haven't pictured it", d: { temporal_orientation: -20, financial_attentiveness: -10 } },
+    ],
+  },
+  {
+    q: "When you make a big financial decision, who else factors in?",
+    options: [
+      { label: "Just me and my own goals", d: { prosocial_orientation: -15 } },
+      { label: "People who depend on me, before myself", d: { prosocial_orientation: +20 } },
+      { label: "Whoever's watching, if I'm honest", d: { prosocial_orientation: -20, financial_self_efficacy: +8 } },
+      { label: "I don't really factor anyone in — I just decide", d: { financial_attentiveness: -12, impulse_regulation: -10 } },
+    ],
+  },
 ];
+
+// Escalation: after the 12 base questions, if the top two candidate
+// archetypes are still close, one more question targets whichever axis
+// separates them most — authored, fixed, keyed by axis (not by archetype
+// pair, since any two archetypes that differ mainly on the same axis are
+// disambiguated the same way). This is the research-mode question: same
+// question, same wording, every time, for the DSS paper's validity.
+// AI-generated mode (quiz_gen.py) tries first for everyone else and falls
+// back to this bank on any failure — see maybeAskTiebreaker() below.
+const TIEBREAKER_QUESTIONS = {
+  impulse_regulation: {
+    q: "You're standing at checkout with something unplanned in your cart. What actually happens?",
+    options: [
+      { label: "I put it back — wasn't the plan", d: { impulse_regulation: +20 } },
+      { label: "I buy it, but note it and adjust elsewhere", d: { impulse_regulation: +8 } },
+      { label: "I buy it without a second thought", d: { impulse_regulation: -20 } },
+    ],
+  },
+  risk_disposition: {
+    q: "Two paths to the same goal: one slower and certain, one faster with real chance of falling short. Which do you take?",
+    options: [
+      { label: "Slower and certain, every time", d: { risk_disposition: -20 } },
+      { label: "Depends how much is riding on it", d: { risk_disposition: +5 } },
+      { label: "Faster path — I'd rather move", d: { risk_disposition: +20 } },
+    ],
+  },
+  temporal_orientation: {
+    q: "Someone asks what your money is 'for.' What's the honest answer?",
+    options: [
+      { label: "Something specific, years out", d: { temporal_orientation: +20 } },
+      { label: "Whatever comes up this year", d: { temporal_orientation: 0 } },
+      { label: "Honestly, this week", d: { temporal_orientation: -20 } },
+    ],
+  },
+  financial_attentiveness: {
+    q: "It's been a month since you actually looked at your full financial picture. How does that sit with you?",
+    options: [
+      { label: "That wouldn't happen — I check often", d: { financial_attentiveness: +20 } },
+      { label: "Normal for me, I check when something's due", d: { financial_attentiveness: 0 } },
+      { label: "Sounds about right, maybe longer", d: { financial_attentiveness: -20 } },
+    ],
+  },
+  financial_self_efficacy: {
+    q: "A money decision goes wrong despite your best judgment. What's your read on it afterward?",
+    options: [
+      { label: "I'll get it right next time — I know what I'm doing generally", d: { financial_self_efficacy: +20 } },
+      { label: "It shakes my confidence for a while", d: { financial_self_efficacy: -10 } },
+      { label: "Confirms I shouldn't trust my own judgment here", d: { financial_self_efficacy: -20 } },
+    ],
+  },
+  prosocial_orientation: {
+    q: "You come into some extra money with no immediate need. What pulls at you first?",
+    options: [
+      { label: "Whether someone else could use it more", d: { prosocial_orientation: +20 } },
+      { label: "A mix — some for others, most for me", d: { prosocial_orientation: 0 } },
+      { label: "It's mine — I'll decide for myself", d: { prosocial_orientation: -20 } },
+    ],
+  },
+};
 
 let quizStep = 0;
 let quizProfile = null; // built up during the quiz
@@ -149,8 +244,75 @@ function renderQuizStep() {
       if (quizStep < QUIZ_QUESTIONS.length) {
         renderQuizStep();
       } else {
-        renderQuizResult();
+        maybeAskTiebreaker();
       }
+    });
+  });
+  body.querySelector(".quiz-option")?.focus();
+}
+
+// If the top two candidate archetypes are still close after the 12 base
+// questions, ask one more question targeting whichever axis separates them
+// most, before committing to a result. An unambiguous profile skips this
+// entirely — the point is to ask more only when it's actually needed.
+const TIEBREAKER_AMBIGUITY_THRESHOLD = 20;
+
+function nearestTwoArchetypes(profile) {
+  return Object.keys(ARCHETYPE_PROFILES)
+    .map(slug => ({ slug, dist: distanceToArchetype(profile, slug) }))
+    .sort((a, b) => a.dist - b.dist)
+    .slice(0, 2);
+}
+
+function topDifferingAxes(slugA, slugB) {
+  const a = ARCHETYPE_PROFILES[slugA], b = ARCHETYPE_PROFILES[slugB];
+  return AXIS_KEYS
+    .map(k => ({ axis: k, diff: Math.abs(a[k] - b[k]) }))
+    .sort((x, y) => y.diff - x.diff);
+}
+
+function maybeAskTiebreaker() {
+  const [first, second] = nearestTwoArchetypes(quizProfile);
+  if (!second || second.dist - first.dist > TIEBREAKER_AMBIGUITY_THRESHOLD) {
+    renderQuizResult();
+    return;
+  }
+
+  const axes = topDifferingAxes(first.slug, second.slug);
+  const axisA = axes[0].axis;
+  const axisB = (axes[1] && axes[1].axis) || axisA;
+  const fallback = TIEBREAKER_QUESTIONS[axisA];
+
+  const situationId = typeof getSavedSituation === "function" ? getSavedSituation() : null;
+  const situation = situationId && typeof getSituation === "function" ? getSituation(situationId) : null;
+  const situationLabel = situation ? situation.label : "";
+
+  if (typeof fetchGeneratedQuizQuestion === "function") {
+    fetchGeneratedQuizQuestion(situationLabel, axisA, axisB)
+      .then(generated => renderTiebreakerQuestion(generated || fallback))
+      .catch(() => renderTiebreakerQuestion(fallback));
+  } else {
+    renderTiebreakerQuestion(fallback);
+  }
+}
+
+function renderTiebreakerQuestion(step) {
+  const body = document.getElementById("quiz-body");
+  const progress = document.getElementById("quiz-progress");
+  progress.textContent = "One more, to be sure";
+  body.innerHTML = `
+    <p class="quiz-q">${esc(step.q)}</p>
+    <div class="quiz-options">
+      ${step.options.map((o, i) => `<button class="quiz-option" data-i="${i}">${esc(o.label)}</button>`).join("")}
+    </div>
+  `;
+  body.querySelectorAll(".quiz-option").forEach(btn => {
+    btn.addEventListener("click", () => {
+      const opt = step.options[+btn.dataset.i];
+      Object.entries(opt.d || {}).forEach(([axis, delta]) => {
+        quizProfile[axis] = clamp01to100((quizProfile[axis] ?? 50) + delta);
+      });
+      renderQuizResult();
     });
   });
   body.querySelector(".quiz-option")?.focus();
