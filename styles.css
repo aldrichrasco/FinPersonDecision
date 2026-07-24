@@ -392,6 +392,17 @@ h1{
 .quiz-loading{font-size:15px;color:var(--slate);text-align:center;padding:24px 0;
   animation:quiz-loading-pulse 1.4s ease-in-out infinite;}
 @keyframes quiz-loading-pulse{0%,100%{opacity:0.5;}50%{opacity:1;}}
+
+/* Skeleton loaders — shaped like the layout they'll become (learn-grid
+   cards), instead of a bare "Loading..." text node. */
+.skeleton-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(230px,1fr));gap:14px;}
+.skeleton-card{height:140px;border-radius:14px;border:1px solid var(--line);
+  background:linear-gradient(90deg, var(--paper-raised) 25%, var(--slate-tint) 50%, var(--paper-raised) 75%);
+  background-size:200% 100%;animation:skeleton-shimmer 1.6s ease-in-out infinite;}
+@keyframes skeleton-shimmer{0%{background-position:200% 0;}100%{background-position:-200% 0;}}
+@media (prefers-reduced-motion: reduce){
+  .skeleton-card{animation:none;background:var(--paper-raised);}
+}
 .quiz-options{display:flex;flex-direction:column;gap:8px;}
 .quiz-option{
   text-align:left;
@@ -486,6 +497,7 @@ h1{
 .wellbeing-head h2{font-family:var(--font-display);font-weight:500;font-size:22px;margin:0;}
 .wellbeing-note{font-size:13px;color:var(--slate);}
 .wellbeing-intro{font-size:13px;line-height:1.55;color:var(--slate);margin:0 0 16px;}
+.drawer-tabs{margin:0 0 18px;}
 
 .prediction-banner{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;padding:12px 14px;margin:0 0 16px;border:1px solid var(--line);border-radius:12px;background:var(--gold-tint);}
 .prediction-title{margin:0 0 3px;font-family:var(--font-mono);font-size:10px;text-transform:uppercase;letter-spacing:0.08em;color:var(--marigold-ink);}
@@ -539,7 +551,9 @@ h1{
 .goal-input:focus,.goal-note:focus{outline:2px solid var(--ink);outline-offset:2px;}
 .goal-form .btn{align-self:start;}
 .goal-list{list-style:none;padding:0;margin:14px 0 0;border-top:1px solid var(--line);}
-.goal-entry{position:relative;padding:12px 34px 12px 0;border-bottom:1px solid var(--line);}
+.goal-entry{position:relative;padding:12px 34px 12px 0;border-bottom:1px solid var(--line);
+  margin:0 -10px;padding-left:10px;padding-right:44px;border-radius:8px;transition:background .15s ease;}
+.goal-entry:hover{background:var(--paper-raised);}
 .goal-entry label{display:flex;gap:9px;align-items:flex-start;font-size:14px;font-weight:500;cursor:pointer;}
 .goal-entry input{margin:4px 0 0;accent-color:var(--teal);}
 .goal-entry p{margin:4px 0 0 25px;font-size:13px;line-height:1.45;color:var(--slate);}
@@ -1349,7 +1363,8 @@ body.has-app-nav .study-badge{bottom:84px;}
 .learn-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(230px,1fr));gap:14px;
   margin:0 0 30px;}
 .learn-axis-card{border:1px solid var(--line);border-radius:14px;padding:16px 18px;
-  background:var(--paper);}
+  background:var(--paper);transition:transform .2s cubic-bezier(.22,1,.36,1),box-shadow .2s ease,border-color .2s ease;}
+.learn-axis-card:hover{transform:translateY(-2px);box-shadow:var(--card-shadow);border-color:color-mix(in srgb, var(--ink) 25%, var(--line));}
 .learn-axis-card.is-strength{border-left:3px solid var(--teal);}
 .learn-axis-card.is-growth{border-left:3px solid var(--marigold);}
 .learn-axis-card h3{font-family:var(--font-display);font-weight:500;font-size:16px;margin:0 0 4px;}
@@ -1359,7 +1374,8 @@ body.has-app-nav .study-badge{bottom:84px;}
 .learn-lesson{border-top:1px solid var(--line);padding:12px 0;}
 .learn-lesson:first-of-type{border-top:none;padding-top:0;}
 .learn-lesson-head{display:flex;align-items:center;justify-content:space-between;gap:10px;
-  cursor:pointer;}
+  cursor:pointer;margin:0 -8px;padding:4px 8px;border-radius:8px;transition:background .15s ease;}
+.learn-lesson-head:hover{background:var(--paper-raised);}
 .learn-lesson-title{font-size:14px;font-weight:500;color:var(--ink);}
 .learn-lesson-meta{font-size:11.5px;color:var(--slate);white-space:nowrap;}
 .learn-lesson-body{font-size:13.5px;line-height:1.55;color:var(--ink);margin:10px 0 0;

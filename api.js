@@ -18,6 +18,21 @@
 // verification library — see README for how to run it.
 
 const API_BASE_URL = ""; // "" = same origin (works when server.py serves the frontend).
+
+// A stalled (not immediately-failing) connection would otherwise hang a
+// fetch indefinitely, leaving whatever loading state called it stuck on
+// screen forever with no feedback. Every GET below that feeds a page's
+// initial render goes through this so a slow network degrades to "nothing
+// synced yet" rather than "frozen."
+async function fetchWithTimeout(url, opts = {}, ms = 8000) {
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), ms);
+  try {
+    return await fetch(url, { ...opts, signal: controller.signal });
+  } finally {
+    clearTimeout(timeout);
+  }
+}
 // Set a full URL only if the API lives on a different domain. On static
 // hosting with no backend, every call below fails fast and falls back
 // to mock data / localStorage automatically.
@@ -71,7 +86,7 @@ async function verifyGoogleCredential(credential) {
 
 async function fetchSandboxState() {
   try {
-    const res = await fetch(`${API_BASE_URL}/api/sandbox-state`, { credentials: "include" });
+    const res = await fetchWithTimeout(`${API_BASE_URL}/api/sandbox-state`, { credentials: "include" });
     if (!res.ok) return null;
     return (await res.json()).state;
   } catch (e) {
@@ -90,7 +105,7 @@ function saveSandboxState(state) {
 
 async function fetchLearnProgress() {
   try {
-    const res = await fetch(`${API_BASE_URL}/api/learn/progress`, { credentials: "include" });
+    const res = await fetchWithTimeout(`${API_BASE_URL}/api/learn/progress`, { credentials: "include" });
     if (!res.ok) return null;
     return (await res.json()).progress;
   } catch (e) {
@@ -126,7 +141,7 @@ function logProfileSnapshot(profile, archetype, confidence) {
 
 async function fetchAchievements() {
   try {
-    const res = await fetch(`${API_BASE_URL}/api/achievements`, { credentials: "include" });
+    const res = await fetchWithTimeout(`${API_BASE_URL}/api/achievements`, { credentials: "include" });
     if (!res.ok) return [];
     return (await res.json()).unlocked || [];
   } catch (e) {
@@ -145,7 +160,7 @@ function saveAchievements(unlocked) {
 
 async function fetchIdmState() {
   try {
-    const res = await fetch(`${API_BASE_URL}/api/idm-state`, { credentials: "include" });
+    const res = await fetchWithTimeout(`${API_BASE_URL}/api/idm-state`, { credentials: "include" });
     if (!res.ok) return null;
     return (await res.json()).state;
   } catch (e) {
@@ -162,20 +177,17 @@ function saveIdmState(state) {
   }).catch(() => {});
 }
 
-// Short timeout — a slow/failed generation must never stall the quiz.
-// Caller always has the fixed TIEBREAKER_QUESTIONS bank to fall back to.
+// Shorter timeout than the default — a slow/failed generation must never
+// stall the quiz. Caller always has the fixed TIEBREAKER_QUESTIONS bank to
+// fall back to.
 async function fetchGeneratedQuizQuestion(situationLabel, axisA, axisB) {
   try {
-    const controller = new AbortController();
-    const timeout = setTimeout(() => controller.abort(), 6000);
-    const res = await fetch(`${API_BASE_URL}/api/quiz/generate-question`, {
+    const res = await fetchWithTimeout(`${API_BASE_URL}/api/quiz/generate-question`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       credentials: "include",
-      signal: controller.signal,
       body: JSON.stringify({ situation: situationLabel, axisA, axisB }),
-    });
-    clearTimeout(timeout);
+    }, 6000);
     if (!res.ok || res.status === 204) return null;
     return await res.json();
   } catch (e) {
@@ -185,7 +197,7 @@ async function fetchGeneratedQuizQuestion(situationLabel, axisA, axisB) {
 
 async function fetchAxisConsistency() {
   try {
-    const res = await fetch(`${API_BASE_URL}/api/my/axis-consistency`, { credentials: "include" });
+    const res = await fetchWithTimeout(`${API_BASE_URL}/api/my/axis-consistency`, { credentials: "include" });
     if (!res.ok) return {};
     return (await res.json()).by_axis || {};
   } catch (e) {
@@ -195,7 +207,7 @@ async function fetchAxisConsistency() {
 
 async function fetchWellbeingHistory() {
   try {
-    const res = await fetch(`${API_BASE_URL}/api/my/wellbeing-history`, { credentials: "include" });
+    const res = await fetchWithTimeout(`${API_BASE_URL}/api/my/wellbeing-history`, { credentials: "include" });
     if (!res.ok) return [];
     return (await res.json()).history || [];
   } catch (e) {

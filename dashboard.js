@@ -1167,11 +1167,38 @@ function drawChart() {
   });
 }
 
+// The numbers drawer used to render everything at once (metrics, chart,
+// net worth, change log, goal diary) in one long stacked scroll. Splitting
+// into tabs, same show/hide pattern as model-page.js's showTab().
+const DRAWER_TABS = ["numbers", "chart", "history"];
+function showDrawerTab(name) {
+  DRAWER_TABS.forEach(t => {
+    const panel = document.getElementById(`drawer-tab-${t}`);
+    const btn = document.getElementById(`drawer-tabbtn-${t}`);
+    if (panel) panel.hidden = t !== name;
+    if (btn) btn.classList.toggle("active", t === name);
+  });
+  if (name === "chart") {
+    // Canvas clientWidth reads as 0 while its tab panel is hidden, so the
+    // chart was blank the first time someone switched to this tab — redraw
+    // now that it's actually visible.
+    drawChart();
+    drawNetWorthChart();
+  }
+}
+function initDrawerTabs() {
+  DRAWER_TABS.forEach(t => {
+    const btn = document.getElementById(`drawer-tabbtn-${t}`);
+    if (btn) btn.addEventListener("click", () => showDrawerTab(t));
+  });
+}
+
 renderPersonaChips();
 renderPredictionBanner();
 renderDifficultyChips();
 initHomeostasisChart();
 initCoachPanel();
+initDrawerTabs();
 if (typeof syncIDMFromServer === "function") syncIDMFromServer();
 if (typeof runAchievementCheck === "function") {
   runAchievementCheck((newly) => {
