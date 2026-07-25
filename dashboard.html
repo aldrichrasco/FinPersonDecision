@@ -23,7 +23,7 @@
   </div>
 </header>
 
-<main class="wrap dash sandbox-page" id="main">
+<main class="wrap dash" id="main">
 
   <header class="sandbox-heading">
     <p class="sandbox-kicker">Decision sandbox</p>
@@ -55,12 +55,32 @@
     <div class="round-track"><div class="round-fill" id="round-fill" style="width:0%"></div></div>
   </div>
 
-  <div class="sandbox-layout">
-  <div class="sandbox-main">
-
   <section class="scenario-card" id="scenario-card">
     <!-- empty / loaded states injected by dashboard.js -->
   </section>
+
+  <!-- The immediate "what did that choice just do" feedback — always
+       visible, no tab to click through, updates the instant a decision
+       lands. This is the thing the whole sandbox is actually for, so it
+       doesn't compete for space with the scenario above it; it sits
+       directly under the thing that caused it. -->
+  <div class="stat-strip" id="stat-strip">
+    <div class="stat-tile" id="stat-networth">
+      <span class="stat-tile-label">Net worth</span>
+      <span class="stat-tile-value" id="stat-networth-value">—</span>
+      <span class="stat-tile-delta" id="stat-networth-delta" hidden></span>
+    </div>
+    <div class="stat-tile" id="stat-emergency">
+      <span class="stat-tile-label">Emergency fund</span>
+      <span class="stat-tile-value" id="stat-emergency-value">—</span>
+      <span class="stat-tile-delta" id="stat-emergency-delta" hidden></span>
+    </div>
+    <div class="stat-tile" id="stat-dti">
+      <span class="stat-tile-label">Debt-to-income</span>
+      <span class="stat-tile-value" id="stat-dti-value">—</span>
+      <span class="stat-tile-delta" id="stat-dti-delta" hidden></span>
+    </div>
+  </div>
 
   <div class="coach-dock">
     <button class="coach-toggle" id="coach-toggle" type="button"
@@ -89,12 +109,9 @@
     </aside>
   </div>
 
-  </div>
-
-  <aside class="sandbox-side">
   <details class="detail-drawer" id="detail-drawer" open>
     <summary>
-      <span class="drawer-title">Your numbers</span>
+      <span class="drawer-title">The full breakdown</span>
       <span class="drawer-hint" id="drawer-hint"></span>
     </summary>
   <section class="wellbeing">
@@ -104,7 +121,7 @@
     </div>
 
     <div class="chip-row drawer-tabs" role="tablist">
-      <button class="chip active" id="drawer-tabbtn-numbers" type="button" role="tab">Numbers</button>
+      <button class="chip active" id="drawer-tabbtn-numbers" type="button" role="tab">Breakdown</button>
       <button class="chip" id="drawer-tabbtn-chart" type="button" role="tab">Chart</button>
       <button class="chip" id="drawer-tabbtn-history" type="button" role="tab">History</button>
     </div>
@@ -215,8 +232,6 @@
     </div>
   </section>
   </details>
-  </aside>
-  </div>
 
 </main>
 

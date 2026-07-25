@@ -428,6 +428,7 @@ async function selectPersona(slug, { fromCache = false, seedState = null } = {})
   document.getElementById("change-log").innerHTML = '<li class="log-empty">No decisions yet.</li>';
   const logTitle = document.querySelector(".log-block .chart-title");
   if (logTitle) logTitle.textContent = "Change log";
+  resetStatStrip();
   updateMetrics();
   drawChart();
   drawNetWorthChart();
@@ -1084,7 +1085,65 @@ function updateMetrics() {
   setRatioPill("ratio-emergency", `${emergencyMonths.toFixed(1)} months`, Math.min(100, (emergencyMonths / 6) * 100), emStatus);
   setRatioPill("ratio-dti", `${dtiPct.toFixed(0)}%`, Math.min(100, dtiPct), dtiStatus);
 
+  updateStatStrip(netWorth(state), emergencyMonths, emStatus, dtiPct, dtiStatus);
   renderZoneStatusLine();
+}
+
+// The always-visible "what did that choice just do" strip under the
+// scenario card. Each tile shows its current value plus a delta against
+// whatever it displayed before this call — reads directly off the DOM
+// (same trick as animateMetric/parseCurrency) rather than tracking extra
+// state. resetStatStrip() clears all three back to "—" first whenever a
+// persona is (re)selected, so switching personas never shows a delta
+// between one person's ending numbers and a different person's starting
+// ones — a delta here always means "your last decision," never "you
+// picked someone else."
+function updateStatStrip(netWorthVal, emergencyMonths, emStatus, dtiPct, dtiStatus) {
+  renderStatTile("stat-networth", netWorthVal, fmt(netWorthVal), d => `${fmt(Math.abs(d))}`, "neutral", 0.5);
+  renderStatTile("stat-emergency", emergencyMonths, `${emergencyMonths.toFixed(1)} mo`, d => `${Math.abs(d).toFixed(1)} mo`, emStatus, 0.05);
+  renderStatTile("stat-dti", dtiPct, `${dtiPct.toFixed(0)}%`, d => `${Math.abs(d).toFixed(0)}%`, dtiStatus, 0.5);
+}
+
+// minDelta matches each tile's display precision (whole dollars, 1
+// decimal place, whole percent) — otherwise a real but sub-rounding
+// change (e.g. 2.3% -> 2.1%, both shown as "2%") produced a confusing
+// "▼ 0%" delta instead of no delta at all.
+function renderStatTile(prefix, rawValue, displayText, formatDelta, status, minDelta) {
+  const tile = document.getElementById(prefix);
+  const valueEl = document.getElementById(`${prefix}-value`);
+  const deltaEl = document.getElementById(`${prefix}-delta`);
+  if (!tile || !valueEl || !deltaEl) return;
+
+  const prevText = valueEl.textContent;
+  const hadPrev = prevText !== "—";
+  const diff = hadPrev ? rawValue - parseCurrency(prevText) : 0;
+
+  valueEl.textContent = displayText;
+  tile.className = `stat-tile status-${status}`;
+
+  if (!hadPrev || Math.abs(diff) < minDelta) {
+    deltaEl.hidden = true;
+  } else {
+    const up = diff > 0;
+    deltaEl.hidden = false;
+    deltaEl.className = `stat-tile-delta ${up ? "stat-delta-up" : "stat-delta-down"}`;
+    deltaEl.textContent = `${up ? "▲" : "▼"} ${formatDelta(diff)}`;
+  }
+  if (hadPrev && prevText !== displayText) {
+    tile.classList.add("pulse");
+    setTimeout(() => tile.classList.remove("pulse"), 500);
+  }
+}
+
+function resetStatStrip() {
+  ["stat-networth", "stat-emergency", "stat-dti"].forEach(prefix => {
+    const valueEl = document.getElementById(`${prefix}-value`);
+    const deltaEl = document.getElementById(`${prefix}-delta`);
+    const tile = document.getElementById(prefix);
+    if (valueEl) valueEl.textContent = "—";
+    if (deltaEl) deltaEl.hidden = true;
+    if (tile) tile.className = "stat-tile";
+  });
 }
 
 // A plain-language read of where the chart's shaded band actually puts you
