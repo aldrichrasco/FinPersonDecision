@@ -464,6 +464,35 @@ h1{
 .chip:hover{border-color:var(--ink);}
 .chip.active{background:var(--ink);color:var(--paper-raised);border-color:var(--ink);}
 
+/* Sandbox two-column layout — desktop only. On a wide screen the numbers
+   drawer used to sit collapsed under the scenario, so seeing a choice's
+   effect meant expanding a details panel every time. Above 980px the
+   numbers become a sticky side panel instead: always visible, updates
+   live next to the choice that just changed it. Below that width it
+   collapses back to the original single-column stack with the
+   collapsible <details> drawer, since there's no room for two columns. */
+.sandbox-layout{display:block;}
+.sandbox-side{margin-top:8px;}
+
+@media (min-width:980px){
+  .wrap.sandbox-page{max-width:1180px;}
+  .sandbox-layout{
+    display:grid;
+    grid-template-columns:minmax(0,1fr) 400px;
+    gap:32px;
+    align-items:start;
+  }
+  .sandbox-main{min-width:0;}
+  .sandbox-side{
+    margin-top:0;
+    position:sticky;
+    top:88px;
+    max-height:calc(100vh - 112px);
+    overflow-y:auto;
+  }
+  .sandbox-side .detail-drawer{margin-top:0;}
+}
+
 .scenario-card{
   background:var(--paper-raised);
   border:1px solid var(--line);

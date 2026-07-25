@@ -52,7 +52,7 @@ function initNav() {
     <div class="app-nav-more">
       <button class="app-nav-item app-nav-more-btn" id="app-nav-more-btn" type="button" aria-haspopup="true" aria-expanded="false">
         <span class="nav-icon" aria-hidden="true">◎</span>
-        <span class="nav-label">More</span>
+        <span class="nav-label">Explore</span>
       </button>
       <div class="app-nav-more-panel" id="app-nav-more-panel" hidden>
         ${MENU_ITEMS.map(item => `<a href="${item.href}"${item.href.replace(".html", "") === page ? ' aria-current="page"' : ""}>${item.label}</a>`).join("")}
