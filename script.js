@@ -57,7 +57,43 @@ function stagger(selector, step = 55) {
   });
 }
 
+// The front door looked identical to a first-time visitor and someone on
+// their tenth visit — no acknowledgment of a quiz already taken, no streak,
+// no obvious "pick up where you left off." That's a real reason a returning
+// person bounces: the page gives them no thread back into their own
+// progress, so it reads as a demo to click through once, not a place to
+// return to. Additive only — first-time visitors (no saved profile) see
+// nothing here and get the original hero unchanged.
+function renderReturningBanner() {
+  const banner = document.getElementById("returning-banner");
+  if (!banner) return;
+  const profile = (typeof getProfile === "function") ? getProfile() : null;
+  if (!profile) return;
+
+  let learnProgress = null;
+  try { learnProgress = JSON.parse(localStorage.getItem("finperson_learn_progress")); } catch (e) {}
+  const streak = (learnProgress && typeof learnProgress.streak === "number") ? learnProgress.streak : 0;
+
+  const persona = (typeof PERSONAS !== "undefined") ? PERSONAS.find(p => p.slug === profile.archetype) : null;
+  const name = persona ? persona.name : "your profile";
+
+  const daysAgo = profile.at ? Math.max(0, Math.round((Date.now() - profile.at) / 86400000)) : null;
+  const whenText = daysAgo === null ? "" : daysAgo === 0 ? "earlier today" : daysAgo === 1 ? "yesterday" : `${daysAgo} days ago`;
+
+  banner.innerHTML = `
+    <div class="returning-banner-text">
+      <span class="returning-banner-kicker">Welcome back</span>
+      <p>You're matched to <strong>${esc(name)}</strong>${whenText ? `, last checked in ${whenText}` : ""}.${streak > 0 ? ` <span class="returning-banner-streak">🔥 ${streak}-day streak</span>` : ""}</p>
+    </div>
+    <div class="returning-banner-actions">
+      <a class="btn btn-secondary" href="dashboard.html">Continue in the sandbox</a>
+      <a class="linkish" href="progress.html">See your progress &rarr;</a>
+    </div>`;
+  banner.hidden = false;
+}
+
 renderSituations();
+renderReturningBanner();
 initQuiz();
 
 document.querySelectorAll(".situations li, .step, .principle, .sandbox-card, .section-title, .lede, .hero-reassure")

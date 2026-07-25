@@ -197,6 +197,21 @@ body{
 }
 .hero .wrap{position:relative;z-index:1;}
 
+.returning-banner{
+  display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:14px;
+  background:var(--paper-raised);border:1px solid var(--line);border-radius:14px;
+  padding:14px 20px;margin:0 0 26px;
+}
+.returning-banner-kicker{
+  display:block;font-family:var(--font-mono);font-size:10.5px;font-weight:500;
+  text-transform:uppercase;letter-spacing:.08em;color:var(--teal);margin:0 0 4px;
+}
+.returning-banner-text p{margin:0;font-size:14.5px;color:var(--ink);}
+.returning-banner-streak{
+  display:inline-block;margin-left:4px;font-size:13px;color:var(--marigold-ink);white-space:nowrap;
+}
+.returning-banner-actions{display:flex;align-items:center;gap:16px;flex-wrap:wrap;}
+
 .eyebrow{
   display:inline-block;
   font-family:var(--font-mono);
