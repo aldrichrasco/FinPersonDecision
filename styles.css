@@ -1431,6 +1431,17 @@ body.has-app-nav .study-badge{bottom:84px;}
 .model-axis-poles{display:flex;align-items:center;gap:10px;margin-top:10px;font-size:11.5px;color:var(--slate);}
 .model-archetype-row{font-size:13px;line-height:1.5;color:var(--ink);margin:0 0 6px;}
 
+.theory-banner{position:relative;border-radius:20px;overflow:hidden;margin:0 0 26px;
+  min-height:200px;display:flex;align-items:flex-end;
+  background-image:url("https://images.unsplash.com/photo-1743102776026-e3819eb0ed06?fm=jpg&q=70&w=1600&auto=format&fit=crop");
+  background-size:cover;background-position:center;}
+.theory-banner-scrim{width:100%;padding:28px 30px;
+  background:linear-gradient(0deg, rgba(15,20,35,0.78) 0%, rgba(15,20,35,0.35) 60%, rgba(15,20,35,0.05) 100%);}
+@media (max-width:600px){
+  .theory-banner{min-height:160px;}
+  .theory-banner-scrim{padding:20px 18px;}
+}
+
 /* ---------------------------------------------------------------- header menu */
 .header-menu{position:relative;}
 .header-menu-btn{background:transparent;border:1px solid var(--line);border-radius:999px;
