@@ -114,7 +114,7 @@
         <h3 style="font-family:var(--font-display);font-weight:500;margin:0 0 6px;">Answer them again?</h3>
         <p style="margin:0;color:#C7CEDB;font-size:14px;">People change. Re-answering is how you see whether you have.</p>
       </div>
-      <a class="btn btn-primary" href="index.html" style="background:var(--marigold);color:var(--marigold-ink);">Retake</a>
+      <a class="btn btn-primary" href="index.html" style="background:var(--marigold);color:var(--marigold-contrast);">Retake</a>
     </div>
   `;
 
