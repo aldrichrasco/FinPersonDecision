@@ -140,6 +140,33 @@ function initStickyHeader() {
   onScroll();
 }
 
+// ---------------------------------------------------------------- tablists
+
+// The three tab bars in the app (sandbox drawer, Progress, Theory) were only
+// operable by click/Enter/Space — real keyboard support per the WAI-ARIA
+// Tabs pattern (arrow keys to move between tabs, Home/End to jump to the
+// ends) was missing. Wired once here for every role="tablist" on the page
+// rather than per-page, since all three already use plain <button role="tab">
+// markup and their own click handlers to swap panels.
+function initTabKeyboardNav() {
+  document.querySelectorAll('[role="tablist"]').forEach(list => {
+    list.addEventListener("keydown", (e) => {
+      const tabs = Array.from(list.querySelectorAll('[role="tab"]'));
+      const from = tabs.indexOf(document.activeElement);
+      if (from === -1) return;
+      let to;
+      if (e.key === "ArrowRight") to = (from + 1) % tabs.length;
+      else if (e.key === "ArrowLeft") to = (from - 1 + tabs.length) % tabs.length;
+      else if (e.key === "Home") to = 0;
+      else if (e.key === "End") to = tabs.length - 1;
+      else return;
+      e.preventDefault();
+      tabs[to].focus();
+      tabs[to].click();
+    });
+  });
+}
+
 // ---------------------------------------------------------------- toasts
 
 let toastTimer = null;
@@ -278,5 +305,6 @@ function initOfflineWatch() {
 initNav();
 initHeaderMenu();
 initStickyHeader();
+initTabKeyboardNav();
 initShortcuts();
 initOfflineWatch();
