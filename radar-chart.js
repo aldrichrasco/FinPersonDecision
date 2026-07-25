@@ -23,7 +23,12 @@ function drawRadarChart(canvas, axisValues, consistencyByAxis, opts = {}) {
   const slate = styles.getPropertyValue("--slate").trim() || "#6B6F76";
 
   const cx = cssW / 2, cy = cssH / 2;
-  const radius = Math.min(cssW, cssH) / 2 - (showLabels ? 34 : 8);
+  // Labels wrap to two lines (see below), so the reserved margin only needs
+  // to fit the wider of two short words, not a whole two-word label — 56px
+  // was previously 34px, which was nowhere near enough for the longest
+  // labels ("Financial Attentiveness") and left them clipped by the canvas
+  // edge entirely on one side of the chart.
+  const radius = Math.min(cssW, cssH) / 2 - (showLabels ? 56 : 8);
   const keys = AXIS_KEYS;
   const n = keys.length;
   const angleFor = i => (Math.PI * 2 * i) / n - Math.PI / 2;
@@ -40,6 +45,20 @@ function drawRadarChart(canvas, axisValues, consistencyByAxis, opts = {}) {
     ctx.closePath();
     ctx.stroke();
   });
+
+  // Ring value labels, so the radial axis reads as a measured scale rather
+  // than unlabeled decoration — placed up the top spoke (straight up from
+  // center), offset slightly right so they don't sit on top of the spoke
+  // line itself.
+  if (showLabels) {
+    ctx.font = "9px 'IBM Plex Mono', monospace";
+    ctx.fillStyle = slate;
+    ctx.textAlign = "left";
+    [0.25, 0.5, 0.75, 1].forEach(frac => {
+      const y = cy - radius * frac;
+      ctx.fillText(String(Math.round(frac * 100)), cx + 4, y + 3);
+    });
+  }
   keys.forEach((_, i) => {
     const a = angleFor(i);
     ctx.beginPath();
@@ -76,15 +95,22 @@ function drawRadarChart(canvas, axisValues, consistencyByAxis, opts = {}) {
   });
 
   // Axis labels — skipped in compact mode (e.g. the persona-chip tooltip),
-  // where there isn't room for six full labels to stay legible.
+  // where there isn't room for six full labels to stay legible. Every FBM
+  // label is exactly two words ("Risk Disposition", "Financial Self-
+  // Efficacy") — wrapped onto two lines instead of one so each line is
+  // short enough to fit inside the margin above, rather than running off
+  // the edge of the canvas as a single long line did before.
   if (showLabels) {
-    ctx.font = "11px 'IBM Plex Sans', sans-serif";
+    ctx.font = "10.5px 'IBM Plex Sans', sans-serif";
     ctx.fillStyle = slate;
     keys.forEach((k, i) => {
       const a = angleFor(i);
-      const x = cx + Math.cos(a) * (radius + 18), y = cy + Math.sin(a) * (radius + 18);
+      const x = cx + Math.cos(a) * (radius + 14), y = cy + Math.sin(a) * (radius + 14);
       ctx.textAlign = Math.cos(a) > 0.3 ? "left" : Math.cos(a) < -0.3 ? "right" : "center";
-      ctx.fillText(AXES[k].label, x, y + 4);
+      const words = AXES[k].label.split(" ");
+      const line1 = words[0], line2 = words.slice(1).join(" ");
+      ctx.fillText(line1, x, y + 3);
+      ctx.fillText(line2, x, y + 15);
     });
   }
 }

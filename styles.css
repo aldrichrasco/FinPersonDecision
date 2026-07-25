@@ -474,6 +474,7 @@ h1{
 .dash-setup{margin-bottom:24px;}
 .dash-setup{padding:16px 0;border-top:1px solid var(--line);border-bottom:1px solid var(--line);}
 .dash-setup-row{display:flex;align-items:center;gap:16px;flex-wrap:wrap;margin-bottom:12px;}
+#restart-btn{margin-left:auto;}
 .dash-label{font-family:var(--font-mono);font-size:12px;text-transform:uppercase;letter-spacing:0.06em;color:var(--slate);width:70px;flex-shrink:0;}
 .chip-row{display:flex;flex-wrap:wrap;gap:8px;}
 .chip{
@@ -500,7 +501,11 @@ h1{
   .wrap.sandbox-page{max-width:1180px;}
   .sandbox-layout{
     display:grid;
-    grid-template-columns:minmax(0,1fr) 400px;
+    /* Numbers/Chart/History were cramped at 400px — widened to give the
+       homeostasis and net-worth charts more room to breathe, per direct
+       feedback that they read as cut off next to an oversized scenario
+       card. */
+    grid-template-columns:minmax(0,1fr) 460px;
     gap:32px;
     align-items:start;
   }
@@ -509,8 +514,14 @@ h1{
     margin-top:0;
     position:sticky;
     top:88px;
-    max-height:calc(100vh - 112px);
-    overflow-y:auto;
+    /* No max-height/overflow-y here on purpose: CSS forces overflow-x to
+       behave as "auto" (i.e. clip) whenever overflow-y isn't "visible" —
+       there's no way to scroll one axis without clipping the other. That
+       silently clipped anything that needed to poke past this column's
+       edge (the chart's hover tooltip, callout labels), which is very
+       likely what read as "charts getting cut off." Sticky positioning
+       alone already keeps this panel in view without needing an inner
+       scroll region. */
   }
   .sandbox-side .detail-drawer{margin-top:0;}
 }
@@ -628,6 +639,11 @@ h1{
   .hero{padding:48px 0 40px;}
   .sandbox-card{flex-direction:column;align-items:flex-start;}
   .dash-setup-row{align-items:flex-start;}
+  /* Restart used to hug the right edge on its own wrapped line (from
+     margin-left:auto), landing right where the floating help button and
+     bottom nav pill sit — full width and back on the left reads as a
+     normal, unhurried second line instead of a collision. */
+  #restart-btn{margin-left:0;width:100%;justify-content:center;margin-top:2px;}
   .decision-result-head{gap:10px;}
   .impact-row{grid-template-columns:minmax(0,1fr) auto;gap:5px 10px;}
   .impact-row small{grid-column:1 / -1;text-align:left;min-width:0;}
