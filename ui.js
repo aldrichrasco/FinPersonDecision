@@ -34,7 +34,7 @@ function currentPage() {
 function initNav() {
   // The landing page is a marketing surface, not part of the app shell.
   const page = currentPage();
-  if (page === "index" || page === "" || page === "admin" || page === "research") return;
+  if (page === "index" || page === "" || page === "admin" || page === "research" || page === "reset-password") return;
   if (document.getElementById("app-nav")) return;
 
   const nav = document.createElement("nav");

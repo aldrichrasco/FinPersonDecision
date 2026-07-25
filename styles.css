@@ -177,7 +177,14 @@ body{
 }
 .email-input:focus{outline:none;border-color:var(--ink);}
 .email-error{color:var(--brick);font-size:13px;margin:2px 0 10px;}
+.email-success{color:var(--teal);font-size:13px;margin:2px 0 10px;}
 .email-submit{width:100%;justify-content:center;}
+.email-forgot{
+  display:block;width:100%;text-align:center;margin-top:12px;
+  font-size:13px;color:var(--slate);min-height:32px;
+}
+.email-forgot:hover{color:var(--ink);}
+.email-forgot-intro{font-size:13.5px;color:var(--slate);margin:0 0 14px;}
 
 /* ============================================================
    Hero — one idea owns the screen

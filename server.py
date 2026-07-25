@@ -16,6 +16,7 @@ Production (Render): see render.yaml — build/start commands and env vars
 are declared there; attach a Postgres instance and it's used automatically.
 """
 
+import hashlib
 import os
 import re
 import secrets
@@ -48,6 +49,7 @@ import db
 import ratelimit
 import coach
 import llm
+import mailer
 import safeguarding
 import study
 import scenario_gen
@@ -245,6 +247,62 @@ def login():
     session.permanent = True
     session["user_id"] = user["id"]
     return jsonify({"name": user["name"], "email": user["email"], "picture": user["picture"]})
+
+
+RESET_TOKEN_TTL = 3600  # 1 hour
+
+
+@app.route("/api/auth/forgot-password", methods=["POST"])
+@rate_limit(limit=5, window=3600, scope="forgot-password")
+def forgot_password():
+    payload = request.get_json(silent=True)
+    if not isinstance(payload, dict):
+        return jsonify({"error": "invalid JSON body"}), 400
+    email = str(payload.get("email", "")).strip().lower()
+    if not EMAIL_RE.match(email):
+        return jsonify({"error": "enter a valid email"}), 400
+
+    # Always the same response whether or not the account exists, and
+    # whether or not it uses a password at all (a Google-only account has
+    # no password_hash) — otherwise this endpoint becomes a way to check
+    # who has an account here, same reasoning as the login error above.
+    user = db.get_user_by_email(email)
+    if user and user.get("password_hash"):
+        token = secrets.token_urlsafe(32)
+        token_hash = hashlib.sha256(token.encode()).hexdigest()
+        db.create_password_reset(user["id"], token_hash, RESET_TOKEN_TTL)
+        reset_link = f"{request.host_url.rstrip('/')}/reset-password.html?token={token}"
+        mailer.send_email(
+            email,
+            "Reset your FinPerson password",
+            "Someone (hopefully you) asked to reset the password on this FinPerson account.\n\n"
+            f"Reset it here — this link works for 1 hour:\n{reset_link}\n\n"
+            "If you didn't request this, you can ignore this email and your password will stay the same.",
+        )
+    return jsonify({"ok": True})
+
+
+@app.route("/api/auth/reset-password", methods=["POST"])
+@rate_limit(limit=10, window=3600, scope="reset-password")
+def reset_password():
+    payload = request.get_json(silent=True)
+    if not isinstance(payload, dict):
+        return jsonify({"error": "invalid JSON body"}), 400
+    token = str(payload.get("token", ""))
+    password = payload.get("password", "")
+    if not token:
+        return jsonify({"error": "missing or invalid reset link"}), 400
+    if not isinstance(password, str) or len(password) < 8:
+        return jsonify({"error": "password must be at least 8 characters"}), 400
+
+    token_hash = hashlib.sha256(token.encode()).hexdigest()
+    reset = db.get_password_reset(token_hash)
+    if not reset or reset["used"] or reset["expires_at"] < time.time():
+        return jsonify({"error": "this reset link is invalid or has expired"}), 400
+
+    db.set_user_password(reset["user_id"], generate_password_hash(password))
+    db.consume_password_reset(token_hash)
+    return jsonify({"ok": True})
 
 
 # ---------------------------------------------------------------- admin

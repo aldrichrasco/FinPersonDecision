@@ -140,6 +140,21 @@ async function submitEmailAuth(mode, email, password, name) {
   }
 }
 
+async function submitForgotPassword(email) {
+  try {
+    const res = await fetch(`${API_BASE_URL}/api/auth/forgot-password`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ email }),
+    });
+    const data = await res.json();
+    if (!res.ok) return { error: data.error || "Something went wrong." };
+    return { ok: true };
+  } catch (e) {
+    return { error: "Couldn't reach the server." };
+  }
+}
+
 async function exportMyData() {
   try {
     const res = await fetch(`${API_BASE_URL}/api/me/export`, { credentials: "include" });
@@ -237,6 +252,7 @@ function renderEmailForm(mode) {
     <input class="email-input" id="ea-pass" type="password" placeholder="Password (8+ characters)" autocomplete="${mode === "signup" ? "new-password" : "current-password"}">
     <p class="email-error" id="ea-error" hidden></p>
     <button class="btn btn-primary email-submit" id="ea-submit">${mode === "signup" ? "Create account" : "Sign in"}</button>
+    ${mode === "login" ? `<button class="linkish email-forgot" id="ea-forgot" type="button">Forgot password?</button>` : ""}
   `;
   const submit = document.getElementById("ea-submit");
   submit.addEventListener("click", async () => {
@@ -259,7 +275,52 @@ function renderEmailForm(mode) {
     closeEmailAuth();
     renderAuthUI(user);
   });
+  const forgot = document.getElementById("ea-forgot");
+  if (forgot) {
+    forgot.addEventListener("click", () => {
+      document.querySelector(".email-tabs").hidden = true;
+      renderForgotPasswordForm(document.getElementById("ea-email").value.trim());
+    });
+  }
   document.getElementById("ea-email").focus();
+}
+
+function renderForgotPasswordForm(prefillEmail) {
+  const wrap = document.getElementById("email-form");
+  document.getElementById("email-title").textContent = "Reset password";
+  wrap.innerHTML = `
+    <p class="email-forgot-intro">Enter your account email and we'll send a link to reset your password.</p>
+    <input class="email-input" id="fp-email" type="email" placeholder="Email" autocomplete="email" value="${esc(prefillEmail || "")}">
+    <p class="email-error" id="fp-error" hidden></p>
+    <p class="email-success" id="fp-success" hidden></p>
+    <button class="btn btn-primary email-submit" id="fp-submit">Send reset link</button>
+    <button class="linkish email-forgot" id="fp-back" type="button">Back to sign in</button>
+  `;
+  document.getElementById("fp-back").addEventListener("click", () => {
+    document.querySelector(".email-tabs").hidden = false;
+    renderEmailForm("login");
+  });
+  const submit = document.getElementById("fp-submit");
+  submit.addEventListener("click", async () => {
+    const email = document.getElementById("fp-email").value.trim();
+    const errEl = document.getElementById("fp-error");
+    const okEl = document.getElementById("fp-success");
+    errEl.hidden = true;
+    okEl.hidden = true;
+    submit.disabled = true;
+    submit.textContent = "…";
+    const { ok, error } = await submitForgotPassword(email);
+    submit.disabled = false;
+    submit.textContent = "Send reset link";
+    if (error) {
+      errEl.textContent = error;
+      errEl.hidden = false;
+      return;
+    }
+    okEl.textContent = "If an account exists for that email, a reset link is on its way.";
+    okEl.hidden = false;
+  });
+  document.getElementById("fp-email").focus();
 }
 
 window.addEventListener("load", initAuth);
