@@ -12,15 +12,14 @@ const NAV_ITEMS = [
   { href: "progress.html", label: "Progress", icon: "◈", match: ["progress"] },
 ];
 
-// Secondary pages live in the header menu, not the bottom pill — the pill
-// stays reserved for the two things used every session. This is also where
-// goals live now instead of only inside one persona's sandbox drawer.
+// Secondary pages live in the "More" pill item / header menu, not the
+// bottom nav's primary slots. Goals and Achievements moved into Progress
+// as tabs (see progress-page.js) rather than being separate destinations —
+// 8 peer nav entries was too many for a product that's really one loop.
+// Donate lives in the footer instead, since it's not part of that loop at all.
 const MENU_ITEMS = [
   { href: "learn.html", label: "Learn" },
   { href: "model.html", label: "Theory" },
-  { href: "goals.html", label: "Goals" },
-  { href: "achievements.html", label: "Achievements" },
-  { href: "donate.html", label: "Donate" },
 ];
 
 function currentPage() {

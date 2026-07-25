@@ -223,6 +223,8 @@ h1{
 }
 
 .cta-row{display:flex;gap:12px;flex-wrap:wrap;}
+.hero-entry-row{display:flex;align-items:center;gap:14px;margin:22px 0 6px;}
+.hero-entry-or{font-size:13px;color:var(--slate);}
 .hero-reassure{
   font-size:13.5px;color:var(--slate);
   margin:clamp(26px,4vh,38px) 0 0;line-height:1.6;
@@ -543,6 +545,8 @@ h1{
 .metrics-help{font-size:13px;color:var(--slate);}
 .metrics-help summary{cursor:pointer;color:var(--ink);font-weight:500;margin-bottom:6px;}
 .metrics-help p{margin:6px 0;}
+.learn-show-all{margin-top:4px;font-size:13.5px;color:var(--slate);}
+.learn-show-all summary{cursor:pointer;color:var(--ink);font-weight:500;padding:8px 0;}
 .goal-diary{margin-top:28px;padding-top:24px;border-top:1px solid var(--line);}
 .goal-diary h3{margin:0;font-family:var(--font-display);font-weight:500;font-size:21px;}
 .goal-form{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:8px;margin-top:14px;}

@@ -196,3 +196,22 @@
     });
   }
 })();
+
+// Trends/Milestones/Goals tabs — same show/hide pattern as model-page.js's
+// showTab() and the sandbox drawer. Kept independent of the block above so
+// switching still works even in the "haven't taken the quiz yet" state.
+(function () {
+  const PROGRESS_TABS = ["trends", "milestones", "goals"];
+  function showProgressTab(name) {
+    PROGRESS_TABS.forEach(t => {
+      const panel = document.getElementById(`progress-tab-${t}`);
+      const btn = document.getElementById(`progress-tabbtn-${t}`);
+      if (panel) panel.hidden = t !== name;
+      if (btn) btn.classList.toggle("active", t === name);
+    });
+  }
+  PROGRESS_TABS.forEach(t => {
+    const btn = document.getElementById(`progress-tabbtn-${t}`);
+    if (btn) btn.addEventListener("click", () => showProgressTab(t));
+  });
+})();

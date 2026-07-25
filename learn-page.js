@@ -148,7 +148,15 @@
             ${resourcesHtml}
           </div>
         </div>`;
-    }).join("");
+    });
+
+    // Show the 3 biggest weaknesses by default (orderedAxes is already
+    // sorted by gap-to-archetype magnitude) and tuck the rest behind a
+    // disclosure — six full cards at once was the single longest scroll
+    // on the site, and most of the time only 1-3 axes are what actually
+    // need attention.
+    const primaryCards = axisCards.slice(0, 3).join("");
+    const restCards = axisCards.slice(3).join("");
 
     const closenessHtml = (typeof closeness === "number") ? `
       <div class="learn-closeness">
@@ -164,7 +172,12 @@
         <span class="learn-xp-label">Level ${level} · ${into}/50 XP</span>
       </div>
       ${closenessHtml}
-      <div class="learn-grid">${axisCards}</div>
+      <div class="learn-grid">${primaryCards}</div>
+      ${restCards ? `
+        <details class="learn-show-all">
+          <summary>Show all six axes</summary>
+          <div class="learn-grid" style="margin-top:14px;">${restCards}</div>
+        </details>` : ""}
     `;
 
     content.querySelectorAll(".learn-lesson-head").forEach(head => {
