@@ -37,8 +37,11 @@ const LEARN_CONTENT = {
     resources: [
       { name: "Khan Academy — Personal Finance", url: "https://www.khanacademy.org/college-careers-more/personal-finance", note: "Free, self-paced course covering budgeting and spending habits." },
       { name: "MoneyHelper — Managing your money", url: "https://www.moneyhelper.org.uk/en/everyday-money", note: "UK government-backed, plain-language guidance, applicable principles regardless of country." },
+      { name: "Wikipedia — Impulse purchase", url: "https://en.wikipedia.org/wiki/Impulse_purchase", note: "Overview of the psychology behind unplanned purchases and what triggers them." },
     ],
-    video: { name: "Two Cents (PBS) — How Social Media Keeps You Poor!", url: "https://www.youtube.com/watch?v=avj9aHiU13g", note: "9 min. How social platforms nudge impulse spending, and what to do about it." },
+    videos: [
+      { name: "Two Cents (PBS) — How Social Media Keeps You Poor!", url: "https://www.youtube.com/watch?v=avj9aHiU13g", note: "9 min. How social platforms nudge impulse spending, and what to do about it." },
+    ],
   },
   risk_disposition: {
     strength_blurb: "You're comfortable taking calculated financial risks when the upside is clear.",
@@ -50,8 +53,11 @@ const LEARN_CONTENT = {
     resources: [
       { name: "Khan Academy — Investment & risk", url: "https://www.khanacademy.org/economics-finance-domain/core-finance/investment-vehicles-tutorial", note: "Explains risk/return trade-offs conceptually, no specific products." },
       { name: "CFPB — Consumer Financial Protection Bureau", url: "https://www.consumerfinance.gov/consumer-tools/", note: "US government resource hub on financial decision-making basics." },
+      { name: "SmartAsset — Risk Capacity vs. Risk Tolerance", url: "https://smartasset.com/investing/risk-capacity-vs-risk-tolerance", note: "How your emotional comfort with risk differs from what your finances can actually withstand." },
     ],
-    video: { name: "Two Cents (PBS) — How Risky Is The Stock Market?", url: "https://www.youtube.com/watch?v=249Gc7FDWRI", note: "Plain-language look at investment risk and diversification." },
+    videos: [
+      { name: "Two Cents (PBS) — How Risky Is The Stock Market?", url: "https://www.youtube.com/watch?v=249Gc7FDWRI", note: "Plain-language look at investment risk and diversification." },
+    ],
   },
   temporal_orientation: {
     strength_blurb: "You plan with the future clearly in view — a strong foundation for long-term goals.",
@@ -62,8 +68,12 @@ const LEARN_CONTENT = {
     ],
     resources: [
       { name: "Khan Academy — Saving & budgeting", url: "https://www.khanacademy.org/college-careers-more/personal-finance/pf-saving-and-budgeting", note: "Covers goal-setting and time horizons in budgeting." },
+      { name: "Wikipedia — Present bias", url: "https://en.wikipedia.org/wiki/Present_bias", note: "The behavioral-economics concept behind why 'later' keeps losing to 'now'." },
     ],
-    video: { name: "Two Cents (PBS) — The Cost of Procrastinating On Saving For Retirement", url: "https://www.youtube.com/watch?v=UptMbN5eidc", note: "Why delaying future-focused saving costs more than it looks like." },
+    videos: [
+      { name: "Two Cents (PBS) — The Cost of Procrastinating On Saving For Retirement", url: "https://www.youtube.com/watch?v=UptMbN5eidc", note: "Why delaying future-focused saving costs more than it looks like." },
+      { name: "How Your Brain Sabotages Your Savings (Without You Even Realizing)", url: "https://www.youtube.com/watch?v=-M1D75iCY9U", note: "A closer look at the cognitive biases working against future-focused saving." },
+    ],
   },
   financial_attentiveness: {
     strength_blurb: "You keep a close eye on your money — that visibility makes almost everything else easier.",
@@ -75,8 +85,12 @@ const LEARN_CONTENT = {
     resources: [
       { name: "MoneyHelper — Everyday money", url: "https://www.moneyhelper.org.uk/en/everyday-money", note: "Plain-language guidance on building money-checking habits." },
       { name: "Khan Academy — Personal Finance", url: "https://www.khanacademy.org/college-careers-more/personal-finance", note: "Free course with sections on tracking spending." },
+      { name: "Wikipedia — Ostrich effect", url: "https://en.wikipedia.org/wiki/Ostrich_effect", note: "The bias behind avoiding your own bank balance or portfolio when things feel uncertain." },
     ],
-    video: { name: "Two Cents (PBS) — 3 Steps to a Bulletproof Budget", url: "https://www.youtube.com/watch?v=2yWDKDm-ZD8", note: "A next-level budgeting check-in habit, explained simply." },
+    videos: [
+      { name: "Two Cents (PBS) — 3 Steps to a Bulletproof Budget", url: "https://www.youtube.com/watch?v=2yWDKDm-ZD8", note: "A next-level budgeting check-in habit, explained simply." },
+      { name: "Beware The Ostrich Effect When It Comes To Money", url: "https://www.youtube.com/watch?v=ENI-TlmsOww", note: "Why avoiding a look at your numbers tends to make things worse, not better." },
+    ],
   },
   financial_self_efficacy: {
     strength_blurb: "You generally feel in control of your financial decisions — that confidence is a real asset.",
@@ -89,7 +103,10 @@ const LEARN_CONTENT = {
       { name: "Khan Academy — Personal Finance", url: "https://www.khanacademy.org/college-careers-more/personal-finance", note: "Structured, bite-sized lessons — good starting point for building familiarity." },
       { name: "CFPB — Consumer Financial Protection Bureau", url: "https://www.consumerfinance.gov/consumer-tools/", note: "Plain-language explainers on common financial decisions." },
     ],
-    video: { name: "Two Cents (PBS) — Do You Have a Money Disorder?", url: "https://www.youtube.com/watch?v=TYGSWpkloZk", note: "How money anxiety affects decision-making, and how confidence is rebuilt." },
+    videos: [
+      { name: "Two Cents (PBS) — Do You Have a Money Disorder?", url: "https://www.youtube.com/watch?v=TYGSWpkloZk", note: "How money anxiety affects decision-making, and how confidence is rebuilt." },
+      { name: "Tiny Habits to Build Your Financial Confidence", url: "https://www.youtube.com/watch?v=oyT0AX0Yx-Y", note: "Small, repeatable habits that build financial confidence over time." },
+    ],
   },
   prosocial_orientation: {
     strength_blurb: "You put real weight on others' needs in your financial decisions — a value worth protecting deliberately.",
@@ -101,7 +118,10 @@ const LEARN_CONTENT = {
     resources: [
       { name: "MoneyHelper — Everyday money", url: "https://www.moneyhelper.org.uk/en/everyday-money", note: "General guidance on balancing your own needs with helping others." },
     ],
-    video: { name: "Two Cents (PBS) — The Smart Person's Guide to Giving", url: "https://www.youtube.com/watch?v=FGMl5nBEXls", note: "Making charitable giving more intentional and effective." },
+    videos: [
+      { name: "Two Cents (PBS) — The Smart Person's Guide to Giving", url: "https://www.youtube.com/watch?v=FGMl5nBEXls", note: "Making charitable giving more intentional and effective." },
+      { name: "Is Giving Part of Your Budget?", url: "https://www.youtube.com/watch?v=KL0gCA73vBI", note: "Why treating giving as a planned line item beats deciding in the moment." },
+    ],
   },
 };
 

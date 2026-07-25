@@ -130,10 +130,10 @@
           ${esc(r.name)} <span class="learn-resource-note">— ${esc(r.note)}</span>
         </a>`).join("");
 
-      const videoHtml = c.video ? `
-        <a class="learn-resource-link learn-resource-video" href="${esc(c.video.url)}" target="_blank" rel="noopener noreferrer">
-          ▶ ${esc(c.video.name)} <span class="learn-resource-note">— ${esc(c.video.note)}</span>
-        </a>` : "";
+      const videoHtml = (c.videos || []).map(v => `
+        <a class="learn-resource-link learn-resource-video" href="${esc(v.url)}" target="_blank" rel="noopener noreferrer">
+          ▶ ${esc(v.name)} <span class="learn-resource-note">— ${esc(v.note)}</span>
+        </a>`).join("");
 
       return `
         <div class="learn-axis-card ${axisStatus === "growth" ? "is-growth" : axisStatus === "strength" ? "is-strength" : ""}">
