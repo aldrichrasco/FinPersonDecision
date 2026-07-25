@@ -1408,9 +1408,10 @@ body.has-app-nav .study-badge{bottom:84px;}
 .learn-resource-note{color:var(--slate);font-size:11.5px;}
 .learn-resource-video{color:var(--ink);font-weight:500;}
 .learn-axis-gap{display:block;font-size:11.5px;color:var(--slate);margin:-4px 0 12px;}
-.learn-closeness{display:flex;align-items:center;gap:12px;margin:0 0 22px;
+.learn-closeness{display:flex;align-items:center;gap:12px;margin:0 0 22px;flex-wrap:wrap;
   padding:14px 16px;border:1px solid var(--line);border-radius:12px;background:var(--paper-raised);}
-.learn-closeness-label{font-size:12.5px;color:var(--slate);white-space:nowrap;}
+.learn-closeness-label{font-size:12.5px;color:var(--slate);flex-basis:100%;}
+.learn-closeness .learn-xp-track{min-width:0;}
 .learn-closeness-pct{font-family:var(--font-display);font-weight:500;font-size:15px;
   color:var(--ink);white-space:nowrap;}
 
