@@ -1537,6 +1537,55 @@ body.has-app-nav .study-badge{bottom:84px;}
 .learn-closeness-pct{font-family:var(--font-display);font-weight:500;font-size:15px;
   color:var(--ink);white-space:nowrap;}
 
+/* ---------------------------------------------------------------- archetype cards */
+.archetype-wall{
+  display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));
+  gap:22px;perspective:1000px;
+}
+.archetype-card{
+  position:relative;border-radius:18px;background:var(--paper-raised);
+  border:1px solid var(--line);box-shadow:var(--card-shadow);
+  transform-style:preserve-3d;will-change:transform;
+  transition:transform .12s ease-out, box-shadow .2s ease;
+}
+.archetype-card[tabindex]{cursor:pointer;}
+.archetype-card:hover{box-shadow:0 18px 40px -14px rgba(27,42,74,0.3);}
+.archetype-card:focus-visible{outline:2px solid var(--ink);outline-offset:3px;}
+/* The moving highlight — a soft light following the cursor, like a foil
+   card catching the light as it tilts. Pure CSS: --mx/--my are set by
+   initCardTilt() in model-page.js on mousemove. */
+.archetype-card::before{
+  content:"";position:absolute;inset:0;border-radius:inherit;pointer-events:none;
+  background:radial-gradient(circle 200px at var(--mx,50%) var(--my,50%), rgba(255,255,255,0.4), transparent 65%);
+  opacity:0;transition:opacity .25s ease;mix-blend-mode:overlay;
+}
+.archetype-card:hover::before{opacity:1;}
+.archetype-card-inner{position:relative;z-index:1;padding:20px;text-align:center;}
+.archetype-card-type{
+  display:inline-block;font-family:var(--font-mono);font-size:10px;font-weight:600;
+  text-transform:uppercase;letter-spacing:.06em;padding:4px 11px;border-radius:999px;
+  color:#fff;margin-bottom:10px;
+}
+.archetype-card[data-group="conservative"] .archetype-card-type{background:var(--teal);}
+.archetype-card[data-group="growth"] .archetype-card-type{background:var(--marigold-ink);}
+.archetype-card[data-group="impulsive"] .archetype-card-type{background:var(--brick);}
+.archetype-card[data-group="uncertain"] .archetype-card-type{background:var(--plum);}
+.archetype-card[data-group="generous"] .archetype-card-type{background:color-mix(in srgb, var(--slate) 80%, var(--ink));}
+.archetype-card h3{font-family:var(--font-display);font-weight:500;font-size:19px;margin:0 0 4px;}
+.archetype-card-trait{font-size:13px;color:var(--slate);margin:0 0 12px;}
+.archetype-card-stats{display:block;margin:0 auto 10px;max-width:100%;height:auto;}
+.archetype-card-hint{font-size:11.5px;color:var(--slate);margin:0;}
+.archetype-card-row{font-size:12.5px;color:var(--ink);text-align:left;margin:0 0 8px;line-height:1.45;}
+.archetype-card-row strong{color:var(--ink);}
+.archetype-card-detail{margin-top:14px;padding-top:14px;border-top:1px solid var(--line);}
+.archetype-modal{max-width:420px;}
+.archetype-card-zoomed{border:none;box-shadow:none;background:none;}
+.archetype-card-zoomed .archetype-card-inner{padding:4px;}
+@media (max-width:600px){
+  .archetype-wall{grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:14px;}
+  .archetype-card-inner{padding:16px;}
+}
+
 /* ---------------------------------------------------------------- model */
 .model-clevel-list{display:flex;flex-direction:column;gap:12px;margin:0 0 8px;}
 .model-clevel{display:flex;align-items:flex-start;gap:14px;border:1px solid var(--line);

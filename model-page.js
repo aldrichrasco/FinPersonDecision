@@ -60,27 +60,115 @@
     `;
   }
 
+  // Archetype cards — a tilting, foil-highlight card per archetype (mouse
+  // position drives a subtle 3D rotation plus a moving glow, like a
+  // trading-card holo effect) instead of a flat text list. Click one to
+  // "zoom in": a bigger version of the same card with the full narrative
+  // and a real-size radar of that archetype's six-axis profile. Built
+  // from scratch for FinPerson's own palette/typography — inspired by
+  // the concept of an aceternity.com "comet card," not its source.
+  const GROUP_LABELS = {
+    conservative: "Conservative", growth: "Growth", impulsive: "Impulsive",
+    uncertain: "Uncertain", generous: "Generous",
+  };
+
   function renderArchetypes() {
     const el = document.getElementById("tab-archetypes");
-    const cards = PERSONAS.map(p => {
-      const gap = ARCHETYPE_GAPS[p.slug];
-      const gapHtml = gap ? `
-          <p class="model-archetype-row"><strong>Typically:</strong> ${esc(gap.baseline)}</p>
-          <p class="model-archetype-row"><strong>Under pressure:</strong> ${esc(gap.observed)}</p>
-          <p class="model-archetype-row"><strong>Characteristic risk:</strong> ${esc(gap.gap)} (drifts toward ${esc(gap.drift)})</p>
-        ` : "";
-      return `
-        <div class="learn-axis-card">
-          <span class="learn-axis-tag">${esc(p.group)}</span>
-          <h3>${esc(p.name)}</h3>
-          <p class="learn-axis-blurb">${esc(p.trait)}</p>
-          ${gapHtml}
-        </div>`;
-    }).join("");
+    const cards = PERSONAS.map(p => archetypeCardHtml(p, { compact: true })).join("");
     el.innerHTML = `
-      <p class="lede" style="font-size:15px;">Eleven archetypes, each with its own typical pattern and its own characteristic way that pattern can tip into a problem.</p>
-      <div class="learn-grid">${cards}</div>
+      <p class="lede" style="font-size:15px;">Eleven archetypes, each with its own typical pattern and its own characteristic way that pattern can tip into a problem. Tap a card for the full read.</p>
+      <div class="archetype-wall">${cards}</div>
     `;
+    el.querySelectorAll(".archetype-card").forEach(card => {
+      card.querySelectorAll("canvas").forEach(canvas => {
+        const profile = ARCHETYPE_PROFILES[card.dataset.slug];
+        if (profile && typeof drawRadarChart === "function") drawRadarChart(canvas, profile, {}, { showLabels: false });
+      });
+      card.addEventListener("click", () => openArchetypeZoom(card.dataset.slug));
+      card.addEventListener("keydown", e => {
+        if (e.key === "Enter" || e.key === " ") { e.preventDefault(); openArchetypeZoom(card.dataset.slug); }
+      });
+    });
+    initCardTilt(el.querySelectorAll(".archetype-card"));
+  }
+
+  function archetypeCardHtml(p, { compact }) {
+    const gap = ARCHETYPE_GAPS[p.slug];
+    const gapHtml = gap ? `
+      <p class="archetype-card-row"><strong>Typically:</strong> ${esc(gap.baseline)}</p>
+      <p class="archetype-card-row"><strong>Under pressure:</strong> ${esc(gap.observed)}</p>
+      <p class="archetype-card-row"><strong>Characteristic risk:</strong> ${esc(gap.gap)} (drifts toward ${esc(gap.drift)})</p>
+    ` : "";
+    return `
+      <div class="archetype-card${compact ? "" : " archetype-card-zoomed"}" data-slug="${esc(p.slug)}" data-group="${esc(p.group)}"
+           ${compact ? 'tabindex="0" role="button" aria-label="See full detail for ' + esc(p.name) + '"' : ""}>
+        <div class="archetype-card-inner">
+          <span class="archetype-card-type">${esc(GROUP_LABELS[p.group] || p.group)}</span>
+          <h3>${esc(p.name)}</h3>
+          <p class="archetype-card-trait">${esc(p.trait)}</p>
+          <canvas class="archetype-card-stats" width="${compact ? 200 : 300}" height="${compact ? 200 : 300}"></canvas>
+          ${compact ? `<p class="archetype-card-hint">Tap for the full read &rarr;</p>` : `<div class="archetype-card-detail">${gapHtml}</div>`}
+        </div>
+      </div>`;
+  }
+
+  function openArchetypeZoom(slug) {
+    const p = PERSONAS.find(x => x.slug === slug);
+    if (!p) return;
+    let overlay = document.getElementById("archetype-overlay");
+    if (!overlay) {
+      overlay = document.createElement("div");
+      overlay.className = "quiz-overlay";
+      overlay.id = "archetype-overlay";
+      overlay.innerHTML = `
+        <div class="quiz-modal archetype-modal" role="dialog" aria-modal="true" aria-labelledby="archetype-zoom-title">
+          <div class="quiz-modal-head">
+            <span id="archetype-zoom-title">Archetype</span>
+            <button class="quiz-close" id="archetype-zoom-close" aria-label="Close">&times;</button>
+          </div>
+          <div id="archetype-zoom-body"></div>
+        </div>`;
+      document.body.appendChild(overlay);
+      overlay.addEventListener("click", e => { if (e.target === overlay) closeArchetypeZoom(); });
+      overlay.querySelector("#archetype-zoom-close").addEventListener("click", closeArchetypeZoom);
+      document.addEventListener("keydown", e => {
+        if (e.key === "Escape" && overlay.classList.contains("open")) closeArchetypeZoom();
+      });
+    }
+    document.getElementById("archetype-zoom-title").textContent = p.name;
+    const body = document.getElementById("archetype-zoom-body");
+    body.innerHTML = archetypeCardHtml(p, { compact: false });
+    const canvas = body.querySelector("canvas");
+    const profile = ARCHETYPE_PROFILES[slug];
+    if (canvas && profile && typeof drawRadarChart === "function") drawRadarChart(canvas, profile, {}, { showLabels: false });
+    overlay.classList.add("open");
+    document.body.style.overflow = "hidden";
+    document.getElementById("archetype-zoom-close").focus();
+  }
+
+  function closeArchetypeZoom() {
+    const overlay = document.getElementById("archetype-overlay");
+    if (overlay) overlay.classList.remove("open");
+    document.body.style.overflow = "";
+  }
+
+  // Cursor-driven tilt + moving highlight. Skipped under reduced-motion —
+  // click-to-zoom still works either way, this is purely decorative.
+  function initCardTilt(cards) {
+    if (window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+    cards.forEach(card => {
+      card.addEventListener("mousemove", e => {
+        const r = card.getBoundingClientRect();
+        const px = (e.clientX - r.left) / r.width;
+        const py = (e.clientY - r.top) / r.height;
+        const rx = (0.5 - py) * 12;
+        const ry = (px - 0.5) * 12;
+        card.style.transform = `perspective(900px) rotateX(${rx}deg) rotateY(${ry}deg) translateY(-2px)`;
+        card.style.setProperty("--mx", `${px * 100}%`);
+        card.style.setProperty("--my", `${py * 100}%`);
+      });
+      card.addEventListener("mouseleave", () => { card.style.transform = ""; });
+    });
   }
 
   const TABS = ["calibration", "axes", "archetypes"];
