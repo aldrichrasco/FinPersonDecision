@@ -276,6 +276,22 @@ function hideShortcutHelp() {
   if (o) o.classList.remove("open");
 }
 
+// ---------------------------------------------------------------- hover glow
+
+// A soft light that follows the cursor across every primary button in the
+// app (see .btn-primary::after in styles.css) — delegated on document so
+// it works for buttons injected later (scenario choices, modals) without
+// each page needing to wire it up itself.
+function initHoverGlow() {
+  document.addEventListener("mousemove", e => {
+    const btn = e.target.closest(".btn-primary");
+    if (!btn) return;
+    const r = btn.getBoundingClientRect();
+    btn.style.setProperty("--hx", `${e.clientX - r.left}px`);
+    btn.style.setProperty("--hy", `${e.clientY - r.top}px`);
+  }, { passive: true });
+}
+
 // ---------------------------------------------------------------- boot
 
 // ---------------------------------------------------------------- offline
@@ -307,5 +323,6 @@ initNav();
 initHeaderMenu();
 initStickyHeader();
 initTabKeyboardNav();
+initHoverGlow();
 initShortcuts();
 initOfflineWatch();

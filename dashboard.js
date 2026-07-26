@@ -483,6 +483,31 @@ function renderDifficultyChips() {
   });
 }
 
+// Every choice already carries a flavor (conservative/growth/impulsive/
+// uncertain/generous — the same five groups PERSONAS use) and a delta
+// object. Both were already being tracked for telemetry; surfacing them
+// on the button itself turns "plain text options" into something closer
+// to a real decision card, using data that already exists rather than
+// inventing new content per scenario.
+const FLAVOR_ICON = {
+  conservative: "🛡", growth: "📈", impulsive: "⚡", uncertain: "❓", generous: "❤",
+};
+function flavorIcon(flavor) {
+  return FLAVOR_ICON[flavor] || "•";
+}
+
+const DELTA_LABEL = {
+  savings: "savings", debt: "debt", investments: "investments",
+  income: "income", expenses: "expenses",
+};
+function formatDeltaTag(delta) {
+  const entries = Object.entries(delta || {}).filter(([, v]) => v !== 0);
+  if (!entries.length) return "No immediate change";
+  return entries
+    .map(([key, val]) => `${val > 0 ? "+" : "−"}${fmt(Math.abs(val))} ${DELTA_LABEL[key] || key}`)
+    .join(" · ");
+}
+
 function rollScenario() {
   decisionResolving = false;
   const card = document.getElementById("scenario-card");
@@ -520,15 +545,23 @@ function rollScenario() {
     <p class="scenario-text">${esc(currentScenario.text)}</p>
     <div class="scenario-choices">
       ${currentScenario.choices.map((c, i) => `
-        <button class="choice-btn" data-i="${i}">
+        <button class="choice-btn" data-i="${i}" data-flavor="${esc(c.flavor || "")}">
           <kbd class="choice-key" aria-hidden="true">${i + 1}</kbd>
-          <span class="choice-text">${esc(c.label)}</span>
+          <span class="choice-icon" aria-hidden="true">${flavorIcon(c.flavor)}</span>
+          <span class="choice-body">
+            <span class="choice-text">${esc(c.label)}</span>
+            <span class="choice-tag">${esc(formatDeltaTag(c.delta))}</span>
+          </span>
         </button>`).join("")}
     </div>
     <button class="btn btn-secondary reroll-btn" id="reroll-btn">Roll new scenario</button>
   `;
   card.querySelectorAll(".choice-btn").forEach(btn => {
-    btn.addEventListener("click", () => applyChoice(currentScenario.choices[+btn.dataset.i], +btn.dataset.i));
+    btn.addEventListener("click", () => {
+      card.querySelectorAll(".choice-btn").forEach(b => { b.disabled = true; });
+      btn.classList.add("choice-pressed");
+      applyChoice(currentScenario.choices[+btn.dataset.i], +btn.dataset.i);
+    });
   });
   document.getElementById("reroll-btn").addEventListener("click", rollScenario);
   renderFirstRun();
@@ -715,10 +748,25 @@ function applyChoice(choice, chosenIndex) {
     inZoneCount: observedTrack.filter(v => zoneStatus(v) === "homeostasis").length,
     totalDecisions: observedTrack.length,
   });
-  updateMetrics();
-  drawChart();
-  drawNetWorthChart();
-  renderDecisionOutcome(choice, applied, previousState, score);
+  // A brief "weighing that up" beat before the numbers move — the choice
+  // buttons already went disabled/pressed on click, so this isn't dead air,
+  // it's a short anticipation pause before the stat strip and outcome
+  // reveal, rather than everything snapping instantly.
+  const stripEl = document.getElementById("stat-strip");
+  if (stripEl) stripEl.classList.add("is-weighing");
+  const reveal = () => {
+    if (stripEl) stripEl.classList.remove("is-weighing");
+    updateMetrics();
+    drawChart();
+    drawNetWorthChart();
+    renderDecisionOutcome(choice, applied, previousState, score);
+    if (trigger) toast(trigger.note, { tone: "watch", duration: 5000 });
+  };
+  if (window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
+    reveal();
+  } else {
+    setTimeout(reveal, 480);
+  }
 }
 
 function renderDecisionOutcome(choice, applied, previousState, score) {
@@ -941,7 +989,14 @@ function renderRoundBar() {
   const shown = rp.complete ? rp.total : rp.done;
   document.getElementById("round-label").textContent = `Round ${rp.complete ? rp.round - 1 : rp.round}`;
   document.getElementById("round-count").textContent = `${shown} of ${rp.total}`;
-  document.getElementById("round-fill").style.width = `${(shown / rp.total) * 100}%`;
+  const path = document.getElementById("round-path");
+  if (path) {
+    path.innerHTML = Array.from({ length: rp.total }, (_, i) => {
+      const done = i < shown;
+      const current = i === shown && !rp.complete;
+      return `<span class="round-node${done ? " is-done" : ""}${current ? " is-current" : ""}"></span>`;
+    }).join("");
+  }
 }
 
 // Keeps the collapsed drawer informative so closing it costs nothing.
@@ -1252,12 +1307,28 @@ function initDrawerTabs() {
   });
 }
 
+// Cursor-follow highlight for the sandbox's ledger-grid background (see
+// .sandbox-grid-bg in styles.css) — only listens while the pointer is
+// actually over the page, and skips entirely on touch devices where
+// there's no persistent hover to drive it.
+function initGridGlow() {
+  const el = document.getElementById("main");
+  if (!el || !el.classList.contains("sandbox-grid-bg")) return;
+  if (window.matchMedia && window.matchMedia("(pointer:coarse)").matches) return;
+  el.addEventListener("mousemove", e => {
+    const r = el.getBoundingClientRect();
+    el.style.setProperty("--gx", `${e.clientX - r.left}px`);
+    el.style.setProperty("--gy", `${e.clientY - r.top}px`);
+  }, { passive: true });
+}
+
 renderPersonaChips();
 renderPredictionBanner();
 renderDifficultyChips();
 initHomeostasisChart();
 initCoachPanel();
 initDrawerTabs();
+initGridGlow();
 if (typeof syncIDMFromServer === "function") syncIDMFromServer();
 if (typeof runAchievementCheck === "function") {
   runAchievementCheck((newly) => {

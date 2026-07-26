@@ -132,6 +132,7 @@
     fetchAxisConsistency().then(byAxis => {
       drawRadarChart(radarCanvas, saved.profile, byAxis);
     });
+    if (typeof initCanvasLens === "function") initCanvasLens(radarCanvas);
   }
 
   // Fetch and draw the real sandbox wellbeing trajectory (signed-in users

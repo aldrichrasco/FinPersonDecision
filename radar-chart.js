@@ -121,6 +121,41 @@ function drawRadarChart(canvas, axisValues, consistencyByAxis, opts = {}) {
 // in the app feel like one motion language rather than two. Used for the
 // Progress page's first paint only; the persona-chip hover preview in
 // dashboard.js stays instant since a hover shouldn't cost 700ms to read.
+// A magnifying "lens" over a canvas — hover to see a zoomed circle of
+// whatever's under the cursor, following it as it moves. Built with a
+// background-image snapshot of the canvas (toDataURL) rather than a
+// second live canvas, so it stays in sync with whatever was last drawn
+// without re-rendering the chart twice. Skipped on touch devices, where
+// there's no persistent hover to drive it.
+function initCanvasLens(canvas) {
+  if (!canvas) return;
+  if (window.matchMedia && window.matchMedia("(pointer:coarse)").matches) return;
+  const wrap = canvas.parentElement;
+  if (!wrap) return;
+  wrap.classList.add("lens-wrap");
+  let lens = wrap.querySelector(".lens");
+  if (!lens) {
+    lens = document.createElement("div");
+    lens.className = "lens";
+    lens.hidden = true;
+    wrap.appendChild(lens);
+  }
+  const ZOOM = 2.2, SIZE = 130;
+  wrap.addEventListener("mouseenter", () => {
+    lens.style.backgroundImage = `url(${canvas.toDataURL()})`;
+    lens.hidden = false;
+  });
+  wrap.addEventListener("mouseleave", () => { lens.hidden = true; });
+  wrap.addEventListener("mousemove", e => {
+    const r = canvas.getBoundingClientRect();
+    const x = e.clientX - r.left, y = e.clientY - r.top;
+    lens.style.left = `${x - SIZE / 2}px`;
+    lens.style.top = `${y - SIZE / 2}px`;
+    lens.style.backgroundSize = `${r.width * ZOOM}px ${r.height * ZOOM}px`;
+    lens.style.backgroundPosition = `${-(x * ZOOM - SIZE / 2)}px ${-(y * ZOOM - SIZE / 2)}px`;
+  });
+}
+
 function animateRadarChart(canvas, axisValues, consistencyByAxis, opts = {}) {
   const reduceMotion = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
   if (reduceMotion) {

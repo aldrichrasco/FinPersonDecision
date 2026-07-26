@@ -2,6 +2,31 @@
 // The persona deck is gone from the front door — archetype is inferred from
 // what someone tells us and how they behave, not demanded on arrival.
 
+// The hero's background axis-name strip drifts faster the faster you
+// scroll (and reverses when you scroll back up), rather than being a
+// flat static backdrop. Reads scroll delta per frame instead of an
+// animation timeline, so its speed genuinely tracks scroll velocity.
+function initVelocityStrip() {
+  const strip = document.querySelector(".hero-velocity-strip");
+  if (!strip) return;
+  if (window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+
+  let offset = 0;
+  let lastScrollY = window.scrollY;
+  let ticking = false;
+
+  function apply() {
+    const delta = window.scrollY - lastScrollY;
+    lastScrollY = window.scrollY;
+    offset -= delta * 1.4;
+    strip.style.transform = `translateX(${offset}px)`;
+    ticking = false;
+  }
+  window.addEventListener("scroll", () => {
+    if (!ticking) { requestAnimationFrame(apply); ticking = true; }
+  }, { passive: true });
+}
+
 function renderSituations() {
   const list = document.getElementById("situations");
   if (!list) return;
@@ -94,6 +119,7 @@ function renderReturningBanner() {
 
 renderSituations();
 renderReturningBanner();
+initVelocityStrip();
 initQuiz();
 
 document.querySelectorAll(".situations li, .step, .principle, .sandbox-card, .section-title, .lede, .hero-reassure")
