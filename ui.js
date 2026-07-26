@@ -20,6 +20,7 @@ const NAV_ITEMS = [
 const MENU_ITEMS = [
   { href: "learn.html", label: "Learn" },
   { href: "model.html", label: "Theory" },
+  { href: "tutorial.html", label: "Quick tour" },
 ];
 
 function currentPage() {
