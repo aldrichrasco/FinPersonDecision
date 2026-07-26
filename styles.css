@@ -69,6 +69,14 @@
 
 *{box-sizing:border-box;}
 html{scroll-behavior:smooth;}
+/* Base link color — without this, any anchor tag added without an
+   explicit class (a real, live example: progress.html's "See your
+   strengths" link and progress-page.js's "What do these stages mean?"
+   link) falls back to the browser's default blue, which clashes badly
+   with the palette, especially in dark mode. Specific link classes
+   (.linkish, .footer-links a, etc.) still take precedence via the
+   cascade, this is only the fallback. */
+a{color:var(--teal);}
 body{
   margin:0;
   background:var(--paper);
