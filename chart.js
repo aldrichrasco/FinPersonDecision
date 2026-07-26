@@ -135,7 +135,7 @@ function drawZoneAndThresholds(ctx, g, t) {
     // Learner view: the band is shown, but never named or numbered.
     if (yLo - yUp > 26) {
       ctx.fillStyle = t.teal;
-      ctx.font = "500 10.5px 'IBM Plex Sans', sans-serif";
+      ctx.font = "500 12.5px 'IBM Plex Sans', sans-serif";
       ctx.textAlign = "left";
       ctx.fillText("comfortable range", CHART.padL + 8, (yUp + yLo) / 2 + 3);
     }
@@ -145,17 +145,17 @@ function drawZoneAndThresholds(ctx, g, t) {
   // In-band label, only when the band is tall enough to hold it
   if (yLo - yUp > 30) {
     ctx.fillStyle = t.teal;
-    ctx.font = "600 11px 'IBM Plex Sans', sans-serif";
+    ctx.font = "600 13px 'IBM Plex Sans', sans-serif";
     ctx.textAlign = "left";
     ctx.fillText("Financial Homeostasis Zone", CHART.padL + 8, (yUp + yLo) / 2 - 2);
     ctx.fillStyle = t.slate;
-    ctx.font = "10px 'IBM Plex Sans', sans-serif";
+    ctx.font = "12px 'IBM Plex Sans', sans-serif";
     ctx.fillText("viable range of financial wellbeing", CHART.padL + 8, (yUp + yLo) / 2 + 12);
   }
 
   // Threshold captions
   ctx.fillStyle = t.brick;
-  ctx.font = "500 9.5px 'IBM Plex Mono', monospace";
+  ctx.font = "600 11px 'IBM Plex Mono', monospace";
   ctx.textAlign = "left";
   ctx.fillText("UPPER DISTORTION", CHART.padL + 8, g.yFor(HOMEOSTASIS.upper) - 6);
   ctx.fillText("LOWER BREAKDOWN", CHART.padL + 8, g.yFor(HOMEOSTASIS.lower) + 14);
@@ -164,13 +164,13 @@ function drawZoneAndThresholds(ctx, g, t) {
 function drawAxes(ctx, g, t) {
   if (chartMode === 'research') {
     ctx.fillStyle = t.slate;
-    ctx.font = "10px 'IBM Plex Mono', monospace";
+    ctx.font = "12px 'IBM Plex Mono', monospace";
     ctx.textAlign = "right";
     [0, 50, 100].forEach(v => ctx.fillText(String(v), CHART.padL - 8, g.yFor(v) + 3));
   } else {
     // Learners get direction, not a scale.
     ctx.fillStyle = t.slate;
-    ctx.font = "9.5px 'IBM Plex Sans', sans-serif";
+    ctx.font = "11.5px 'IBM Plex Sans', sans-serif";
     ctx.textAlign = "right";
     ctx.fillText("more put by", CHART.padL - 8, CHART.padT + 8);
     ctx.fillText("less put by", CHART.padL - 8, CHART.padT + g.plotH);
@@ -182,20 +182,20 @@ function drawAxes(ctx, g, t) {
   ctx.rotate(-Math.PI / 2);
   ctx.textAlign = "center";
   ctx.fillStyle = t.slate;
-  ctx.font = "500 10px 'IBM Plex Sans', sans-serif";
+  ctx.font = "500 12px 'IBM Plex Sans', sans-serif";
   ctx.fillText(chartMode === "research" ? "Financial wellbeing" : "", 0, 0);
   ctx.restore();
 
   // X axis title
   ctx.textAlign = "center";
   ctx.fillStyle = t.slate;
-  ctx.font = "500 10px 'IBM Plex Sans', sans-serif";
+  ctx.font = "500 12px 'IBM Plex Sans', sans-serif";
   ctx.fillText("Repeated decisions →", CHART.padL + g.plotW / 2, g.h - 8);
 }
 
 function drawEmptyState(ctx, g, t) {
   ctx.fillStyle = t.slate;
-  ctx.font = "13px 'IBM Plex Sans', sans-serif";
+  ctx.font = "14px 'IBM Plex Sans', sans-serif";
   ctx.textAlign = "center";
   ctx.fillText(
     "Your trajectory appears here as you decide.",
@@ -267,7 +267,7 @@ function drawGapAnnotation(ctx, g, observed, archetype, n, t) {
   ctx.save();
   ctx.fillStyle = t.ink;
   ctx.globalAlpha = 0.72;
-  ctx.font = "500 9.5px 'IBM Plex Sans', sans-serif";
+  ctx.font = "500 11.5px 'IBM Plex Sans', sans-serif";
   const midY = (y1 + y2) / 2;
   const label = "Person–archetype gap";
   const tw = ctx.measureText(label).width;

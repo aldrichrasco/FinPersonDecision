@@ -28,7 +28,7 @@ function drawRadarChart(canvas, axisValues, consistencyByAxis, opts = {}) {
   // was previously 34px, which was nowhere near enough for the longest
   // labels ("Financial Attentiveness") and left them clipped by the canvas
   // edge entirely on one side of the chart.
-  const radius = Math.min(cssW, cssH) / 2 - (showLabels ? 56 : 8);
+  const radius = Math.min(cssW, cssH) / 2 - (showLabels ? 60 : 8);
   const keys = AXIS_KEYS;
   const n = keys.length;
   const angleFor = i => (Math.PI * 2 * i) / n - Math.PI / 2;
@@ -51,7 +51,7 @@ function drawRadarChart(canvas, axisValues, consistencyByAxis, opts = {}) {
   // center), offset slightly right so they don't sit on top of the spoke
   // line itself.
   if (showLabels) {
-    ctx.font = "9px 'IBM Plex Mono', monospace";
+    ctx.font = "600 11px 'IBM Plex Mono', monospace";
     ctx.fillStyle = slate;
     ctx.textAlign = "left";
     [0.25, 0.5, 0.75, 1].forEach(frac => {
@@ -101,7 +101,7 @@ function drawRadarChart(canvas, axisValues, consistencyByAxis, opts = {}) {
   // short enough to fit inside the margin above, rather than running off
   // the edge of the canvas as a single long line did before.
   if (showLabels) {
-    ctx.font = "10.5px 'IBM Plex Sans', sans-serif";
+    ctx.font = "500 12px 'IBM Plex Sans', sans-serif";
     ctx.fillStyle = slate;
     keys.forEach((k, i) => {
       const a = angleFor(i);

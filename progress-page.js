@@ -37,7 +37,7 @@
   function calibrationHtmlFor(cal) {
     return cal ? `
       <p class="chart-title">Catching it before it happens</p>
-      <div class="pattern-panel tone-neutral" style="margin-bottom:26px;">
+      <div class="pattern-panel tone-neutral">
         <p class="pattern-body" style="font-size:15px;color:var(--ink);">
           You've engaged ${cal.modelsEngaged} money belief(s) in the sandbox. Right now, on average, you're at:
           <strong>${esc(C_LEVELS_PLAIN[nearestCLevel(cal.meanRecognitionRank)].title)}</strong>${cal.modelsTransferred ? ` — and ${cal.modelsTransferred} of these held up across different situations, not just one` : ""}.
@@ -47,7 +47,7 @@
         </p>
       </div>` : `
       <p class="chart-title">Catching it before it happens</p>
-      <div class="pattern-panel tone-neutral" style="margin-bottom:26px;">
+      <div class="pattern-panel tone-neutral">
         <p class="pattern-body" style="font-size:14px;color:var(--slate);">Make a few more sandbox decisions with predictions to see this here. <a href="model.html#calibration">What is this? &rarr;</a></p>
       </div>`;
   }
@@ -70,7 +70,7 @@
   const goals = loadGoalDiaryAcrossPersonas();
   const goalsHtml = goals.length ? `
     <p class="chart-title">Your personal finance diary</p>
-    <div class="pattern-panel tone-neutral" style="margin-bottom:26px;">
+    <div class="pattern-panel tone-neutral">
       <p class="pattern-body" style="font-size:13px;color:var(--slate);margin:0 0 10px;">
         ${goals.filter(g => g.done).length} of ${goals.length} goal(s) done, across every persona you've practiced with.
       </p>
@@ -79,42 +79,54 @@
       </ul>
     </div>` : "";
 
+  // A bento grid instead of one long single-column stack — the trend
+  // chart (the thing most worth a second look) gets the largest tile,
+  // everything else sizes to how much room it actually needs rather than
+  // all being full-width regardless of content.
   content.innerHTML = `
-    <div class="pattern-panel tone-${change >= 0 ? "good" : "watch"}" style="margin-bottom:26px;">
-      <p class="pattern-headline">Since you started, you've ${trendWord}.</p>
-      <p class="pattern-body">${
-        history.length > 1
-          ? "That's based on how you've answered over time — retake the questions whenever you like and it'll update."
-          : "Come back and answer the questions again after some practice, and you'll see how this shifts."
-      }</p>
-    </div>
-
-    <p class="chart-title">How you've been tracking</p>
-    <canvas id="cap-chart" width="820" height="160" style="width:100%;height:160px;margin-bottom:28px;"></canvas>
-
-    <p class="chart-title">Your real sandbox trajectory</p>
-    <p class="scenario-empty-body" id="wellbeing-chart-status" style="font-size:13px;">Loading your sandbox history…</p>
-    <canvas id="wellbeing-chart" width="820" height="160" style="width:100%;height:160px;margin-bottom:28px;display:none;"></canvas>
-
-    <div id="calibration-slot">${calibrationHtmlFor(cal)}</div>
-
-    ${goalsHtml}
-
-    <p class="chart-title">Your six axes</p>
-    <p class="chart-sub" style="margin:-6px 0 12px;font-size:13px;color:var(--slate);">Spoke length is your quiz score; a faded point means your sandbox decisions on that axis have been less consistent than a solid one.</p>
-    <canvas id="radar-chart" width="360" height="360" style="width:100%;max-width:360px;height:auto;aspect-ratio:1;display:block;margin:0 auto 28px;"></canvas>
-
-    <p class="chart-title">What I picked up about you</p>
-    <div class="pattern-panel tone-neutral" style="margin-bottom:26px;">
-      <p class="pattern-body" style="font-size:15px;color:var(--ink);">${esc(characterise(saved.profile, saved.archetype))}</p>
-    </div>
-
-    <div class="sandbox-card" style="border-radius:16px;">
-      <div>
-        <h3 style="font-family:var(--font-display);font-weight:500;margin:0 0 6px;">Answer them again?</h3>
-        <p style="margin:0;color:#C7CEDB;font-size:14px;">People change. Re-answering is how you see whether you have.</p>
+    <div class="bento-grid">
+      <div class="bento-tile bento-trend">
+        <p class="chart-title">How you've been tracking</p>
+        <canvas id="cap-chart" width="820" height="160" style="width:100%;height:160px;"></canvas>
       </div>
-      <a class="btn btn-primary" href="index.html" style="background:var(--marigold);color:var(--marigold-contrast);">Retake</a>
+
+      <div class="bento-tile bento-headline pattern-panel tone-${change >= 0 ? "good" : "watch"}">
+        <p class="pattern-headline">Since you started, you've ${trendWord}.</p>
+        <p class="pattern-body">${
+          history.length > 1
+            ? "That's based on how you've answered over time — retake the questions whenever you like and it'll update."
+            : "Come back and answer the questions again after some practice, and you'll see how this shifts."
+        }</p>
+      </div>
+
+      <div class="bento-tile bento-radar">
+        <p class="chart-title">Your six axes</p>
+        <p class="chart-sub" style="margin:-6px 0 12px;font-size:13px;color:var(--slate);">A faded point means less consistent sandbox decisions on that axis.</p>
+        <canvas id="radar-chart" width="360" height="360" style="width:100%;max-width:280px;height:auto;aspect-ratio:1;display:block;margin:0 auto;"></canvas>
+      </div>
+
+      <div class="bento-tile bento-character">
+        <p class="chart-title">What I picked up about you</p>
+        <p class="pattern-body" style="font-size:14.5px;color:var(--ink);">${esc(characterise(saved.profile, saved.archetype))}</p>
+      </div>
+
+      <div class="bento-tile bento-wellbeing">
+        <p class="chart-title">Your real sandbox trajectory</p>
+        <p class="scenario-empty-body" id="wellbeing-chart-status" style="font-size:13px;">Loading your sandbox history…</p>
+        <canvas id="wellbeing-chart" width="820" height="160" style="width:100%;height:160px;display:none;"></canvas>
+      </div>
+
+      <div class="bento-tile bento-calibration" id="calibration-slot">${calibrationHtmlFor(cal)}</div>
+
+      ${goalsHtml ? `<div class="bento-tile bento-goals">${goalsHtml}</div>` : ""}
+
+      <div class="bento-tile bento-cta sandbox-card">
+        <div>
+          <h3 style="font-family:var(--font-display);font-weight:500;margin:0 0 6px;">Answer them again?</h3>
+          <p style="margin:0;color:#C7CEDB;font-size:14px;">People change. Re-answering is how you see whether you have.</p>
+        </div>
+        <a class="btn btn-primary" href="index.html" style="background:var(--marigold);color:var(--marigold-contrast);">Retake</a>
+      </div>
     </div>
   `;
 
@@ -177,11 +189,11 @@
     [0, 50, 100].forEach(v => {
       const y = yFor(v);
       ctx.beginPath(); ctx.moveTo(pad, y); ctx.lineTo(w - pad, y); ctx.stroke();
-      ctx.fillStyle = muted; ctx.font = "10px 'IBM Plex Mono', monospace";
+      ctx.fillStyle = muted; ctx.font = "600 11.5px 'IBM Plex Mono', monospace";
       ctx.fillText(String(v), 4, y + 3);
     });
     if (values.length < 2) {
-      ctx.fillStyle = muted; ctx.font = "13px 'IBM Plex Sans', sans-serif";
+      ctx.fillStyle = muted; ctx.font = "14px 'IBM Plex Sans', sans-serif";
       ctx.fillText(emptyMessage || "", pad + 30, h / 2);
       // still plot the single point
     }

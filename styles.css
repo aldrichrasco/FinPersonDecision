@@ -755,6 +755,43 @@ h1{
 .chart-block{margin-bottom:28px;}
 .chart-title{font-size:13px;color:var(--slate);margin:0 0 10px;}
 
+/* ---------------------------------------------------------------- bento grid */
+/* Progress page experiment: instead of one long single-column stack
+   where every block is full-width regardless of how much content it
+   actually holds, each tile sizes to what it needs — the trend chart
+   (worth the most attention) gets the biggest tile, small panels
+   (headline, calibration) get proportionally small ones. Collapses to a
+   single column on narrower screens rather than trying to preserve the
+   asymmetry where there isn't room for it. */
+.bento-grid{
+  display:grid;
+  grid-template-columns:repeat(6, 1fr);
+  grid-auto-rows:minmax(90px, auto);
+  gap:16px;
+  margin-bottom:8px;
+}
+.bento-tile{
+  background:var(--paper-raised);border:1px solid var(--line);border-radius:16px;
+  padding:20px;box-shadow:var(--shadow);min-width:0;
+}
+.bento-trend{grid-column:span 4;grid-row:span 2;}
+.bento-headline{grid-column:span 2;grid-row:span 2;display:flex;flex-direction:column;justify-content:center;}
+.bento-radar{grid-column:span 3;grid-row:span 2;}
+.bento-character{grid-column:span 3;grid-row:span 2;display:flex;flex-direction:column;justify-content:center;}
+.bento-wellbeing{grid-column:span 4;}
+.bento-calibration{grid-column:span 2;}
+.bento-goals{grid-column:span 4;}
+.bento-cta{grid-column:span 6;}
+/* .sandbox-card and .pattern-panel already carry their own background/
+   padding — the CTA and headline tiles reuse those classes directly, so
+   .bento-tile's own background/border/padding would double up. */
+.bento-cta.bento-tile, .bento-headline.bento-tile{background:none;border:none;padding:0;box-shadow:none;}
+@media (max-width:900px){
+  .bento-grid{grid-template-columns:repeat(2, 1fr);}
+  .bento-trend, .bento-headline, .bento-radar, .bento-character,
+  .bento-wellbeing, .bento-calibration, .bento-goals, .bento-cta{grid-column:span 2;grid-row:auto;}
+}
+
 .log-block{margin-bottom:24px;}
 .change-log{list-style:none;padding:0;margin:0;border-top:1px solid var(--line);}
 .change-log li{padding:10px 0;border-bottom:1px solid var(--line);font-size:13px;}

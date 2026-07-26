@@ -1108,11 +1108,21 @@ function animateMetric(id, newValue) {
   const from = parseCurrency(el.textContent);
   const card = el.closest(".metric-card");
   const start = performance.now();
-  const duration = 400;
+  const delta = Math.abs(newValue - from);
+  // Longer for bigger swings (capped) so a multi-thousand-dollar jump
+  // doesn't blur past in the same 400ms as a $50 one — a fixed short
+  // duration meant a large change ticked through dozens of unrelated
+  // intermediate values too fast to read as anything but noise.
+  const duration = Math.min(900, Math.max(400, delta / 8));
+  // Round intermediate values to a coarser grain than the final number,
+  // so what's on screen mid-count looks like plausible round amounts
+  // instead of jittery exact-dollar digits changing every frame.
+  const grain = delta > 2000 ? 50 : delta > 200 ? 10 : 1;
   function tick(now) {
     const t = Math.min(1, (now - start) / duration);
     const eased = 1 - Math.pow(1 - t, 3);
-    el.textContent = fmt(Math.round(from + (newValue - from) * eased));
+    const raw = from + (newValue - from) * eased;
+    el.textContent = fmt(t < 1 ? Math.round(raw / grain) * grain : newValue);
     if (t < 1) requestAnimationFrame(tick);
   }
   requestAnimationFrame(tick);
@@ -1248,7 +1258,7 @@ function drawNetWorthChart() {
   ctx.strokeStyle = line; ctx.beginPath(); ctx.moveTo(pad.left, height - pad.bottom + .5); ctx.lineTo(width - pad.right, height - pad.bottom + .5); ctx.stroke();
   ctx.strokeStyle = teal; ctx.lineWidth = 2.5; ctx.lineJoin = "round"; ctx.beginPath(); values.forEach((value, i) => i ? ctx.lineTo(xFor(i), yFor(value)) : ctx.moveTo(xFor(i), yFor(value))); ctx.stroke();
   ctx.fillStyle = teal; ctx.beginPath(); ctx.arc(xFor(values.length - 1), yFor(values[values.length - 1]), 4, 0, Math.PI * 2); ctx.fill();
-  ctx.fillStyle = slate; ctx.font = "11px IBM Plex Mono, monospace"; ctx.fillText(`Start ${fmt(values[0])}`, pad.left, height - 7);
+  ctx.fillStyle = slate; ctx.font = "600 12px IBM Plex Mono, monospace"; ctx.fillText(`Start ${fmt(values[0])}`, pad.left, height - 7);
   const end = `Now ${fmt(values[values.length - 1])}`; ctx.fillText(end, Math.max(pad.left, width - pad.right - ctx.measureText(end).width), height - 7);
   canvas.setAttribute("aria-label", `Illustrative net worth moved from ${fmt(values[0])} to ${fmt(values[values.length - 1])} over ${Math.max(0, values.length - 1)} decisions.`);
 }
