@@ -36,7 +36,10 @@
     <div class="wrap">
       <div class="returning-banner" id="returning-banner" hidden></div>
       <p class="eyebrow">A safe place to practise</p>
-      <h1>Money decisions,<br>without the consequences.</h1>
+      <div class="cover-headline" id="cover-headline">
+        <h1>Money decisions,<br>without the consequences.</h1>
+        <div class="cover-curtain" aria-hidden="true"></div>
+      </div>
       <p class="lede">Practise the calls you find hard, see how they play out, and notice the habits you can't spot from inside them. Nothing here touches your real accounts.</p>
 
       <div class="hero-entry-row">
@@ -52,6 +55,8 @@
         <a class="linkish" href="model.html">See the theory behind this &rarr;</a> ·
         <a class="linkish" href="tutorial.html">New here? Take the 60-second tour &rarr;</a>
       </p>
+
+      <p class="privacy-scramble" id="privacy-scramble" data-text="🔒 Private by default. Educational only — never financial advice.">🔒 Private by default. Educational only — never financial advice.</p>
     </div>
   </section>
 
@@ -98,6 +103,40 @@
           <span class="archetype-card-type" style="background:var(--marigold-ink);">Growth</span>
           <p class="peek-tile-label" style="margin-top:4px;">Ambitious Builder</p>
         </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="compare-section" aria-label="What the sandbox is doing, and the psychology behind it">
+    <p class="peek-title">The game, and the theory behind it</p>
+    <p class="compare-hint">Drag to compare &harr;</p>
+    <div class="compare-wrap" id="compare-wrap">
+      <div class="compare-pane compare-pane-b">
+        <span class="compare-label">The psychology</span>
+        <p class="compare-heading">Present bias</p>
+        <p class="compare-body">You weight an immediate cost far more heavily than an equally real future one — a $1,200 repair today feels bigger than $1,200 of slowly-accrued interest later, even when the math says otherwise.</p>
+      </div>
+      <div class="compare-pane compare-pane-a" id="compare-pane-a">
+        <span class="compare-label">The game</span>
+        <p class="compare-heading">Your car needs a $1,200 repair to pass inspection.</p>
+        <div class="choice-btn" data-flavor="conservative" style="pointer-events:none;margin-top:10px;">
+          <span class="choice-icon" aria-hidden="true">&#128737;</span>
+          <span class="choice-body">
+            <span class="choice-text">Pay from savings</span>
+            <span class="choice-tag">&minus;$1,200 savings</span>
+          </span>
+        </div>
+      </div>
+      <div class="compare-handle" id="compare-handle"></div>
+    </div>
+  </section>
+
+  <section class="globe-section" aria-label="Illustrative decoration">
+    <div class="wrap globe-wrap">
+      <canvas id="globe-canvas" width="260" height="260" role="img" aria-label="A decorative rotating wireframe globe"></canvas>
+      <div class="globe-copy">
+        <p class="peek-title" style="text-align:left;margin-bottom:8px;">Practise wherever you are</p>
+        <p class="globe-caption">Illustrative only — this isn't a map of real usage or a location feature. FinPerson doesn't track where you are.</p>
       </div>
     </div>
   </section>

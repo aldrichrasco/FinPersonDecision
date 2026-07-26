@@ -288,11 +288,37 @@ h1{
 }
 
 .cta-row{display:flex;gap:12px;flex-wrap:wrap;}
+/* Container Cover — a one-time curtain reveal over the headline on load
+   (a solid panel drawing back rather than the text just being there),
+   plus a cursor-follow light while it's hovered. Reimplemented from the
+   Aceternity "Container Cover" concept using our own grain/ink palette
+   instead of a stock photo — this app doesn't use generic hero imagery. */
+.cover-headline{position:relative;display:inline-block;overflow:hidden;border-radius:4px;}
+.cover-headline h1{position:relative;z-index:1;}
+.cover-curtain{
+  position:absolute;inset:0;z-index:2;background:var(--ink);
+  transform-origin:left;animation:cover-reveal 1s cubic-bezier(.22,1,.36,1) .15s both;
+  pointer-events:none;
+}
+@keyframes cover-reveal{
+  0%{transform:scaleX(1);}
+  100%{transform:scaleX(0);}
+}
+@media (prefers-reduced-motion: reduce){.cover-curtain{display:none;}}
+
 .hero-entry-row{display:flex;align-items:center;gap:14px;margin:22px 0 6px;}
 .hero-entry-or{font-size:13px;color:var(--slate);}
 .hero-reassure{
   font-size:13.5px;color:var(--slate);
   margin:clamp(26px,4vh,38px) 0 0;line-height:1.6;
+}
+/* Scrambles in from random glyphs to the real text once, when it first
+   scrolls into view (see initPrivacyScramble() in script.js) — draws a
+   second's worth of attention to the privacy/not-advice line rather than
+   it reading as one more line of small print nobody stops for. */
+.privacy-scramble{
+  font-family:var(--font-mono);font-size:12px;color:var(--slate);
+  margin:10px 0 0;letter-spacing:.01em;
 }
 
 /* skip link */
@@ -342,6 +368,46 @@ h1{
   .peek-parallax{grid-template-columns:1fr;max-width:280px;}
   .peek-col:nth-child(2), .peek-col:nth-child(3){margin-top:0;}
 }
+
+/* ---------------------------------------------------------------- compare slider */
+/* The Aceternity "Compare" concept (a draggable before/after divider),
+   built here with two real text panels instead of photos: what the
+   sandbox is doing on one side, the behavioral-science concept it's
+   testing on the other. Reimplemented from scratch — see
+   initCompareSlider() in script.js. */
+.compare-section{padding:clamp(40px,7vh,72px) 0;border-top:1px solid var(--line);}
+.compare-hint{text-align:center;font-size:12.5px;color:var(--slate);margin:-24px 0 20px;}
+.compare-wrap{
+  position:relative;max-width:640px;margin:0 auto;height:220px;
+  border-radius:16px;overflow:hidden;border:1px solid var(--line);
+  box-shadow:var(--card-shadow);cursor:ew-resize;user-select:none;
+}
+.compare-pane{position:absolute;inset:0;padding:22px 26px;display:flex;flex-direction:column;justify-content:center;}
+.compare-pane-b{background:var(--paper-raised);}
+.compare-pane-a{background:var(--ink);color:var(--paper-raised);clip-path:inset(0 50% 0 0);}
+.compare-label{font-family:var(--font-mono);font-size:10.5px;font-weight:600;
+  text-transform:uppercase;letter-spacing:.06em;color:var(--marigold-ink);margin-bottom:8px;}
+.compare-pane-a .compare-label{color:var(--marigold);}
+.compare-heading{font-family:var(--font-display);font-weight:500;font-size:17px;margin:0 0 8px;line-height:1.3;}
+.compare-body{font-size:13.5px;line-height:1.55;color:var(--slate);margin:0;}
+.compare-handle{
+  position:absolute;top:0;bottom:0;left:50%;width:3px;background:var(--marigold);
+  transform:translateX(-50%);pointer-events:none;
+}
+.compare-handle::before{
+  content:"&#8596;";position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);
+  width:34px;height:34px;border-radius:50%;background:var(--marigold);color:var(--marigold-contrast);
+  display:flex;align-items:center;justify-content:center;font-size:14px;box-shadow:var(--card-shadow);
+}
+@media (max-width:640px){.compare-wrap{height:280px;}}
+
+/* ---------------------------------------------------------------- globe */
+.globe-section{padding:clamp(32px,6vh,56px) 0;}
+.globe-wrap{display:flex;align-items:center;gap:32px;flex-wrap:wrap;justify-content:center;}
+#globe-canvas{flex-shrink:0;}
+.globe-copy{max-width:340px;}
+.globe-caption{font-size:12.5px;color:var(--slate);line-height:1.55;margin:0;}
+@media (max-width:640px){.globe-wrap{flex-direction:column;text-align:center;}.globe-copy{max-width:100%;}}
 
 .how-it-works{padding:clamp(56px,9vh,104px) 0;border-top:1px solid var(--line);}
 .steps{

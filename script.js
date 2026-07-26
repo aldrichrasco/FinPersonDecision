@@ -10,6 +10,94 @@
 // viewport — computed from the section's position relative to viewport
 // center each scroll tick, not a fixed timeline, so it stays correct
 // regardless of where the section ends up on the page.
+// A decorative rotating wireframe globe — explicitly illustrative (see
+// the caption next to it), not a visualization of any real data. There's
+// no geographic tracking in this app to depict honestly, so this is
+// framed purely as atmosphere, the same way the Theory page's Unsplash
+// banner is decoration rather than a data visualization.
+function initGlobe() {
+  const canvas = document.getElementById("globe-canvas");
+  if (!canvas) return;
+  const ctx = canvas.getContext("2d");
+  const dpr = window.devicePixelRatio || 1;
+  const size = canvas.clientWidth || 260;
+  canvas.width = size * dpr;
+  canvas.height = size * dpr;
+  ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+  const cx = size / 2, cy = size / 2, r = size / 2 - 8;
+
+  const styles = getComputedStyle(document.body);
+  const line = styles.getPropertyValue("--line").trim() || "rgba(27,42,74,.14)";
+  const ink = styles.getPropertyValue("--ink").trim() || "#1B2A4A";
+  const marigold = styles.getPropertyValue("--marigold").trim() || "#E8A33D";
+  const reduceMotion = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  let angle = 0;
+
+  function draw() {
+    ctx.clearRect(0, 0, size, size);
+    ctx.beginPath();
+    ctx.arc(cx, cy, r, 0, Math.PI * 2);
+    ctx.strokeStyle = ink;
+    ctx.lineWidth = 1.5;
+    ctx.stroke();
+
+    ctx.strokeStyle = line;
+    ctx.lineWidth = 1;
+    for (let i = -3; i <= 3; i++) {
+      const frac = i / 4;
+      const y = cy + frac * r;
+      const ellipseRy = Math.max(2, Math.abs(Math.cos(frac * Math.PI / 2)) * 6);
+      const ellipseRx = Math.sqrt(Math.max(0, r * r - (frac * r) * (frac * r)));
+      ctx.beginPath();
+      ctx.ellipse(cx, y, ellipseRx, ellipseRy, 0, 0, Math.PI * 2);
+      ctx.stroke();
+    }
+    for (let i = 0; i < 5; i++) {
+      const lon = angle + (i * Math.PI) / 5;
+      const rx = Math.max(2, Math.abs(Math.cos(lon)) * r);
+      ctx.beginPath();
+      ctx.ellipse(cx, cy, rx, r, 0, 0, Math.PI * 2);
+      ctx.stroke();
+    }
+    ctx.fillStyle = marigold;
+    [[0.32, -0.22], [-0.4, 0.28], [0.08, 0.5]].forEach(([fx, fy]) => {
+      ctx.beginPath();
+      ctx.arc(cx + fx * r, cy + fy * r, 3, 0, Math.PI * 2);
+      ctx.fill();
+    });
+  }
+
+  if (reduceMotion) { draw(); return; }
+  function loop() {
+    angle += 0.006;
+    draw();
+    requestAnimationFrame(loop);
+  }
+  loop();
+}
+
+function initCompareSlider() {
+  const wrap = document.getElementById("compare-wrap");
+  const paneA = document.getElementById("compare-pane-a");
+  const handle = document.getElementById("compare-handle");
+  if (!wrap || !paneA || !handle) return;
+
+  function setPct(pct) {
+    const clamped = Math.max(4, Math.min(96, pct));
+    paneA.style.clipPath = `inset(0 ${100 - clamped}% 0 0)`;
+    handle.style.left = `${clamped}%`;
+  }
+  function pctFromEvent(clientX) {
+    const r = wrap.getBoundingClientRect();
+    return ((clientX - r.left) / r.width) * 100;
+  }
+  let dragging = false;
+  wrap.addEventListener("pointerdown", e => { dragging = true; setPct(pctFromEvent(e.clientX)); wrap.setPointerCapture(e.pointerId); });
+  wrap.addEventListener("pointermove", e => { if (dragging) setPct(pctFromEvent(e.clientX)); });
+  wrap.addEventListener("pointerup", () => { dragging = false; });
+  wrap.addEventListener("pointerleave", () => { dragging = false; });
+}
+
 function initPeekParallax() {
   const section = document.querySelector(".peek-section");
   const cols = document.querySelectorAll(".peek-col");
@@ -38,6 +126,43 @@ function initPeekRadar() {
   const sample = { impulse_regulation: 72, risk_disposition: 65, temporal_orientation: 80,
     financial_attentiveness: 55, financial_self_efficacy: 70, prosocial_orientation: 60 };
   drawRadarChart(canvas, sample, {}, { showLabels: false });
+}
+
+// Scrambles from random glyphs into the real text once, the first time
+// the element scrolls into view — a small, legible flourish (not the
+// generic marquee/particle kind) specifically for the privacy/no-advice
+// line, so it earns a beat of attention instead of reading as filler.
+function initPrivacyScramble() {
+  const el = document.getElementById("privacy-scramble");
+  if (!el) return;
+  const finalText = el.dataset.text || el.textContent;
+  if (window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+
+  const GLYPHS = "!<>-_\\/[]{}=+*^?#%$&";
+  function scramble() {
+    const duration = 700;
+    const start = performance.now();
+    function tick(now) {
+      const t = Math.min(1, (now - start) / duration);
+      const revealCount = Math.floor(t * finalText.length);
+      let out = "";
+      for (let i = 0; i < finalText.length; i++) {
+        out += (i < revealCount || finalText[i] === " ") ? finalText[i] : GLYPHS[Math.floor(Math.random() * GLYPHS.length)];
+      }
+      el.textContent = out;
+      if (t < 1) requestAnimationFrame(tick);
+      else el.textContent = finalText;
+    }
+    requestAnimationFrame(tick);
+  }
+
+  if (!("IntersectionObserver" in window)) { scramble(); return; }
+  const io = new IntersectionObserver(entries => {
+    entries.forEach(entry => {
+      if (entry.isIntersecting) { scramble(); io.unobserve(el); }
+    });
+  }, { threshold: 0.6 });
+  io.observe(el);
 }
 
 function initVelocityStrip() {
@@ -156,6 +281,9 @@ renderReturningBanner();
 initVelocityStrip();
 initPeekParallax();
 initPeekRadar();
+initCompareSlider();
+initGlobe();
+initPrivacyScramble();
 initQuiz();
 
 document.querySelectorAll(".situations li, .step, .principle, .sandbox-card, .section-title, .lede, .hero-reassure")
