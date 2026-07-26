@@ -1444,6 +1444,13 @@ body.has-app-nav .study-badge{bottom:84px;}
 .learn-xp-fill{height:100%;background:var(--marigold);border-radius:999px;
   transition:width .4s cubic-bezier(.22,1,.36,1);}
 .learn-xp-label{font-size:12px;color:var(--slate);white-space:nowrap;}
+.learn-daily-goal{display:flex;align-items:center;gap:12px;margin:0 0 22px;
+  padding:12px 16px;border:1px solid var(--line);border-radius:12px;background:var(--paper-raised);}
+.learn-daily-goal.is-met{border-color:color-mix(in srgb, var(--teal) 45%, var(--line));}
+.learn-daily-goal-label{font-size:12.5px;color:var(--slate);white-space:nowrap;}
+.learn-daily-goal.is-met .learn-daily-goal-label{color:var(--teal);font-weight:500;}
+.learn-daily-goal-track{flex:1;min-width:80px;}
+.learn-daily-goal-count{font-family:var(--font-mono);font-size:12px;color:var(--ink);white-space:nowrap;}
 .learn-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(230px,1fr));gap:14px;
   margin:0 0 30px;}
 .learn-axis-card{border:1px solid var(--line);border-radius:14px;padding:16px 18px;
@@ -1455,21 +1462,46 @@ body.has-app-nav .study-badge{bottom:84px;}
 .learn-axis-tag{display:inline-block;font-size:11px;font-weight:500;text-transform:uppercase;
   letter-spacing:.04em;color:var(--slate);margin-bottom:6px;}
 .learn-axis-blurb{font-size:13.5px;line-height:1.5;color:var(--ink);margin:0 0 12px;}
-.learn-lesson{border-top:1px solid var(--line);padding:12px 0;}
-.learn-lesson:first-of-type{border-top:none;padding-top:0;}
-.learn-lesson-head{display:flex;align-items:center;justify-content:space-between;gap:10px;
+.learn-axis-complete-badge{display:inline-block;margin-left:8px;font-size:11px;font-weight:500;
+  color:var(--teal);}
+.learn-axis-progress{display:flex;align-items:center;gap:10px;margin:0 0 14px;}
+.learn-axis-progress-track{min-width:0;}
+.learn-axis-progress-label{font-size:11.5px;color:var(--slate);white-space:nowrap;}
+/* Lesson path — a connecting line behind the row of check-nodes, the
+   signature Duolingo "unit map" shape, instead of a flat list of
+   equal-weight rows. One continuous line for the whole axis (drawn via
+   ::before on the container) rather than per-row segments, so it stays
+   correct regardless of which rows are expanded/collapsed. */
+.learn-lessons{position:relative;}
+.learn-lessons::before{
+  content:"";position:absolute;top:24px;bottom:24px;left:23px;
+  width:2px;background:var(--line);z-index:0;
+}
+.learn-lesson{border-top:none;padding:10px 0;position:relative;z-index:1;}
+.learn-lesson-head{display:flex;align-items:center;justify-content:space-between;gap:12px;
   cursor:pointer;margin:0 -8px;padding:4px 8px;border-radius:8px;transition:background .15s ease;}
 .learn-lesson-head:hover{background:var(--paper-raised);}
 .learn-lesson-title{font-size:14px;font-weight:500;color:var(--ink);}
 .learn-lesson-meta{font-size:11.5px;color:var(--slate);white-space:nowrap;}
-.learn-lesson-body{font-size:13.5px;line-height:1.55;color:var(--ink);margin:10px 0 0;
+.learn-lesson-body{font-size:13.5px;line-height:1.55;color:var(--ink);margin:10px 0 0 42px;
   display:none;}
 .learn-lesson.is-open .learn-lesson-body{display:block;}
-.learn-lesson-check{width:18px;height:18px;border-radius:50%;border:1.5px solid var(--line);
-  display:inline-flex;align-items:center;justify-content:center;font-size:11px;flex-shrink:0;
-  cursor:pointer;}
+.learn-lesson-check{width:30px;height:30px;border-radius:50%;border:2px solid var(--line);
+  background:var(--paper-raised);
+  display:inline-flex;align-items:center;justify-content:center;font-size:13px;flex-shrink:0;
+  cursor:pointer;position:relative;z-index:1;
+  transition:background .25s cubic-bezier(.22,1,.36,1),border-color .25s cubic-bezier(.22,1,.36,1);}
 .learn-lesson.is-done .learn-lesson-check{background:var(--teal);border-color:var(--teal);
   color:var(--paper-raised);}
+.learn-lesson.is-next .learn-lesson-check{
+  border-color:var(--marigold);box-shadow:0 0 0 4px var(--gold-tint);
+  animation:learn-next-pulse 1.8s ease-in-out infinite;
+}
+@keyframes learn-next-pulse{
+  0%,100%{box-shadow:0 0 0 4px var(--gold-tint);}
+  50%{box-shadow:0 0 0 7px var(--gold-tint);}
+}
+@media (prefers-reduced-motion: reduce){.learn-lesson.is-next .learn-lesson-check{animation:none;}}
 .learn-resources{margin-top:14px;padding-top:12px;border-top:1px solid var(--line);}
 .learn-resources-title{font-size:11px;font-weight:500;text-transform:uppercase;
   letter-spacing:.04em;color:var(--slate);margin:0 0 8px;}

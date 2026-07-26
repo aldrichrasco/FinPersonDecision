@@ -17,12 +17,16 @@
     try { localStorage.setItem(LOCAL_KEY, JSON.stringify(p)); } catch (e) {}
   }
 
+  const DAILY_XP_GOAL = 30;
+
   function normalizeProgress(p) {
     return {
       completed: Array.isArray(p && p.completed) ? p.completed : [],
       xp: (p && typeof p.xp === "number") ? p.xp : 0,
       streak: (p && typeof p.streak === "number") ? p.streak : 0,
       lastActivityDate: (p && p.lastActivityDate) || null,
+      todayXp: (p && typeof p.todayXp === "number") ? p.todayXp : 0,
+      todayXpDate: (p && p.todayXpDate) || null,
     };
   }
 
@@ -36,6 +40,20 @@
     const yesterday = new Date(Date.now() - 86400000).toISOString().slice(0, 10);
     progress.streak = progress.lastActivityDate === yesterday ? progress.streak + 1 : 1;
     progress.lastActivityDate = today;
+    return progress;
+  }
+
+  // Separate from all-time xp — Duolingo's "daily goal" concept, resets
+  // at midnight rather than accumulating forever, so there's always a
+  // fresh, achievable target instead of one that gets harder to feel
+  // relative to the longer someone's been using this.
+  function bumpDailyXp(progress, delta) {
+    const today = todayStr();
+    if (progress.todayXpDate !== today) {
+      progress.todayXp = 0;
+      progress.todayXpDate = today;
+    }
+    progress.todayXp = Math.max(0, progress.todayXp + delta);
     return progress;
   }
 
@@ -65,15 +83,41 @@
     const key = lessonKey(axis, idx);
     const at = progress.completed.indexOf(key);
     if (at === -1) {
+      const beforeLevel = xpForNextLevel(progress.xp).level;
+      const beforeGoalMet = progress.todayXpDate === todayStr() && progress.todayXp >= DAILY_XP_GOAL;
+
       progress.completed.push(key);
       progress.xp += 10;
       bumpStreak(progress);
+      bumpDailyXp(progress, 10);
+
+      const afterLevel = xpForNextLevel(progress.xp).level;
+      const afterGoalMet = progress.todayXp >= DAILY_XP_GOAL;
+      celebrateCompletion({ leveledUp: afterLevel > beforeLevel, level: afterLevel, goalJustMet: afterGoalMet && !beforeGoalMet });
     } else {
       progress.completed.splice(at, 1);
       progress.xp = Math.max(0, progress.xp - 10);
+      bumpDailyXp(progress, -10);
     }
     persist();
     render();
+  }
+
+  // One celebratory moment per completed lesson, prioritizing the biggest
+  // news: a level-up beats the daily goal beats a plain "+10 XP" — Duolingo
+  // never stacks more than one of these at once either, since piling on
+  // congratulations for the same click reads as noise, not encouragement.
+  const ENCOURAGEMENTS = ["Nice!", "Great work!", "Keep it up!", "Solid.", "That's the habit."];
+  function celebrateCompletion({ leveledUp, level, goalJustMet }) {
+    if (typeof toast !== "function") return;
+    if (leveledUp) {
+      toast(`Level up! You're now Level ${level}.`, { tone: "good", duration: 3200 });
+    } else if (goalJustMet) {
+      toast(`Daily goal reached — ${DAILY_XP_GOAL} XP today.`, { tone: "good", duration: 3200 });
+    } else {
+      const line = ENCOURAGEMENTS[Math.floor(Math.random() * ENCOURAGEMENTS.length)];
+      toast(`${line} +10 XP`, { tone: "good", duration: 2000 });
+    }
   }
 
   function xpForNextLevel(xp) {
@@ -111,11 +155,19 @@
         ? `<span class="learn-axis-gap">${Math.round(Math.abs(gap))} pts ${gap > 0 ? "above" : "below"} the ${esc(PERSONAS.find(p => p.slug === saved.archetype)?.name || "archetype")} pattern</span>`
         : "";
 
+      // A path, not a plain list — each lesson a node on a connecting
+      // line (drawn behind the nodes, see .learn-lessons::before), the
+      // signature Duolingo "unit map" shape. The next not-yet-done
+      // lesson gets a pulsing ring so there's always one obvious next
+      // step, rather than a flat list of equally-weighted rows.
+      let nextShown = false;
       const lessonsHtml = c.lessons.map((lesson, idx) => {
         const key = lessonKey(axis, idx);
         const done = progress.completed.includes(key);
+        const isNext = !done && !nextShown;
+        if (isNext) nextShown = true;
         return `
-          <div class="learn-lesson ${done ? "is-done" : ""}" data-axis="${esc(axis)}" data-idx="${idx}">
+          <div class="learn-lesson ${done ? "is-done" : ""} ${isNext ? "is-next" : ""}" data-axis="${esc(axis)}" data-idx="${idx}">
             <div class="learn-lesson-head" data-toggle-open>
               <span class="learn-lesson-check" data-toggle-done title="${done ? "Mark not done" : "Mark done"}">${done ? "✓" : ""}</span>
               <span class="learn-lesson-title" style="flex:1;">${esc(lesson.title)}</span>
@@ -135,13 +187,28 @@
           ▶ ${esc(v.name)} <span class="learn-resource-note">— ${esc(v.note)}</span>
         </a>`).join("");
 
+      // Per-axis completion rollup — before this, a card only showed
+      // individual lesson checkmarks with no sense of "how much of this
+      // axis is done." A finished axis now also gets a small "Complete"
+      // badge on the card itself, not just checked-off rows inside it.
+      const doneCount = c.lessons.filter((_, idx) => progress.completed.includes(lessonKey(axis, idx))).length;
+      const totalCount = c.lessons.length;
+      const axisComplete = doneCount === totalCount;
+      const completionHtml = `
+        <div class="learn-axis-progress">
+          <div class="learn-xp-track learn-axis-progress-track"><div class="learn-xp-fill" style="width:${Math.round((doneCount / totalCount) * 100)}%"></div></div>
+          <span class="learn-axis-progress-label">${doneCount} of ${totalCount} lessons</span>
+        </div>`;
+
       return `
         <div class="learn-axis-card ${axisStatus === "growth" ? "is-growth" : axisStatus === "strength" ? "is-strength" : ""}">
           <span class="learn-axis-tag">${axisStatus === "growth" ? "Growth area" : axisStatus === "strength" ? "Strength" : meta.label}</span>
+          ${axisComplete ? `<span class="learn-axis-complete-badge" title="All lessons done">✓ Complete</span>` : ""}
           <h3>${esc(meta.label)}</h3>
           <p class="learn-axis-blurb">${esc(blurb)}</p>
           ${gapNote}
-          ${lessonsHtml}
+          ${completionHtml}
+          <div class="learn-lessons">${lessonsHtml}</div>
           <div class="learn-resources">
             <p class="learn-resources-title">Learn more</p>
             ${videoHtml}
@@ -165,11 +232,20 @@
         <span class="learn-closeness-pct">${closeness}%</span>
       </div>` : "";
 
+    const todayXp = (progress.todayXpDate === todayStr()) ? progress.todayXp : 0;
+    const goalPct = Math.min(100, Math.round((todayXp / DAILY_XP_GOAL) * 100));
+    const goalMet = todayXp >= DAILY_XP_GOAL;
+
     content.innerHTML = `
       <div class="learn-streak-row">
         <div class="learn-streak"><span class="learn-streak-flame">🔥</span> ${progress.streak}-day streak</div>
         <div class="learn-xp-track"><div class="learn-xp-fill" style="width:${pct}%"></div></div>
         <span class="learn-xp-label">Level ${level} · ${into}/50 XP</span>
+      </div>
+      <div class="learn-daily-goal ${goalMet ? "is-met" : ""}">
+        <span class="learn-daily-goal-label">${goalMet ? "Daily goal reached" : "Daily goal"}</span>
+        <div class="learn-xp-track learn-daily-goal-track"><div class="learn-xp-fill" style="width:${goalPct}%"></div></div>
+        <span class="learn-daily-goal-count">${Math.min(todayXp, DAILY_XP_GOAL)}/${DAILY_XP_GOAL} XP${goalMet ? " ✓" : ""}</span>
       </div>
       ${closenessHtml}
       <div class="learn-grid">${primaryCards}</div>
