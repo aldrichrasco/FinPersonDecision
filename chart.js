@@ -41,12 +41,12 @@ function tokens() {
   const s = getComputedStyle(document.body);
   const v = (name, fallback) => s.getPropertyValue(name).trim() || fallback;
   return {
-    teal: v("--teal", "#0F5C55"),
-    brick: v("--brick", "#B5482A"),
-    plum: v("--plum", "#5A4B81"),
-    ink: v("--ink", "#1B2A4A"),
-    slate: v("--slate", "#6B6F76"),
-    line: v("--line", "rgba(27,42,74,0.14)"),
+    teal: v("--teal", "#0B4A44"),
+    brick: v("--brick", "#9E3D26"),
+    plum: v("--plum", "#4A3D6C"),
+    ink: v("--ink", "#12192E"),
+    slate: v("--slate", "#5B5E66"),
+    line: v("--line", "rgba(18,25,46,0.14)"),
   };
 }
 

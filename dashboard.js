@@ -1244,7 +1244,7 @@ function drawNetWorthChart() {
   const pad = { top: 20, right: 18, bottom: 26, left: 18 }, plotW = width - pad.left - pad.right, plotH = height - pad.top - pad.bottom;
   const xFor = i => pad.left + (values.length === 1 ? plotW / 2 : (i / (values.length - 1)) * plotW);
   const yFor = value => pad.top + plotH - ((value - low) / spread) * plotH;
-  const css = getComputedStyle(document.body), teal = css.getPropertyValue("--teal").trim() || "#0F5C55", slate = css.getPropertyValue("--slate").trim() || "#6B6F76", line = css.getPropertyValue("--line").trim() || "rgba(27,42,74,.14)";
+  const css = getComputedStyle(document.body), teal = css.getPropertyValue("--teal").trim() || "#0B4A44", slate = css.getPropertyValue("--slate").trim() || "#5B5E66", line = css.getPropertyValue("--line").trim() || "rgba(18,25,46,.14)";
   ctx.strokeStyle = line; ctx.beginPath(); ctx.moveTo(pad.left, height - pad.bottom + .5); ctx.lineTo(width - pad.right, height - pad.bottom + .5); ctx.stroke();
   ctx.strokeStyle = teal; ctx.lineWidth = 2.5; ctx.lineJoin = "round"; ctx.beginPath(); values.forEach((value, i) => i ? ctx.lineTo(xFor(i), yFor(value)) : ctx.moveTo(xFor(i), yFor(value))); ctx.stroke();
   ctx.fillStyle = teal; ctx.beginPath(); ctx.arc(xFor(values.length - 1), yFor(values[values.length - 1]), 4, 0, Math.PI * 2); ctx.fill();

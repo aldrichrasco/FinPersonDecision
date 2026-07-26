@@ -18,9 +18,9 @@ function drawRadarChart(canvas, axisValues, consistencyByAxis, opts = {}) {
   ctx.clearRect(0, 0, cssW, cssH);
 
   const styles = getComputedStyle(document.body);
-  const teal = styles.getPropertyValue("--teal").trim() || "#0F5C55";
+  const teal = styles.getPropertyValue("--teal").trim() || "#0B4A44";
   const line = styles.getPropertyValue("--line").trim() || "rgba(0,0,0,0.14)";
-  const slate = styles.getPropertyValue("--slate").trim() || "#6B6F76";
+  const slate = styles.getPropertyValue("--slate").trim() || "#5B5E66";
 
   const cx = cssW / 2, cy = cssH / 2;
   // Labels wrap to two lines (see below), so the reserved margin only needs

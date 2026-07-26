@@ -1765,7 +1765,7 @@ body.has-app-nav .study-badge{bottom:84px;}
 .lens-wrap{position:relative;}
 .lens{
   position:absolute;width:130px;height:130px;border-radius:50%;
-  border:2px solid var(--ink);box-shadow:0 10px 28px -8px rgba(27,42,74,.35);
+  border:2px solid var(--ink);box-shadow:0 10px 28px -8px rgba(18,25,46,.35);
   pointer-events:none;background-repeat:no-repeat;z-index:6;
   background-color:var(--paper-raised);
 }
@@ -1782,7 +1782,7 @@ body.has-app-nav .study-badge{bottom:84px;}
   transition:transform .12s ease-out, box-shadow .2s ease;
 }
 .archetype-card[tabindex]{cursor:pointer;}
-.archetype-card:hover{box-shadow:0 18px 40px -14px rgba(27,42,74,0.3);}
+.archetype-card:hover{box-shadow:0 18px 40px -14px rgba(18,25,46,0.3);}
 .archetype-card:focus-visible{outline:2px solid var(--ink);outline-offset:3px;}
 /* The moving highlight — a soft light following the cursor, like a foil
    card catching the light as it tilts. Pure CSS: --mx/--my are set by

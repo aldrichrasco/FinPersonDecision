@@ -166,7 +166,7 @@
     const ctx = canvas.getContext("2d");
     ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
     const styles = getComputedStyle(document.body);
-    const line = styles.getPropertyValue("--teal").trim() || "#0F5C55";
+    const line = styles.getPropertyValue("--teal").trim() || "#0B4A44";
     const grid = styles.getPropertyValue("--line").trim() || "rgba(0,0,0,0.1)";
     const muted = styles.getPropertyValue("--slate").trim() || "#666";
     const pad = 28, w = cssW, h = cssH;
