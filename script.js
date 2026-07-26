@@ -6,6 +6,40 @@
 // scroll (and reverses when you scroll back up), rather than being a
 // flat static backdrop. Reads scroll delta per frame instead of an
 // animation timeline, so its speed genuinely tracks scroll velocity.
+// Each peek column drifts at its own speed as the section crosses the
+// viewport — computed from the section's position relative to viewport
+// center each scroll tick, not a fixed timeline, so it stays correct
+// regardless of where the section ends up on the page.
+function initPeekParallax() {
+  const section = document.querySelector(".peek-section");
+  const cols = document.querySelectorAll(".peek-col");
+  if (!section || !cols.length) return;
+  if (window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+
+  let ticking = false;
+  function apply() {
+    const r = section.getBoundingClientRect();
+    const centerOffset = (r.top + r.height / 2) - window.innerHeight / 2;
+    cols.forEach(col => {
+      const speed = parseFloat(col.dataset.speed) || 0;
+      col.style.transform = `translateY(${centerOffset * speed}px)`;
+    });
+    ticking = false;
+  }
+  window.addEventListener("scroll", () => {
+    if (!ticking) { requestAnimationFrame(apply); ticking = true; }
+  }, { passive: true });
+  apply();
+}
+
+function initPeekRadar() {
+  const canvas = document.getElementById("peek-radar-canvas");
+  if (!canvas || typeof drawRadarChart !== "function") return;
+  const sample = { impulse_regulation: 72, risk_disposition: 65, temporal_orientation: 80,
+    financial_attentiveness: 55, financial_self_efficacy: 70, prosocial_orientation: 60 };
+  drawRadarChart(canvas, sample, {}, { showLabels: false });
+}
+
 function initVelocityStrip() {
   const strip = document.querySelector(".hero-velocity-strip");
   if (!strip) return;
@@ -120,6 +154,8 @@ function renderReturningBanner() {
 renderSituations();
 renderReturningBanner();
 initVelocityStrip();
+initPeekParallax();
+initPeekRadar();
 initQuiz();
 
 document.querySelectorAll(".situations li, .step, .principle, .sandbox-card, .section-title, .lede, .hero-reassure")

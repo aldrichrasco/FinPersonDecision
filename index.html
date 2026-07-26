@@ -55,6 +55,53 @@
     </div>
   </section>
 
+  <section class="peek-section" aria-label="A preview of the sandbox and progress views">
+    <p class="peek-title">A peek at what's actually inside</p>
+    <div class="peek-parallax" id="peek-parallax">
+      <div class="peek-col" data-speed="0.14">
+        <div class="peek-tile">
+          <canvas class="peek-radar-canvas" id="peek-radar-canvas" width="140" height="140"></canvas>
+          <p class="peek-tile-label">Your six axes</p>
+        </div>
+        <div class="peek-tile peek-tile-pad">
+          <span class="learn-streak"><span class="learn-streak-flame">🔥</span> 4-day streak</span>
+        </div>
+      </div>
+      <div class="peek-col" data-speed="-0.2">
+        <div class="peek-tile peek-tile-pad">
+          <div class="stat-tile status-good" style="pointer-events:none;">
+            <span class="stat-tile-label">Net worth</span>
+            <span class="stat-tile-value">$17,000</span>
+            <span class="stat-tile-delta stat-delta-up">&#9650; $400</span>
+          </div>
+        </div>
+        <div class="peek-tile peek-tile-pad">
+          <div class="choice-btn" data-flavor="conservative" style="pointer-events:none;">
+            <span class="choice-icon" aria-hidden="true">&#128737;</span>
+            <span class="choice-body">
+              <span class="choice-text">Absorb it, cut elsewhere</span>
+              <span class="choice-tag">+$150 expenses</span>
+            </span>
+          </div>
+        </div>
+      </div>
+      <div class="peek-col" data-speed="0.22">
+        <div class="peek-tile peek-tile-pad">
+          <div class="round-path" style="width:110px;margin:0 auto;">
+            <span class="round-node is-done"></span><span class="round-node is-done"></span>
+            <span class="round-node is-current"></span><span class="round-node"></span>
+            <span class="round-node"></span><span class="round-node"></span>
+          </div>
+          <p class="peek-tile-label">Round 2 &middot; 3 of 6</p>
+        </div>
+        <div class="peek-tile peek-tile-pad">
+          <span class="archetype-card-type" style="background:var(--marigold-ink);">Growth</span>
+          <p class="peek-tile-label" style="margin-top:4px;">Ambitious Builder</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
   <section class="how-it-works">
     <div class="wrap">
       <h2 class="section-title">Three steps. No spreadsheets.</h2>
@@ -139,6 +186,7 @@
 <script src="observations.js"></script>
 <script src="api.js"></script>
 <script src="quiz.js"></script>
+<script src="radar-chart.js"></script>
 <script src="script.js"></script>
 <script src="ui.js"></script>
 <script src="legal.js"></script>
