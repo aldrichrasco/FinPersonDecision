@@ -68,6 +68,19 @@ body{
   transition:background 0.2s ease, color 0.2s ease;
 }
 
+/* A barely-there grain over the whole page — the single biggest lever
+   against "flat, textureless" without adding any new visual language
+   (no gradients, no glass, nothing that reads as a generic AI-app
+   surface). Fixed to the viewport so it doesn't scroll/tile oddly with
+   page content; pointer-events:none so it never blocks a click. */
+body::after{
+  content:"";
+  position:fixed;inset:0;z-index:2;pointer-events:none;
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='140' height='140'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  opacity:0.035;
+  mix-blend-mode:overlay;
+}
+
 :focus-visible{outline:2px solid var(--ink);outline-offset:2px;}
 
 .wrap{max-width:920px;margin:0 auto;padding:0 24px;}
@@ -525,6 +538,10 @@ h1{
   padding:26px;
   margin-bottom:32px;
   animation:scenario-in 0.35s ease;
+  /* This is the one decision on the whole page — it should read as
+     lifted above the reference material below it (metric cards, ratio
+     pills), not sitting at the same flat elevation as everything else. */
+  box-shadow:var(--card-shadow);
 }
 @keyframes scenario-in{
   from{opacity:0;transform:translateY(6px);}
@@ -1268,6 +1285,7 @@ body.is-offline{padding-top:38px;}
 .coach-panel{
   margin-top:12px;border:1px solid var(--line);border-radius:16px;
   background:var(--paper-raised);overflow:hidden;
+  box-shadow:var(--card-shadow);
   animation:coach-in .3s cubic-bezier(.22,1,.36,1);
 }
 @keyframes coach-in{from{opacity:0;transform:translateY(-6px);}to{opacity:1;transform:none;}}
@@ -1454,7 +1472,8 @@ body.has-app-nav .study-badge{bottom:84px;}
 .learn-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(230px,1fr));gap:14px;
   margin:0 0 30px;}
 .learn-axis-card{border:1px solid var(--line);border-radius:14px;padding:16px 18px;
-  background:var(--paper);transition:transform .2s cubic-bezier(.22,1,.36,1),box-shadow .2s ease,border-color .2s ease;}
+  background:var(--paper);box-shadow:var(--shadow);
+  transition:transform .2s cubic-bezier(.22,1,.36,1),box-shadow .2s ease,border-color .2s ease;}
 .learn-axis-card:hover{transform:translateY(-2px);box-shadow:var(--card-shadow);border-color:color-mix(in srgb, var(--ink) 25%, var(--line));}
 .learn-axis-card.is-strength{border-left:3px solid var(--teal);}
 .learn-axis-card.is-growth{border-left:3px solid var(--marigold);}

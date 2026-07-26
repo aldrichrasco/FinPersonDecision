@@ -127,7 +127,8 @@
   // per-axis consistency (signed-in only) resolves.
   const radarCanvas = document.getElementById("radar-chart");
   if (radarCanvas && typeof drawRadarChart === "function") {
-    drawRadarChart(radarCanvas, saved.profile, {});
+    const animate = typeof animateRadarChart === "function" ? animateRadarChart : drawRadarChart;
+    animate(radarCanvas, saved.profile, {});
     fetchAxisConsistency().then(byAxis => {
       drawRadarChart(radarCanvas, saved.profile, byAxis);
     });

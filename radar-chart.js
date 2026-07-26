@@ -114,3 +114,28 @@ function drawRadarChart(canvas, axisValues, consistencyByAxis, opts = {}) {
     });
   }
 }
+
+// Grows each spoke from the center out to its real score instead of
+// snapping straight to the final shape — same ease-out cubic and timing
+// convention as dashboard.js's animateMetric, so the two "number moves"
+// in the app feel like one motion language rather than two. Used for the
+// Progress page's first paint only; the persona-chip hover preview in
+// dashboard.js stays instant since a hover shouldn't cost 700ms to read.
+function animateRadarChart(canvas, axisValues, consistencyByAxis, opts = {}) {
+  const reduceMotion = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  if (reduceMotion) {
+    drawRadarChart(canvas, axisValues, consistencyByAxis, opts);
+    return;
+  }
+  const duration = 700;
+  const start = performance.now();
+  function tick(now) {
+    const t = Math.min(1, (now - start) / duration);
+    const eased = 1 - Math.pow(1 - t, 3);
+    const interpolated = {};
+    AXIS_KEYS.forEach(k => { interpolated[k] = (axisValues[k] ?? 50) * eased; });
+    drawRadarChart(canvas, interpolated, consistencyByAxis, opts);
+    if (t < 1) requestAnimationFrame(tick);
+  }
+  requestAnimationFrame(tick);
+}
