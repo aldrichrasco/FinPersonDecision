@@ -10,72 +10,6 @@
 // viewport — computed from the section's position relative to viewport
 // center each scroll tick, not a fixed timeline, so it stays correct
 // regardless of where the section ends up on the page.
-// A decorative rotating wireframe globe — explicitly illustrative (see
-// the caption next to it), not a visualization of any real data. There's
-// no geographic tracking in this app to depict honestly, so this is
-// framed purely as atmosphere, the same way the Theory page's Unsplash
-// banner is decoration rather than a data visualization.
-function initGlobe() {
-  const canvas = document.getElementById("globe-canvas");
-  if (!canvas) return;
-  const ctx = canvas.getContext("2d");
-  const dpr = window.devicePixelRatio || 1;
-  const size = canvas.clientWidth || 260;
-  canvas.width = size * dpr;
-  canvas.height = size * dpr;
-  ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
-  const cx = size / 2, cy = size / 2, r = size / 2 - 8;
-
-  const styles = getComputedStyle(document.body);
-  const line = styles.getPropertyValue("--line").trim() || "rgba(27,42,74,.14)";
-  const ink = styles.getPropertyValue("--ink").trim() || "#1B2A4A";
-  const marigold = styles.getPropertyValue("--marigold").trim() || "#E8A33D";
-  const reduceMotion = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-  let angle = 0;
-
-  function draw() {
-    ctx.clearRect(0, 0, size, size);
-    ctx.beginPath();
-    ctx.arc(cx, cy, r, 0, Math.PI * 2);
-    ctx.strokeStyle = ink;
-    ctx.lineWidth = 1.5;
-    ctx.stroke();
-
-    ctx.strokeStyle = line;
-    ctx.lineWidth = 1;
-    for (let i = -3; i <= 3; i++) {
-      const frac = i / 4;
-      const y = cy + frac * r;
-      const ellipseRy = Math.max(2, Math.abs(Math.cos(frac * Math.PI / 2)) * 6);
-      const ellipseRx = Math.sqrt(Math.max(0, r * r - (frac * r) * (frac * r)));
-      ctx.beginPath();
-      ctx.ellipse(cx, y, ellipseRx, ellipseRy, 0, 0, Math.PI * 2);
-      ctx.stroke();
-    }
-    for (let i = 0; i < 5; i++) {
-      const lon = angle + (i * Math.PI) / 5;
-      const rx = Math.max(2, Math.abs(Math.cos(lon)) * r);
-      ctx.beginPath();
-      ctx.ellipse(cx, cy, rx, r, 0, 0, Math.PI * 2);
-      ctx.stroke();
-    }
-    ctx.fillStyle = marigold;
-    [[0.32, -0.22], [-0.4, 0.28], [0.08, 0.5]].forEach(([fx, fy]) => {
-      ctx.beginPath();
-      ctx.arc(cx + fx * r, cy + fy * r, 3, 0, Math.PI * 2);
-      ctx.fill();
-    });
-  }
-
-  if (reduceMotion) { draw(); return; }
-  function loop() {
-    angle += 0.006;
-    draw();
-    requestAnimationFrame(loop);
-  }
-  loop();
-}
-
 function initCompareSlider() {
   const wrap = document.getElementById("compare-wrap");
   const paneA = document.getElementById("compare-pane-a");
@@ -282,7 +216,6 @@ initVelocityStrip();
 initPeekParallax();
 initPeekRadar();
 initCompareSlider();
-initGlobe();
 initPrivacyScramble();
 initQuiz();
 
