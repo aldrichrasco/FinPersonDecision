@@ -760,7 +760,12 @@ function applyChoice(choice, chosenIndex) {
     drawChart();
     drawNetWorthChart();
     renderDecisionOutcome(choice, applied, previousState, score);
-    if (trigger) toast(trigger.note, { tone: "watch", duration: 5000 });
+    // Only show the trigger note if there's no observation toast already
+    // up — toast() clears whatever's currently showing before rendering
+    // new content, so firing both would cut the (richer, more
+    // personalized) observation toast short after less than half a
+    // second instead of its full duration.
+    if (trigger && !observation) toast(trigger.note, { tone: "watch", duration: 5000 });
   };
   if (window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
     reveal();
