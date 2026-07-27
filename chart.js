@@ -12,7 +12,7 @@
 
 const CHART = {
   height: 240,
-  padL: 46,
+  padL: 104,
   padR: 16,
   padT: 22,
   padB: 40,
@@ -168,12 +168,16 @@ function drawAxes(ctx, g, t) {
     ctx.textAlign = "right";
     [0, 50, 100].forEach(v => ctx.fillText(String(v), CHART.padL - 8, g.yFor(v) + 3));
   } else {
-    // Learners get direction, not a scale.
+    // Learners get direction, not a scale. "More/less put by" read as if
+    // the top of the chart were simply "better" — but the shaded band is
+    // the goal, and either edge is its own kind of off: too much put by
+    // is over-protecting at the cost of living, too little is under-
+    // provisioned. Matches the zone-status-line wording in dashboard.js.
     ctx.fillStyle = t.slate;
     ctx.font = "11.5px 'IBM Plex Sans', sans-serif";
     ctx.textAlign = "right";
-    ctx.fillText("more put by", CHART.padL - 8, CHART.padT + 8);
-    ctx.fillText("less put by", CHART.padL - 8, CHART.padT + g.plotH);
+    ctx.fillText("Overcorrecting", CHART.padL - 8, CHART.padT + 8);
+    ctx.fillText("Undercorrecting", CHART.padL - 8, CHART.padT + g.plotH);
   }
 
   // Y axis title (rotated)

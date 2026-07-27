@@ -1,66 +1,63 @@
 :root{
-  /* Deeper, richer navy-black instead of the previous lighter navy — reads
-     less "pastel editorial," more deliberate/premium against the paper. */
-  --ink:#12192E;
-  --paper:#F2EFE6;
-  /* Pure white raised surfaces (was an off-white close to --paper) so
-     cards read as a crisp, distinct elevation instead of barely
-     differentiated from the page background. */
+  /* v4: same near-black/near-white base as v3 (that part wasn't the
+     complaint), but with more richness put back in — v3's fully
+     desaturated forest green and toned-down gold read as flat/boring
+     rather than premium. Deepened the green into a more saturated,
+     jewel-toned emerald and warmed the gold back up, plus a slightly
+     warmer paper so the whole thing doesn't feel clinical. Still
+     contrast-checked at 5.7:1+ for every pairing below. */
+  --ink:#18181B;
+  --paper:#F5F1E8;
   --paper-raised:#FFFFFF;
-  /* Marigold moved from a mustard/condiment gold to a richer bronze, and
-     demoted from "one of four competing accent colors used everywhere" to
-     specifically reward/gamification (XP, streak, achievements) and
-     watch/caution semantics — teal is now the one signature accent used
-     for primary actions and selection states. */
-  --marigold:#C6862E;
-  --marigold-ink:#6B4415;
-  --teal:#0B4A44;
-  --teal-tint:#DCEAE8;
-  --brick:#9E3D26;
-  --brick-tint:#F3E3DC;
-  --slate:#5B5E66;
-  --slate-tint:#E5E4DD;
-  --plum:#4A3D6C;
-  --plum-tint:#E7E1F0;
-  --gold-tint:#F7E9D2;
+  --marigold:#C68A2E;
+  --marigold-ink:#6B4A1F;
+  --teal:#1B6B45;
+  --teal-tint:#DCEAE1;
+  --brick:#93402C;
+  --brick-tint:#F1E2DC;
+  --slate:#5C5F66;
+  --slate-tint:#E5E4E1;
+  --plum:#4A3D63;
+  --plum-tint:#E6E1EE;
+  --gold-tint:#F3E7D3;
   /* Fixed regardless of theme — for text on a --marigold background, which
      is the same hex in both light and dark mode. --marigold-ink is tuned
-     per-theme for text on *paper*, and fails contrast (1.3:1 in dark mode)
-     when used on marigold itself instead. WCAG AA needs 4.5:1; this gives 5.7:1. */
-  --marigold-contrast:#12192E;
-  --line: rgba(18,25,46,0.14);
-  --shadow: 0 1px 0 rgba(18,25,46,0.06);
+     per-theme for text on *paper*, and fails contrast when used on
+     marigold itself instead. WCAG AA needs 4.5:1; this gives 6.0:1. */
+  --marigold-contrast:#18181B;
+  --line: rgba(24,24,27,0.14);
+  --shadow: 0 1px 0 rgba(24,24,27,0.06);
   --radius: 10px;
   --font-display:'Fraunces', serif;
   --font-body:'IBM Plex Sans', sans-serif;
   --font-mono:'IBM Plex Mono', monospace;
-  --card-shadow: 0 8px 20px rgba(18,25,46,0.10);
-  --overlay: rgba(18,25,46,0.45);
+  --card-shadow: 0 8px 20px rgba(24,24,27,0.10);
+  --overlay: rgba(24,24,27,0.45);
 }
 
 @media (prefers-color-scheme: dark){
   :root{
-    --ink:#EDEFE6;
-    --paper:#0F1524;
-    --paper-raised:#182036;
+    --ink:#EAEAE4;
+    --paper:#101012;
+    --paper-raised:#1B1B1F;
     --marigold:#D99A3E;
-    --marigold-ink:#F0C079;
-    --teal:#57BFAD;
-    --teal-tint:#15332E;
-    --brick:#E0806A;
-    --brick-tint:#39231D;
-    --slate:#98A0AE;
-    --slate-tint:#242F48;
-    --plum:#B6A6DE;
-    --plum-tint:#291F3C;
-    --gold-tint:#332711;
-    --line: rgba(237,239,230,0.14);
+    --marigold-ink:#EFC27A;
+    --teal:#4FAE7E;
+    --teal-tint:#163826;
+    --brick:#DD8368;
+    --brick-tint:#33221C;
+    --slate:#9CA0A6;
+    --slate-tint:#212124;
+    --plum:#B8A8DE;
+    --plum-tint:#28223A;
+    --gold-tint:#302512;
+    --line: rgba(234,234,228,0.14);
     --shadow: 0 1px 0 rgba(0,0,0,0.2);
     --card-shadow: 0 8px 24px rgba(0,0,0,0.35);
-    --overlay: rgba(6,10,20,0.65);
+    --overlay: rgba(4,4,6,0.65);
   }
-  .sandbox-card{background:#0B1220;}
-  .sandbox-card p{color:#96A1BE;}
+  .sandbox-card{background:#0B0C0D;}
+  .sandbox-card p{color:#9CA39C;}
 }
 
 @media (prefers-reduced-motion: reduce){
@@ -134,6 +131,7 @@ body::after{
   border-bottom-color:var(--line);
 }
 .topbar-inner{display:flex;align-items:center;justify-content:space-between;}
+.topbar-right{display:flex;align-items:center;gap:12px;}
 .logo{font-family:var(--font-display);font-weight:600;font-size:20px;letter-spacing:-0.01em;}
 
 /* buttons */
@@ -242,20 +240,6 @@ body::after{
   background:radial-gradient(circle, color-mix(in srgb, var(--marigold) 16%, transparent) 0%, transparent 68%);
   pointer-events:none;z-index:0;
 }
-/* A near-invisible drift of the six axis names across the hero — replaces
-   flat empty space with something that reacts to how fast you scroll
-   (see initVelocityStrip() in script.js), without competing with the
-   actual hero content for attention. */
-.hero-velocity-track{
-  position:absolute;top:14%;left:0;width:100%;overflow:hidden;
-  white-space:nowrap;pointer-events:none;z-index:0;
-}
-.hero-velocity-strip{
-  display:inline-block;
-  font-family:var(--font-mono);font-size:15px;letter-spacing:.04em;
-  color:var(--ink);opacity:.05;will-change:transform;
-}
-@media (max-width:640px){.hero-velocity-track{display:none;}}
 .hero .wrap{position:relative;z-index:1;}
 
 .returning-banner{
@@ -306,23 +290,12 @@ h1{
 }
 
 .cta-row{display:flex;gap:12px;flex-wrap:wrap;}
-/* Container Cover — a one-time curtain reveal over the headline on load
-   (a solid panel drawing back rather than the text just being there),
-   plus a cursor-follow light while it's hovered. Reimplemented from the
-   Aceternity "Container Cover" concept using our own grain/ink palette
-   instead of a stock photo — this app doesn't use generic hero imagery. */
-.cover-headline{position:relative;display:inline-block;overflow:hidden;border-radius:4px;}
-.cover-headline h1{position:relative;z-index:1;}
-.cover-curtain{
-  position:absolute;inset:0;z-index:2;background:var(--ink);
-  transform-origin:left;animation:cover-reveal 1s cubic-bezier(.22,1,.36,1) .15s both;
-  pointer-events:none;
+.hero-h1{animation:hero-fade-up .7s cubic-bezier(.22,1,.36,1) .1s both;}
+@keyframes hero-fade-up{
+  0%{opacity:0;transform:translateY(10px);}
+  100%{opacity:1;transform:translateY(0);}
 }
-@keyframes cover-reveal{
-  0%{transform:scaleX(1);}
-  100%{transform:scaleX(0);}
-}
-@media (prefers-reduced-motion: reduce){.cover-curtain{display:none;}}
+@media (prefers-reduced-motion: reduce){.hero-h1{animation:none;}}
 
 .hero-entry-row{display:flex;align-items:center;gap:14px;margin:22px 0 6px;}
 .hero-entry-or{font-size:13px;color:var(--slate);}
@@ -401,15 +374,19 @@ h1{
   box-shadow:var(--card-shadow);cursor:ew-resize;user-select:none;
 }
 .compare-pane{position:absolute;inset:0;padding:22px 26px;display:flex;flex-direction:column;justify-content:center;}
-.compare-pane-b{background:var(--paper-raised);}
+.compare-pane-b{background:var(--paper-raised);padding-left:calc(50% + 28px);}
 .compare-pane-a{background:var(--ink);color:var(--paper-raised);clip-path:inset(0 50% 0 0);}
 /* Each pane's actual text is width-constrained to its own "home" half
    and wraps within that half — otherwise a full-width paragraph gets
    bisected mid-line by the clip-path, which reads fine for a photo but
    turns running text into unreadable fragments (a real bug found via a
-   live mobile screenshot, not a hypothetical). */
-.compare-pane-a > *{max-width:56%;}
-.compare-pane-b > *{max-width:56%;margin-left:auto;text-align:left;}
+   live mobile screenshot, not a hypothetical). Pane B additionally gets
+   its own padding-left (above) that starts past the resting 50% handle
+   position with some breathing room, instead of being pinned flush to
+   the card's right edge — otherwise the text reads cramped right up
+   against the handle with a big empty gap on the right doing nothing. */
+.compare-pane-a > *{max-width:42%;}
+.compare-pane-b > *{max-width:none;text-align:left;}
 .compare-label{font-family:var(--font-mono);font-size:10.5px;font-weight:600;
   text-transform:uppercase;letter-spacing:.06em;color:var(--marigold-ink);margin-bottom:8px;}
 .compare-pane-a .compare-label{color:var(--marigold);}
@@ -420,7 +397,7 @@ h1{
   transform:translateX(-50%);pointer-events:none;
 }
 .compare-handle::before{
-  content:"&#8596;";position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);
+  content:"\2194";position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);
   width:34px;height:34px;border-radius:50%;background:var(--marigold);color:var(--marigold-contrast);
   display:flex;align-items:center;justify-content:center;font-size:14px;box-shadow:var(--card-shadow);
 }
@@ -1137,7 +1114,12 @@ h1{
 .pattern-panel{border:1px solid var(--line);border-radius:12px;padding:16px 18px;
   margin-bottom:22px;background:var(--paper-raised);}
 .pattern-panel.tone-good{border-left:3px solid var(--teal);}
-.pattern-panel.tone-watch{border-left:3px solid var(--marigold);}
+/* Darkened toward --ink rather than using raw --marigold: a thin solid
+   line reads the full saturation of a color much more harshly than a
+   badge or button does, and at the badge's brightness a hairline accent
+   here looked like a highlighter stripe rather than a restrained accent.
+   The badges/dark-background text uses of --marigold stay untouched. */
+.pattern-panel.tone-watch{border-left:3px solid color-mix(in srgb, var(--marigold) 70%, var(--ink) 30%);}
 .pattern-panel.tone-neutral{border-left:3px solid var(--slate);}
 .pattern-headline{margin:0 0 5px;font-family:var(--font-display);font-weight:500;
   font-size:17px;color:var(--ink);}
@@ -1259,7 +1241,7 @@ h1,h2,h3,.section-title{text-wrap:balance;}
 body.has-app-nav{padding-bottom:88px;}
 
 .app-nav-more{position:relative;}
-.app-nav-more-btn{border:none;background:transparent;font:inherit;cursor:pointer;}
+.app-nav-more-btn{border:none;background:transparent;font-family:inherit;cursor:pointer;}
 .app-nav-more-btn[aria-expanded="true"]{background:var(--ink);color:var(--paper-raised);}
 .app-nav-more-panel{position:absolute;bottom:calc(100% + 10px);right:0;z-index:50;
   min-width:170px;padding:6px;border:1px solid var(--line);border-radius:12px;
@@ -1798,15 +1780,6 @@ body.has-app-nav .study-badge{bottom:84px;}
 .sandbox-grid-bg:hover::after{opacity:1;}
 @media (prefers-reduced-motion: reduce){.sandbox-grid-bg::after{display:none;}}
 
-/* ---------------------------------------------------------------- canvas lens */
-.lens-wrap{position:relative;}
-.lens{
-  position:absolute;width:130px;height:130px;border-radius:50%;
-  border:2px solid var(--ink);box-shadow:0 10px 28px -8px rgba(18,25,46,.35);
-  pointer-events:none;background-repeat:no-repeat;z-index:6;
-  background-color:var(--paper-raised);
-}
-
 /* ---------------------------------------------------------------- archetype cards */
 .archetype-wall{
   display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));
@@ -1815,10 +1788,10 @@ body.has-app-nav .study-badge{bottom:84px;}
 .archetype-card{
   position:relative;border-radius:18px;background:var(--paper-raised);
   border:1px solid var(--line);box-shadow:var(--card-shadow);
-  transform-style:preserve-3d;will-change:transform;
+  transform-style:preserve-3d;perspective:1200px;will-change:transform;
   transition:transform .12s ease-out, box-shadow .2s ease;
+  cursor:pointer;overflow:hidden;
 }
-.archetype-card[tabindex]{cursor:pointer;}
 .archetype-card:hover{box-shadow:0 18px 40px -14px rgba(18,25,46,0.3);}
 .archetype-card:focus-visible{outline:2px solid var(--ink);outline-offset:3px;}
 /* The moving highlight — a soft light following the cursor, like a foil
@@ -1827,10 +1800,37 @@ body.has-app-nav .study-badge{bottom:84px;}
 .archetype-card::before{
   content:"";position:absolute;inset:0;border-radius:inherit;pointer-events:none;
   background:radial-gradient(circle 200px at var(--mx,50%) var(--my,50%), rgba(255,255,255,0.4), transparent 65%);
-  opacity:0;transition:opacity .25s ease;mix-blend-mode:overlay;
+  opacity:0;transition:opacity .25s ease;mix-blend-mode:overlay;z-index:2;
 }
 .archetype-card:hover::before{opacity:1;}
-.archetype-card-inner{position:relative;z-index:1;padding:20px;text-align:center;}
+/* The flip itself: .archetype-card-inner is the element that actually
+   rotates (toggled by .is-flipped on the card, set in toggleArchetypeFlip()
+   in model-page.js). Kept separate from .archetype-card, which already
+   carries its own independent rotateX/Y from the mouse-tilt effect above —
+   nesting the two transforms means tilt and flip compose instead of
+   fighting over the same style property. */
+.archetype-card-inner{
+  position:relative;z-index:1;min-height:420px;
+  transform-style:preserve-3d;transition:transform .6s cubic-bezier(.4,.2,.2,1);
+}
+.archetype-card.is-flipped .archetype-card-inner{transform:rotateY(180deg);}
+.archetype-card-face{
+  position:absolute;inset:0;backface-visibility:hidden;-webkit-backface-visibility:hidden;
+  padding:20px;text-align:center;display:flex;flex-direction:column;align-items:center;
+  background:var(--paper-raised);
+}
+.archetype-card-front{justify-content:center;}
+.archetype-card-back{justify-content:flex-start;transform:rotateY(180deg);}
+.archetype-card-portrait{
+  width:92px;height:92px;border-radius:50%;margin:2px 0 16px;
+  display:flex;align-items:center;justify-content:center;
+  font-size:38px;line-height:1;color:#fff;
+}
+.archetype-card[data-group="conservative"] .archetype-card-portrait{background:radial-gradient(circle at 35% 30%, color-mix(in srgb, var(--teal) 70%, white), var(--teal));}
+.archetype-card[data-group="growth"] .archetype-card-portrait{background:radial-gradient(circle at 35% 30%, color-mix(in srgb, var(--marigold-ink) 70%, white), var(--marigold-ink));}
+.archetype-card[data-group="impulsive"] .archetype-card-portrait{background:radial-gradient(circle at 35% 30%, color-mix(in srgb, var(--brick) 70%, white), var(--brick));}
+.archetype-card[data-group="uncertain"] .archetype-card-portrait{background:radial-gradient(circle at 35% 30%, color-mix(in srgb, var(--plum) 70%, white), var(--plum));}
+.archetype-card[data-group="generous"] .archetype-card-portrait{background:radial-gradient(circle at 35% 30%, color-mix(in srgb, var(--slate) 75%, white), color-mix(in srgb, var(--slate) 80%, var(--ink)));}
 .archetype-card-type{
   display:inline-block;font-family:var(--font-mono);font-size:10px;font-weight:600;
   text-transform:uppercase;letter-spacing:.06em;padding:4px 11px;border-radius:999px;
@@ -1844,17 +1844,38 @@ body.has-app-nav .study-badge{bottom:84px;}
 .archetype-card h3{font-family:var(--font-display);font-weight:500;font-size:19px;margin:0 0 4px;}
 .archetype-card-trait{font-size:13px;color:var(--slate);margin:0 0 12px;}
 .archetype-card-stats{display:block;margin:0 auto 10px;max-width:100%;height:auto;}
-.archetype-card-hint{font-size:11.5px;color:var(--slate);margin:0;}
+.archetype-card-hint{font-size:11.5px;color:var(--slate);margin:auto 0 0;}
 .archetype-card-row{font-size:12.5px;color:var(--ink);text-align:left;margin:0 0 8px;line-height:1.45;}
 .archetype-card-row strong{color:var(--ink);}
-.archetype-card-detail{margin-top:14px;padding-top:14px;border-top:1px solid var(--line);}
-.archetype-modal{max-width:420px;}
-.archetype-card-zoomed{border:none;box-shadow:none;background:none;}
-.archetype-card-zoomed .archetype-card-inner{padding:4px;}
+.archetype-card-detail{margin-top:10px;padding-top:12px;border-top:1px solid var(--line);width:100%;}
 @media (max-width:600px){
   .archetype-wall{grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:14px;}
-  .archetype-card-inner{padding:16px;}
+  .archetype-card-face{padding:16px;}
 }
+.archetype-audience-table-wrap{overflow-x:auto;border:1px solid var(--line);border-radius:var(--radius);}
+.archetype-audience-table{width:100%;border-collapse:collapse;font-size:13px;min-width:640px;}
+.archetype-audience-table th,.archetype-audience-table td{text-align:left;padding:10px 14px;border-bottom:1px solid var(--line);vertical-align:top;}
+.archetype-audience-table thead th{color:var(--slate);font-size:11px;text-transform:uppercase;letter-spacing:.05em;font-weight:600;background:var(--paper);}
+.archetype-audience-table tbody th{font-weight:500;color:var(--ink);white-space:nowrap;}
+.archetype-audience-table tbody tr:last-child th,.archetype-audience-table tbody tr:last-child td{border-bottom:none;}
+.archetype-card-expand{
+  position:absolute;top:10px;right:10px;z-index:3;
+  width:28px;height:28px;border-radius:50%;border:1px solid var(--line);
+  background:color-mix(in srgb, var(--paper-raised) 85%, transparent);
+  color:var(--slate);font-size:14px;line-height:1;cursor:pointer;
+  display:flex;align-items:center;justify-content:center;
+  transition:background .15s ease,color .15s ease;
+}
+.archetype-card-expand:hover{background:var(--paper-raised);color:var(--ink);}
+.archetype-expand-modal{max-width:400px;text-align:center;}
+.archetype-expand-modal .archetype-card{
+  border:none;box-shadow:none;background:none;overflow:visible;
+  cursor:default;transform:none !important;
+}
+.archetype-expand-modal .archetype-card::before{display:none;}
+.archetype-expand-modal .archetype-card-portrait{margin:2px auto 14px;}
+.archetype-expand-modal canvas{margin:6px auto 10px;}
+.archetype-expand-modal .archetype-card-detail{text-align:left;}
 
 /* ---------------------------------------------------------------- model */
 .model-clevel-list{display:flex;flex-direction:column;gap:12px;margin:0 0 8px;}
@@ -1871,6 +1892,8 @@ body.has-app-nav .study-badge{bottom:84px;}
 .model-axis-row{border:1px solid var(--line);border-radius:14px;padding:16px 18px;background:var(--paper);}
 .model-axis-row h3{font-family:var(--font-display);font-weight:500;font-size:16px;margin:0 0 4px;}
 .model-axis-poles{display:flex;align-items:center;gap:10px;margin-top:10px;font-size:11.5px;color:var(--slate);}
+.model-axis-research{font-size:13px;line-height:1.5;color:var(--ink);margin:14px 0 6px;padding-top:12px;border-top:1px solid var(--line);}
+.model-axis-citation{font-family:var(--font-mono);font-size:11px;color:var(--slate);margin:0;}
 .model-archetype-row{font-size:13px;line-height:1.5;color:var(--ink);margin:0 0 6px;}
 
 .theory-banner{position:relative;border-radius:20px;overflow:hidden;margin:0 0 26px;

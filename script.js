@@ -99,27 +99,6 @@ function initPrivacyScramble() {
   io.observe(el);
 }
 
-function initVelocityStrip() {
-  const strip = document.querySelector(".hero-velocity-strip");
-  if (!strip) return;
-  if (window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
-
-  let offset = 0;
-  let lastScrollY = window.scrollY;
-  let ticking = false;
-
-  function apply() {
-    const delta = window.scrollY - lastScrollY;
-    lastScrollY = window.scrollY;
-    offset -= delta * 1.4;
-    strip.style.transform = `translateX(${offset}px)`;
-    ticking = false;
-  }
-  window.addEventListener("scroll", () => {
-    if (!ticking) { requestAnimationFrame(apply); ticking = true; }
-  }, { passive: true });
-}
-
 function renderSituations() {
   const list = document.getElementById("situations");
   if (!list) return;
@@ -212,7 +191,6 @@ function renderReturningBanner() {
 
 renderSituations();
 renderReturningBanner();
-initVelocityStrip();
 initPeekParallax();
 initPeekRadar();
 initCompareSlider();

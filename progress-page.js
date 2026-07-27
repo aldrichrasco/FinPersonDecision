@@ -87,6 +87,7 @@
     <div class="bento-grid">
       <div class="bento-tile bento-trend">
         <p class="chart-title">How you've been tracking</p>
+        <p class="chart-sub" style="margin:-6px 0 12px;font-size:13px;color:var(--slate);">Your capability score (0-100) each time you've answered the questions.</p>
         <canvas id="cap-chart" width="820" height="160" style="width:100%;height:160px;"></canvas>
       </div>
 
@@ -112,6 +113,7 @@
 
       <div class="bento-tile bento-wellbeing">
         <p class="chart-title">Your real sandbox trajectory</p>
+        <p class="chart-sub" style="margin:-6px 0 12px;font-size:13px;color:var(--slate);">Your illustrative wellbeing score (0-100) after each real decision you've made — not a real balance, just the trend.</p>
         <p class="scenario-empty-body" id="wellbeing-chart-status" style="font-size:13px;">Loading your sandbox history…</p>
         <canvas id="wellbeing-chart" width="820" height="160" style="width:100%;height:160px;display:none;"></canvas>
       </div>
@@ -144,7 +146,6 @@
     fetchAxisConsistency().then(byAxis => {
       drawRadarChart(radarCanvas, saved.profile, byAxis);
     });
-    if (typeof initCanvasLens === "function") initCanvasLens(radarCanvas);
   }
 
   // Fetch and draw the real sandbox wellbeing trajectory (signed-in users

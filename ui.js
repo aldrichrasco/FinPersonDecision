@@ -16,11 +16,14 @@ const NAV_ITEMS = [
 // bottom nav's primary slots. Goals and Achievements moved into Progress
 // as tabs (see progress-page.js) rather than being separate destinations —
 // 8 peer nav entries was too many for a product that's really one loop.
-// Donate lives in the footer instead, since it's not part of that loop at all.
+// Donate is included here too (not just the footer) so it's reachable the
+// same way from every page, not just ones where you've scrolled to the
+// bottom — inconsistent reachability was flagged directly.
 const MENU_ITEMS = [
   { href: "learn.html", label: "Learn" },
   { href: "model.html", label: "Theory" },
   { href: "tutorial.html", label: "Quick tour" },
+  { href: "donate.html", label: "Donate" },
 ];
 
 function currentPage() {
@@ -104,7 +107,18 @@ function initHeaderMenu() {
     <div class="header-menu-panel" id="header-menu-panel" hidden>
       ${MENU_ITEMS.map(item => `<a href="${item.href}">${item.label}</a>`).join("")}
     </div>`;
-  slot.parentElement.insertBefore(wrap, slot);
+  // Grouped with auth-slot in a shared right-hand cluster rather than
+  // inserted as a third topbar-inner child — with justify-content:
+  // space-between, a third child lands dead-center in the bar instead of
+  // sitting next to the account control it's related to.
+  let right = slot.parentElement.querySelector(".topbar-right");
+  if (!right) {
+    right = document.createElement("div");
+    right.className = "topbar-right";
+    slot.parentElement.insertBefore(right, slot);
+    right.appendChild(slot);
+  }
+  right.insertBefore(wrap, right.firstChild);
 
   const btn = document.getElementById("header-menu-btn");
   const panel = document.getElementById("header-menu-panel");

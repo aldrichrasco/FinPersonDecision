@@ -14,12 +14,12 @@
 // the capability index all read from here.
 
 const AXES = {
-  impulse_regulation:   { label: "Impulse Regulation",         sub: "How deliberately you spend",        low: "Impulsive",    high: "Deliberate" },
-  risk_disposition:     { label: "Risk Disposition",           sub: "Your comfort with financial risk",  low: "Risk-averse",  high: "Risk-tolerant" },
-  temporal_orientation: { label: "Temporal Orientation",       sub: "How far ahead you plan",            low: "Short-term",   high: "Long-term" },
-  financial_attentiveness:{ label: "Financial Attentiveness",  sub: "How closely you watch your money",  low: "Avoidant",     high: "Attentive" },
-  financial_self_efficacy:{ label: "Financial Self-Efficacy",  sub: "How in-control you feel",           low: "Anxious",      high: "Confident" },
-  prosocial_orientation:{ label: "Prosocial Orientation",      sub: "How much you allocate to others",   low: "Self-directed",high: "Other-directed" },
+  impulse_regulation:   { label: "Impulse Regulation",         short: "Impulse",   sub: "How deliberately you spend",        low: "Impulsive",    high: "Deliberate" },
+  risk_disposition:     { label: "Risk Disposition",           short: "Risk",      sub: "Your comfort with financial risk",  low: "Risk-averse",  high: "Risk-tolerant" },
+  temporal_orientation: { label: "Temporal Orientation",       short: "Time",      sub: "How far ahead you plan",            low: "Short-term",   high: "Long-term" },
+  financial_attentiveness:{ label: "Financial Attentiveness",  short: "Attent.",   sub: "How closely you watch your money",  low: "Avoidant",     high: "Attentive" },
+  financial_self_efficacy:{ label: "Financial Self-Efficacy",  short: "Efficacy",  sub: "How in-control you feel",           low: "Anxious",      high: "Confident" },
+  prosocial_orientation:{ label: "Prosocial Orientation",      short: "Giving",    sub: "How much you allocate to others",   low: "Self-directed",high: "Other-directed" },
 };
 
 const AXIS_KEYS = Object.keys(AXES);
