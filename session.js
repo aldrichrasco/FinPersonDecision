@@ -35,6 +35,19 @@ function buildRoundRecap(decisionLog, zoneHistory, roundNumber) {
 
   const pattern = observePattern(decisionLog, zoneHistory);
 
+  // Which money beliefs this round's scenarios probed, in first-touched
+  // order — a batch retrospective, not a per-choice callout. The per-choice
+  // scaffold (scaffoldedResponse in scaffold.js) already names beliefs live
+  // and deliberately fades that out over time as calibration improves; this
+  // is a different, always-on summary that doesn't fight that withdrawal.
+  const beliefsTouched = [];
+  slice.forEach(d => {
+    const key = d.principle;
+    if (!key || beliefsTouched.some(b => b.key === key)) return;
+    const model = (typeof DECISION_MODELS !== "undefined") ? DECISION_MODELS[key] : null;
+    if (model) beliefsTouched.push({ key, label: model.label });
+  });
+
   // Facts about their own actions — never scores.
   const times = n => (n === 1 ? "once" : n === 2 ? "twice" : `${n} times`);
   const facts = [];
@@ -71,5 +84,6 @@ function buildRoundRecap(decisionLog, zoneHistory, roundNumber) {
     takeaway,
     tone: pattern.tone,
     stats: { built, clearedDebt, usedCredit, drew, waited, steady, of: slice.length },
+    beliefsTouched,
   };
 }

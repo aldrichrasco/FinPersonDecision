@@ -69,10 +69,14 @@ app.config["MAX_CONTENT_LENGTH"] = 32 * 1024
 # SECRET_KEY signs the session cookie. In production set it explicitly;
 # the random fallback works but invalidates sessions on every restart.
 app.secret_key = os.environ.get("SECRET_KEY") or secrets.token_hex(32)
+# Same flag gates the cookie's Secure attribute and the HSTS header below —
+# both are "this is running under real HTTPS" signals, so one env var
+# covers both rather than needing two.
+COOKIE_SECURE = os.environ.get("COOKIE_SECURE", "1") == "1"
 app.config.update(
     SESSION_COOKIE_HTTPONLY=True,
     SESSION_COOKIE_SAMESITE="Lax",
-    SESSION_COOKIE_SECURE=os.environ.get("COOKIE_SECURE", "1") == "1",
+    SESSION_COOKIE_SECURE=COOKIE_SECURE,
     PERMANENT_SESSION_LIFETIME=60 * 60 * 24 * 30,  # 30 days
 )
 
@@ -115,6 +119,11 @@ def add_security_headers(resp):
     resp.headers["X-Content-Type-Options"] = "nosniff"
     resp.headers["X-Frame-Options"] = "DENY"
     resp.headers["Referrer-Policy"] = "strict-origin-when-cross-origin"
+    if COOKIE_SECURE:
+        # Only sent when we know we're behind real HTTPS (Render, or any
+        # production deploy) — sending it over plain local http:// would
+        # just be noise, since browsers ignore HSTS on non-HTTPS origins.
+        resp.headers["Strict-Transport-Security"] = "max-age=31536000; includeSubDomains"
     resp.headers.setdefault(
         "Content-Security-Policy",
         "default-src 'self'; "

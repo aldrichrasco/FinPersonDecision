@@ -108,6 +108,12 @@
 
       <div class="bento-tile bento-calibration" id="calibration-slot">${calibrationHtmlFor(cal)}</div>
 
+      <div class="bento-tile pattern-panel tone-neutral">
+        <p class="pattern-headline" style="font-size:16px;">See it all in one place</p>
+        <p class="pattern-body">Your archetype, six axes, calibration progress, and badges — synthesized into one report you can save or print.</p>
+        <p class="pattern-body" style="margin-top:8px;"><a href="report.html">Open your full report &rarr;</a></p>
+      </div>
+
       ${goalsHtml ? `<div class="bento-tile bento-goals">${goalsHtml}</div>` : ""}
 
       <div class="bento-tile bento-cta sandbox-card">

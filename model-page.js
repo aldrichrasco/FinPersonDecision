@@ -31,6 +31,8 @@
           <h3><span class="model-axis-dot" aria-hidden="true"></span>${esc(m.label)}</h3>
           <p class="model-belief-stance"><strong>The stance:</strong> ${esc(m.stance)}</p>
           <p class="model-belief-counter"><strong>What contradicts it:</strong> ${esc(m.counter)}</p>
+          ${m.blurb ? `<p class="model-axis-research" style="margin:12px 0 6px;padding-top:10px;">${esc(m.blurb)}</p>` : ""}
+          ${m.citation ? `<p class="model-axis-citation" style="margin:0 0 10px;">${esc(m.citation)}</p>` : ""}
           <div class="model-belief-tags">${axisTags}</div>
         </div>`;
     }).join("");
@@ -171,8 +173,8 @@
       citation: "Mischel & Ebbesen (1970); Thaler (1985)",
     },
     risk_disposition: {
-      blurb: "Comfort with financial risk isn't just numeracy — personality traits measurably shift how much uncertainty and potential loss someone will tolerate.",
-      citation: "Pinjisakikool (2018)",
+      blurb: "Comfort with financial risk isn't just numeracy — personality traits measurably shift how much uncertainty and potential loss someone will tolerate. People also weigh a loss more heavily than an equivalent gain, which shapes risk tolerance well before personality does.",
+      citation: "Kahneman & Tversky (1979) on loss aversion and risk framing; Pinjisakikool (2018) on personality traits and financial risk tolerance",
     },
     temporal_orientation: {
       blurb: "Drawn from the Consideration of Future Consequences scale — how much weight a decision-maker gives to outcomes that are still years away.",
@@ -184,11 +186,11 @@
     },
     financial_self_efficacy: {
       blurb: "Adapted from Bandura's general self-efficacy work into a financial-specific scale: how much control and capability someone feels over their own situation, distinct from how capable they actually are.",
-      citation: "Lown (2011)",
+      citation: "Bandura (1977) on self-efficacy as a distinct construct from actual ability; Lown (2011) adapting it to a financial-specific scale",
     },
     prosocial_orientation: {
-      blurb: "Spending directed at other people's welfare rather than one's own consumption is its own measurable dimension of financial behavior, not simply generosity-as-personality.",
-      citation: "Dunn, Aknin & Norton (2008)",
+      blurb: "Spending directed at other people's welfare rather than one's own consumption is its own measurable dimension of financial behavior, not simply generosity-as-personality — and giving has its own logic, distinct from purely self-interested spending.",
+      citation: "Dunn, Aknin & Norton (2008) on prosocial spending and wellbeing; Andreoni (1990) on the \"warm-glow\" motive behind giving",
     },
   };
 
@@ -309,12 +311,6 @@
     conservative: "Conservative", growth: "Growth", impulsive: "Impulsive",
     uncertain: "Uncertain", generous: "Generous",
   };
-  const ARCHETYPE_ICON = {
-    steady_saver: "●", cautious_guardian: "▣", conscious_spender: "◐",
-    ambitious_builder: "▲", strategic_risk_taker: "◆", overconfident_navigator: "▶",
-    status_seeker: "★", impulsive_spender: "✦", anxious_avoider: "◌",
-    passive_drifter: "∿", purposeful_giver: "✚",
-  };
   // Who each archetype tends to describe, and what it's most worth reading
   // up on — reference material for the curious, not something the app
   // scores you against. Same slugs as PERSONAS/ARCHETYPE_PROFILES.
@@ -408,7 +404,7 @@
     body.className = "archetype-card";
     body.setAttribute("data-group", p.group);
     body.innerHTML = `
-      <div class="archetype-card-portrait" aria-hidden="true"><span>${ARCHETYPE_ICON[p.slug] || "●"}</span></div>
+      <div class="archetype-card-portrait" aria-hidden="true">${archetypePortraitSvg(p.slug, p.group)}</div>
       <span class="archetype-card-type">${esc(GROUP_LABELS[p.group] || p.group)}</span>
       <h3>${esc(p.name)}</h3>
       <p class="archetype-card-trait">${esc(p.trait)}</p>
@@ -451,7 +447,7 @@
           <div class="archetype-card-face archetype-card-front">
             <button class="archetype-card-expand" type="button" aria-label="View ${esc(p.name)} larger">&#10530;</button>
             ${typeBadge}
-            <div class="archetype-card-portrait" aria-hidden="true"><span>${ARCHETYPE_ICON[p.slug] || "●"}</span></div>
+            <div class="archetype-card-portrait" aria-hidden="true">${archetypePortraitSvg(p.slug, p.group)}</div>
             <h3>${esc(p.name)}</h3>
             <p class="archetype-card-trait">${esc(p.trait)}</p>
             <p class="archetype-card-hint">Tap to see the stats &rarr;</p>

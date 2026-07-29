@@ -214,6 +214,7 @@
             ${videoHtml}
             ${resourcesHtml}
           </div>
+          ${c.research ? `<p class="learn-axis-research">${esc(c.research)}</p>` : ""}
         </div>`;
     });
 

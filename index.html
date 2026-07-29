@@ -31,23 +31,33 @@
 <main id="main">
   <section class="hero">
     <div class="wrap">
-      <div class="returning-banner" id="returning-banner" hidden></div>
-      <h1 class="hero-h1"><span class="hero-h1-line">Money decisions,</span><br><span class="hero-h1-line hero-h1-line--light">without the consequences.</span></h1>
-      <p class="lede">Practise the calls you find hard, see how they play out, and notice the habits you can't spot from inside them. Nothing here touches your real accounts.</p>
+      <div class="hero-grid">
+        <div class="hero-copy">
+          <div class="returning-banner" id="returning-banner" hidden></div>
+          <h1 class="hero-h1"><span class="hero-h1-line">Money decisions,</span><br><span class="hero-h1-line hero-h1-line--light">without the consequences.</span></h1>
+          <p class="lede">Practise the calls you find hard, see how they play out, and notice the habits you can't spot from inside them. Nothing here touches your real accounts.</p>
 
-      <div class="hero-entry-row">
-        <button class="btn btn-secondary" id="quiz-btn" type="button">Answer a few questions first</button>
-        <span class="hero-entry-or">or</span>
+          <div class="hero-entry-row">
+            <button class="btn btn-secondary" id="quiz-btn" type="button">Answer a few questions first</button>
+            <span class="hero-entry-or">or</span>
+          </div>
+
+          <p class="situations-prompt">Where are you right now?</p>
+          <ul class="situations" id="situations"></ul>
+
+          <p class="hero-reassure">
+            Free. No account needed. Nothing you enter is real money — private by default, educational only, never financial advice.<br>
+            <a class="linkish" href="model.html">See the theory behind this &rarr;</a> ·
+            <a class="linkish" href="tutorial.html">New here? Take the 60-second tour &rarr;</a>
+          </p>
+        </div>
+
+        <div class="hero-visual" aria-hidden="true">
+          <canvas id="hero-radar" width="280" height="280"></canvas>
+          <p class="hero-visual-label" id="hero-radar-label"></p>
+          <p class="hero-visual-caption">One of eleven money mindsets the quiz maps you to</p>
+        </div>
       </div>
-
-      <p class="situations-prompt">Where are you right now?</p>
-      <ul class="situations" id="situations"></ul>
-
-      <p class="hero-reassure">
-        Free. No account needed. Nothing you enter is real money — private by default, educational only, never financial advice.<br>
-        <a class="linkish" href="model.html">See the theory behind this &rarr;</a> ·
-        <a class="linkish" href="tutorial.html">New here? Take the 60-second tour &rarr;</a>
-      </p>
     </div>
   </section>
 
@@ -208,6 +218,7 @@
 <script src="api.js"></script>
 <script src="quiz.js"></script>
 <script src="radar-chart.js"></script>
+<script src="hero-visual.js"></script>
 <script src="script.js"></script>
 <script src="ui.js"></script>
 <script src="legal.js"></script>

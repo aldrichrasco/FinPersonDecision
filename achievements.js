@@ -95,12 +95,21 @@ function saveLocalUnlocked(ids) {
   try { localStorage.setItem(ACHIEVEMENTS_LOCAL_KEY, JSON.stringify(ids)); } catch (e) {}
 }
 
+// finperson_goal_diary is a flat array of goals (see goals.js) — was once
+// keyed per sandbox persona, but that shape is migrated away from on first
+// read by loadGoals(). Reads the raw value directly rather than depending
+// on goals.js being loaded on every page that checks achievements.
 function loadGoalsAcrossPersonas() {
+  if (typeof loadGoals === "function") return loadGoals();
   try {
-    const diary = JSON.parse(localStorage.getItem("finperson_goal_diary")) || {};
-    const all = [];
-    Object.values(diary).forEach(entries => (entries || []).forEach(e => all.push(e)));
-    return all;
+    const raw = JSON.parse(localStorage.getItem("finperson_goal_diary"));
+    if (Array.isArray(raw)) return raw;
+    if (raw && typeof raw === "object") {
+      const all = [];
+      Object.values(raw).forEach(entries => (entries || []).forEach(e => all.push(e)));
+      return all;
+    }
+    return [];
   } catch (e) {
     return [];
   }

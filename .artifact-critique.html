@@ -1,0 +1,172 @@
+<title>FinPerson: A Critique of Content Depth and Theoretical Grounding</title>
+<style>
+:root{
+  --paper:#F2F0EA; --paper-raised:#FFFFFF; --ink:#1C1E1B; --muted:#5D6058;
+  --line:#DCD8CC; --accent:#3E5C4A; --accent-tint:#E1E8DE; --gold:#8A6A2E; --gold-tint:#EFE6D2;
+  --font-serif: Georgia, "Iowan Old Style", "Palatino Linotype", "Book Antiqua", serif;
+  --font-mono: ui-monospace, "SF Mono", "Cascadia Code", Menlo, Consolas, monospace;
+}
+:root[data-theme="dark"], @media (prefers-color-scheme: dark){
+  :root{
+    --paper:#17191A; --paper-raised:#212423; --ink:#E9E7E0; --muted:#9A9D93;
+    --line:#33362F; --accent:#7FA98A; --accent-tint:#1E2A20; --gold:#C9A25E; --gold-tint:#2A2417;
+  }
+}
+@media (prefers-color-scheme: dark){
+  :root{
+    --paper:#17191A; --paper-raised:#212423; --ink:#E9E7E0; --muted:#9A9D93;
+    --line:#33362F; --accent:#7FA98A; --accent-tint:#1E2A20; --gold:#C9A25E; --gold-tint:#2A2417;
+  }
+}
+:root[data-theme="light"]{
+  --paper:#F2F0EA; --paper-raised:#FFFFFF; --ink:#1C1E1B; --muted:#5D6058;
+  --line:#DCD8CC; --accent:#3E5C4A; --accent-tint:#E1E8DE; --gold:#8A6A2E; --gold-tint:#EFE6D2;
+}
+*{box-sizing:border-box;}
+body{background:var(--paper);}
+.doc{
+  max-width:700px;margin:0 auto;padding:56px 24px 90px;
+  font-family:var(--font-serif);color:var(--ink);line-height:1.65;font-size:17px;
+}
+.doc-kicker{
+  font-family:var(--font-mono);font-size:11px;letter-spacing:.08em;text-transform:uppercase;
+  color:var(--muted);margin:0 0 14px;
+}
+h1{
+  font-family:var(--font-serif);font-weight:400;font-size:clamp(30px,5vw,42px);
+  line-height:1.12;letter-spacing:-0.01em;margin:0 0 14px;text-wrap:balance;
+}
+.doc-dek{font-size:18px;color:var(--muted);line-height:1.5;margin:0 0 8px;max-width:62ch;text-wrap:pretty;}
+.doc-meta{font-family:var(--font-mono);font-size:12px;color:var(--muted);margin:22px 0 0;padding-top:16px;border-top:1px solid var(--line);}
+h2{
+  font-family:var(--font-serif);font-weight:400;font-size:24px;letter-spacing:-0.005em;
+  margin:52px 0 16px;padding-bottom:10px;border-bottom:1px solid var(--line);
+}
+h3{font-family:var(--font-serif);font-weight:700;font-size:17.5px;margin:28px 0 8px;}
+p{margin:0 0 18px;max-width:64ch;}
+strong{font-weight:700;}
+.pull{
+  margin:28px 0;padding:4px 0 4px 22px;border-left:3px solid var(--accent);
+  font-size:18px;line-height:1.55;color:var(--ink);max-width:58ch;
+}
+.pull em{font-style:italic;color:var(--muted);}
+table{border-collapse:collapse;width:100%;margin:8px 0 26px;font-size:14.5px;}
+.tbl-wrap{overflow-x:auto;margin:8px 0 26px;}
+th{
+  text-align:left;font-family:var(--font-mono);font-size:11px;text-transform:uppercase;
+  letter-spacing:.05em;color:var(--muted);font-weight:400;padding:8px 14px 8px 0;
+  border-bottom:1px solid var(--line);white-space:nowrap;
+}
+td{padding:10px 14px 10px 0;border-bottom:1px solid var(--line);vertical-align:top;}
+td.cite{font-family:var(--font-mono);font-size:12.5px;color:var(--accent);}
+.chart{margin:20px 0 30px;}
+.chart-row{display:flex;align-items:center;gap:12px;margin-bottom:9px;font-size:13.5px;}
+.chart-label{width:168px;flex-shrink:0;color:var(--ink);}
+.chart-track{flex:1;height:18px;background:var(--accent-tint);border-radius:3px;position:relative;overflow:hidden;}
+.chart-fill{height:100%;background:var(--accent);border-radius:3px 0 0 3px;transition:width .3s ease;}
+.chart-fill.was{background:var(--gold);opacity:.85;}
+.chart-count{width:20px;text-align:right;font-family:var(--font-mono);font-size:12px;color:var(--muted);flex-shrink:0;}
+.chart-legend{display:flex;gap:20px;font-family:var(--font-mono);font-size:11px;color:var(--muted);margin-top:6px;}
+.legend-swatch{display:inline-block;width:9px;height:9px;border-radius:2px;margin-right:5px;vertical-align:middle;}
+.stub{
+  background:var(--paper-raised);border:1px solid var(--line);border-radius:6px;
+  padding:16px 20px;margin:0 0 20px;font-size:15px;
+}
+.stub-tag{
+  display:inline-block;font-family:var(--font-mono);font-size:10px;text-transform:uppercase;
+  letter-spacing:.06em;color:var(--gold);background:var(--gold-tint);padding:3px 9px;
+  border-radius:3px;margin-bottom:10px;
+}
+ol.steps{margin:0 0 20px;padding-left:22px;}
+ol.steps li{margin-bottom:12px;padding-left:6px;max-width:60ch;}
+.verdict{
+  background:var(--accent-tint);border-radius:6px;padding:22px 26px;margin:0 0 20px;
+}
+.verdict p:last-child{margin-bottom:0;}
+</style>
+
+<article class="doc">
+  <p class="doc-kicker">Internal audit &middot; content &amp; theory</p>
+  <h1>A critique of content depth<br>and theoretical grounding</h1>
+  <p class="doc-dek">Where FinPerson's educational content was thin, what was fixed in this pass, and what's still missing — written against the app's own standard: the Calibration tab, which cites its sources like a literature review.</p>
+  <p class="doc-meta">Audit + remediation pass &middot; 7 money beliefs cited &middot; 3 axes re-balanced &middot; Learn &harr; Theory bridged</p>
+
+  <h2>Summary verdict</h2>
+  <div class="verdict">
+    <p>FinPerson's <em>structure</em> is unusually disciplined for a solo project: eleven archetypes in five color-coded groups, six behavioral axes driving the sandbox and the radar chart alike, and a four-stage calibration model (C0&ndash;C3) that gives the whole product a real theory of what "improvement" means. The scaffolding system that names a money belief live during a decision, then deliberately <em>withdraws</em> that naming as calibration improves, is more sophisticated instructional design than most funded fintech apps attempt.</p>
+    <p>The content sitting on top of that structure was uneven. Some of it &mdash; the Calibration tab &mdash; is cited like scholarship. Most of it, until this pass, carried no citation at all: seven money beliefs the entire sandbox is built around, three of six behavioral axes, and every Learn lesson. That unevenness is the finding this paper documents.</p>
+  </div>
+
+  <h2>What was thin, and what changed</h2>
+
+  <h3>The seven money beliefs had zero citations</h3>
+  <p>These are arguably the most load-bearing content in the app &mdash; every sandbox scenario probes one of them &mdash; and each was a one-sentence stance plus a one-sentence counter, resting on nothing. A citation was added to each.</p>
+
+  <div class="tbl-wrap">
+  <table>
+    <tr><th>Belief</th><th>Citation added</th></tr>
+    <tr><td>I can catch up later</td><td class="cite">O'Donoghue &amp; Rabin (1999)</td></tr>
+    <tr><td>Credit is free if I clear it</td><td class="cite">Prelec &amp; Loewenstein (1998)</td></tr>
+    <tr><td>More saved is always better</td><td class="cite">Kivetz &amp; Keinan (2006)</td></tr>
+    <tr><td>I'd notice if things got bad</td><td class="cite">Karlsson, Loewenstein &amp; Seppi (2009)</td></tr>
+    <tr><td>This time is different</td><td class="cite">Reinhart &amp; Rogoff (2009)</td></tr>
+    <tr><td>Others' needs come before my base</td><td class="cite">Andreoni (1990)</td></tr>
+    <tr><td>Not deciding is the safe option</td><td class="cite">Samuelson &amp; Zeckhauser (1988)</td></tr>
+  </table>
+  </div>
+
+  <h3>Three of six axes were citation-thin, relative to the other three</h3>
+  <p><code>risk_disposition</code> cited only a single, comparatively niche paper for as central a construct as risk attitude. <code>financial_self_efficacy</code>'s own blurb <em>named</em> Bandura without citing him. <code>prosocial_orientation</code> had one citation. All three were brought to parity with the rest of the set.</p>
+
+  <div class="chart">
+    <div class="chart-row"><span class="chart-label">impulse_regulation</span><div class="chart-track"><div class="chart-fill" style="width:100%"></div></div><span class="chart-count">2</span></div>
+    <div class="chart-row"><span class="chart-label">financial_attentiveness</span><div class="chart-track"><div class="chart-fill" style="width:100%"></div></div><span class="chart-count">2</span></div>
+    <div class="chart-row"><span class="chart-label">temporal_orientation</span><div class="chart-track"><div class="chart-fill" style="width:100%"></div></div><span class="chart-count">2</span></div>
+    <div class="chart-row"><span class="chart-label">risk_disposition</span><div class="chart-track"><div class="chart-fill was" style="width:50%"></div><div class="chart-fill" style="width:100%;position:absolute;top:0;left:0;opacity:0;"></div></div><span class="chart-count">2</span></div>
+    <div class="chart-row"><span class="chart-label">financial_self_efficacy</span><div class="chart-track"><div class="chart-fill was" style="width:50%"></div></div><span class="chart-count">2</span></div>
+    <div class="chart-row"><span class="chart-label">prosocial_orientation</span><div class="chart-track"><div class="chart-fill was" style="width:50%"></div></div><span class="chart-count">2</span></div>
+    <div class="chart-legend"><span><span class="legend-swatch" style="background:var(--gold);"></span>was 1 citation</span><span><span class="legend-swatch" style="background:var(--accent);"></span>now 2 citations</span></div>
+  </div>
+
+  <h3>Learn and Theory never referenced each other</h3>
+  <p>Both pages cover the same six axes. Learn teaches the concept in plain language, linking out to Khan Academy and YouTube; Theory cites the actual research behind it. A reader could go deep on either page and never learn the other existed.</p>
+  <p class="pull">Every Learn axis card now closes with a one-line citation &mdash; the same one Theory uses for that axis &mdash; so the two pages point at each other instead of past each other.</p>
+
+  <h3>Prosocial orientation was thin on Learn specifically</h3>
+  <p>One resource link, versus two to three for every other axis. A second (Wikipedia's <em>Effective altruism</em> article) was added to bring it to parity.</p>
+
+  <h2>What's still missing</h2>
+
+  <div class="stub">
+    <span class="stub-tag">Stub</span>
+    <p style="margin-bottom:0;"><strong>research.html is a single sentence for the ~99% of visitors who aren't admins</strong> &mdash; "Research view is restricted." For signed-in admins it becomes a real, data-dense dashboard, but even there it's numbers and labels with almost no explanatory prose.</p>
+  </div>
+
+  <div class="stub">
+    <span class="stub-tag">Undocumented</span>
+    <p style="margin-bottom:0;"><strong>PIPE (Persuasion, Immersion, Personalisation, Evolution)</strong> is the app's own named theoretical engine, and it is essentially undocumented. The research page calls itself "an instrumented view of the PIPE regulator," and each tenet gets one clause, no citation, nowhere in the app. Compare that to the C-level model or the six axes, both of which get full pages. Right now PIPE reads as a name, not a theory.</p>
+  </div>
+
+  <div class="stub">
+    <span class="stub-tag">Dead end</span>
+    <p style="margin-bottom:0;"><strong>chat.html</strong> shows <em>"Coaching not available in this deployment"</em> whenever no backend is configured &mdash; presumably the default state most visitors hit.</p>
+  </div>
+
+  <div class="stub">
+    <span class="stub-tag">Shallow</span>
+    <p style="margin-bottom:0;"><strong>The new belief citations are one line each.</strong> The Calibration tab pairs every citation with a full explanatory paragraph on why it applies; the beliefs deserve the same, not just a name and a year.</p>
+  </div>
+
+  <div class="stub">
+    <span class="stub-tag">Uniform</span>
+    <p style="margin-bottom:0;"><strong>Every axis gets exactly two Learn lessons</strong>, regardless of how much the underlying concept can actually support. Diversification and "build a five-minute check-in habit" get identical treatment despite very different depth ceilings.</p>
+  </div>
+
+  <h2>If continuing this thread</h2>
+  <ol class="steps">
+    <li><strong>Give the money beliefs the Calibration tab's treatment</strong> &mdash; a real paragraph per belief, not just a citation tag.</li>
+    <li><strong>Write something for non-admin research.html visitors.</strong> Even a plain-language summary of what the research program tracks would beat an access wall.</li>
+    <li><strong>Either build out PIPE properly</strong> &mdash; its own section, real citations, tied concretely to features &mdash; <strong>or retire the term.</strong> A named framework with nothing behind it is worse than no name at all.</li>
+    <li><strong>Expand Learn lessons unevenly, on purpose.</strong> Give the concepts with more genuine depth a third lesson before adding volume everywhere uniformly.</li>
+  </ol>
+</article>

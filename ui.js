@@ -22,6 +22,7 @@ const NAV_ITEMS = [
 const MENU_ITEMS = [
   { href: "learn.html", label: "Learn" },
   { href: "model.html", label: "Theory" },
+  { href: "report.html", label: "Your report" },
   { href: "tutorial.html", label: "Quick tour" },
   { href: "donate.html", label: "Donate" },
 ];

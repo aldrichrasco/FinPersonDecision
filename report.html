@@ -3,8 +3,8 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>FinPerson — Theory</title>
-<meta name="description" content="How FinPerson thinks about calibration, the six behavioural axes, and each archetype's expected pattern.">
+<title>FinPerson — your money personality report</title>
+<meta name="description" content="Your full money personality report — archetype, six-axis breakdown, calibration progress, and growth areas, all in one place.">
 <meta name="theme-color" content="#F2EFE6" media="(prefers-color-scheme: light)">
 <meta name="theme-color" content="#0F1524" media="(prefers-color-scheme: dark)">
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -23,23 +23,11 @@
 </header>
 
 <main class="wrap dash" id="main">
-  <!-- Photo: Pawel Czerwinski on Unsplash (unsplash.com/photos/4E78075zc1w), free to use, no attribution required. -->
-  <div class="theory-banner" role="presentation">
-    <div class="theory-banner-scrim">
-      <h1 style="font-family:var(--font-display);font-weight:500;color:#fff;margin:0;">Theory</h1>
-      <p class="lede" style="font-size:16px;color:rgba(255,255,255,0.88);margin:8px 0 0;">FinPerson isn't scoring you against a target. Here's what it's actually tracking, and why.</p>
+  <section id="report-content">
+    <div class="skeleton-grid scenario-empty-body" id="report-status">
+      <div class="skeleton-card"></div><div class="skeleton-card"></div><div class="skeleton-card"></div>
     </div>
-  </div>
-
-  <div class="chip-row" style="margin:0 0 22px;" role="tablist">
-    <button class="chip" id="tabbtn-calibration" type="button" role="tab">Calibration</button>
-    <button class="chip" id="tabbtn-axes" type="button" role="tab">Six Axes</button>
-    <button class="chip" id="tabbtn-archetypes" type="button" role="tab">Archetypes</button>
-  </div>
-
-  <section id="tab-calibration" role="tabpanel"></section>
-  <section id="tab-axes" role="tabpanel" hidden></section>
-  <section id="tab-archetypes" role="tabpanel" hidden></section>
+  </section>
 </main>
 
 <footer class="footer">
@@ -53,16 +41,17 @@
 <script src="study.js"></script>
 <script src="data.js"></script>
 <script src="fbm.js"></script>
-<script src="deviation.js"></script>
 <script src="idm.js"></script>
+<script src="deviation.js"></script>
 <script src="observations.js"></script>
-<script src="api.js"></script>
+<script src="achievements.js"></script>
 <script src="radar-chart.js"></script>
+<script src="archetype-portraits.js"></script>
+<script src="api.js"></script>
 <script src="ui.js"></script>
 <script src="legal.js"></script>
 <script src="help.js"></script>
-<script src="archetype-portraits.js"></script>
-<script src="model-page.js"></script>
+<script src="report-page.js"></script>
 <script src="https://accounts.google.com/gsi/client" async defer></script>
 <script src="auth.js"></script>
 </body>

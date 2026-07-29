@@ -119,19 +119,20 @@ function renderSafeguarding(sg) {
 function loadLearnProgressForContext() {
   try { return JSON.parse(localStorage.getItem("finperson_learn_progress")); } catch (e) { return null; }
 }
-function loadGoalsForContext(persona) {
+function loadGoalsForContext() {
+  if (typeof loadGoals === "function") return loadGoals();
   try {
-    const diary = JSON.parse(localStorage.getItem("finperson_goal_diary")) || {};
-    return diary[persona] || [];
+    const raw = JSON.parse(localStorage.getItem("finperson_goal_diary"));
+    return Array.isArray(raw) ? raw : [];
   } catch (e) { return []; }
 }
 
 // Everything the coach is allowed to see, gathered client-side and sent with
 // every message. Sandbox/quiz data is only included when it belongs to the
 // coach being spoken to — sending another archetype's context would make the
-// coach say wrong things. Goals and learning progress aren't persona-specific
-// research, so goals are still scoped per-persona (they're stored that way),
-// but learning progress applies across the whole profile.
+// coach say wrong things. Goals aren't persona-specific — they're the user's
+// own, same list regardless of which coach they're talking to — and neither
+// is learning progress, which applies across the whole profile.
 function coachContext() {
   if (contextDisabled) return null;
   const ctx = {};
@@ -167,7 +168,7 @@ function coachContext() {
     ctx.learningStreak = learn.streak || 0;
   }
 
-  const goals = loadGoalsForContext(chatPersona);
+  const goals = loadGoalsForContext();
   if (goals.length) {
     ctx.goals = goals.slice(0, 5).map(g => ({ title: g.title, done: !!g.done }));
   }
@@ -188,7 +189,7 @@ function renderContextBanner() {
   const hasQuiz = profile && profile.archetype === chatPersona;
   const learn = loadLearnProgressForContext();
   const hasLearning = learn && Array.isArray(learn.completed) && learn.completed.length > 0;
-  const goals = loadGoalsForContext(chatPersona);
+  const goals = loadGoalsForContext();
   const hasGoals = goals.length > 0;
   const usable = hasSandbox || hasQuiz || hasLearning || hasGoals;
 

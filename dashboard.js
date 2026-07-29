@@ -69,6 +69,106 @@ const SCENARIOS = [
       { label: "Transfer, but keep spending on the old card too", delta: { debt: 800 }, flavor: "impulsive" },
     ],
   },
+  {
+    text: "A friend swears the token everyone's buying is different from past crypto crashes — 'this one has real backing.'",
+    principle: "this_time_different",
+    surface: "opportunity",
+    choices: [
+      { label: "Put $800 in before it takes off", delta: { savings: -800, investments: 800 }, flavor: "impulsive" },
+      { label: "Ask what specifically makes it different, in writing", delta: {}, flavor: "conservative" },
+      { label: "Skip it — the pitch sounds familiar", delta: { savings: 100 }, flavor: "conservative" },
+    ],
+  },
+  {
+    text: "Home prices in your area have tripled in five years. Everyone says this market doesn't correct like others do.",
+    principle: "this_time_different",
+    surface: "opportunity",
+    choices: [
+      { label: "Buy now before it goes higher", delta: { debt: 2000, savings: -8000 }, flavor: "impulsive" },
+      { label: "Keep renting and saving toward a bigger down payment", delta: { savings: 400 }, flavor: "conservative" },
+      { label: "Wait for a dip that may never come", delta: {}, flavor: "uncertain" },
+    ],
+  },
+  {
+    text: "A coworker's side hustle promises 20% monthly returns, and says the usual warning signs don't apply since it's run by someone you know.",
+    principle: "this_time_different",
+    surface: "opportunity",
+    choices: [
+      { label: "Put in a small amount to test it", delta: { savings: -500 }, flavor: "impulsive" },
+      { label: "Ask to see verified payouts going back three months", delta: {}, flavor: "conservative" },
+      { label: "Decline — the math doesn't work at any scale", delta: {}, flavor: "conservative" },
+    ],
+  },
+  {
+    text: "Your sibling asks to borrow $500 for rent — the third time this year.",
+    principle: "others_first",
+    surface: "obligation",
+    choices: [
+      { label: "Lend it again, no questions", delta: { savings: -500 }, flavor: "generous" },
+      { label: "Offer to help them build a budget instead of cash", delta: {}, flavor: "generous" },
+      { label: "Say no this time and explain why", delta: {}, flavor: "conservative" },
+    ],
+  },
+  {
+    text: "Everyone at work is chipping in $50 for a coworker's fundraiser you don't feel strongly about.",
+    principle: "others_first",
+    surface: "obligation",
+    choices: [
+      { label: "Give the full $50 to fit in", delta: { savings: -50 }, flavor: "generous" },
+      { label: "Give $10 and be upfront about it", delta: { savings: -10 }, flavor: "conservative" },
+      { label: "Decline — it's okay to sit this one out", delta: {}, flavor: "conservative" },
+    ],
+  },
+  {
+    text: "Your parents mention they're a bit short this month.",
+    principle: "others_first",
+    surface: "family_loan",
+    choices: [
+      { label: "Send $300 without being asked directly", delta: { savings: -300 }, flavor: "generous" },
+      { label: "Ask what specifically needs covering first", delta: { savings: -150 }, flavor: "generous" },
+      { label: "Offer a non-cash form of help instead", delta: {}, flavor: "conservative" },
+    ],
+  },
+  {
+    text: "You realize you haven't opened your credit card statement in two months.",
+    principle: "id_notice",
+    surface: "obligation",
+    choices: [
+      { label: "Open it right now, whatever's in there", delta: {}, flavor: "conservative" },
+      { label: "Skim the total, skip the details", delta: {}, flavor: "uncertain" },
+      { label: "Keep avoiding it a bit longer", delta: { expenses: 60 }, flavor: "uncertain" },
+    ],
+  },
+  {
+    text: "A subscription you forgot about just renewed for $89.",
+    principle: "id_notice",
+    surface: "subscription",
+    choices: [
+      { label: "Cancel it and check your account for others like it", delta: { savings: 89 }, flavor: "conservative" },
+      { label: "Let it slide, it's not that much", delta: { expenses: 89 }, flavor: "uncertain" },
+      { label: "Cancel it, but don't check for more", delta: { savings: 89 }, flavor: "uncertain" },
+    ],
+  },
+  {
+    text: "Your card issuer offers a 'pay in 4' installment option at checkout for a $600 purchase.",
+    principle: "credit_is_free",
+    surface: "bnpl",
+    choices: [
+      { label: "Use it — it's the same total, just split up", delta: { debt: 600 }, flavor: "impulsive" },
+      { label: "Pay the full $600 upfront instead", delta: { savings: -600 }, flavor: "conservative" },
+      { label: "Wait a week and see if you still want it", delta: {}, flavor: "conservative" },
+    ],
+  },
+  {
+    text: "Your insurance auto-renewed the same plan as last year, now $40 a month more.",
+    principle: "waiting_is_safe",
+    surface: "subscription",
+    choices: [
+      { label: "Let it ride — comparing plans is a hassle", delta: { expenses: 40 }, flavor: "uncertain" },
+      { label: "Spend 20 minutes comparing two other plans", delta: {}, flavor: "conservative" },
+      { label: "Switch to the cheaper option without comparing details", delta: { expenses: -40 }, flavor: "impulsive" },
+    ],
+  },
 ];
 
 // `zone` marks which homeostatic state a scenario is most useful in:
@@ -645,6 +745,7 @@ function applyChoice(choice, chosenIndex) {
     flavor: choice.flavor,
     scenarioZone: currentScenario.zone || "general",
     zone: zoneStatus(score),
+    principle: currentScenario.principle || null,
   });
   zoneHistory.push(zoneStatus(score));
 
@@ -1029,6 +1130,12 @@ function showRoundRecap(recap) {
         <span class="recap-takeaway-label">Worth carrying forward</span>
         <p>${esc(recap.takeaway)}</p>
       </div>
+      ${recap.beliefsTouched && recap.beliefsTouched.length ? `
+      <div class="recap-beliefs">
+        <span class="recap-takeaway-label">Money beliefs this round touched on</span>
+        <ul class="recap-beliefs-list">${recap.beliefsTouched.map(b => `<li>${esc(b.label)}</li>`).join("")}</ul>
+        <a class="linkish" href="model.html#calibration" style="font-size:12.5px;">See what these mean &rarr;</a>
+      </div>` : ""}
       <div class="recap-actions">
         <button class="btn btn-primary" id="recap-continue" type="button">Keep going</button>
         <a class="btn btn-secondary" href="chat.html">Talk it through</a>
