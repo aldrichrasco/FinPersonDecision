@@ -432,7 +432,6 @@ async function selectPersona(slug, { fromCache = false, seedState = null } = {})
   updateMetrics();
   drawChart();
   drawNetWorthChart();
-  renderGoalDiary();
   rollScenario();
 }
 
@@ -1263,30 +1262,6 @@ function drawNetWorthChart() {
   canvas.setAttribute("aria-label", `Illustrative net worth moved from ${fmt(values[0])} to ${fmt(values[values.length - 1])} over ${Math.max(0, values.length - 1)} decisions.`);
 }
 
-const GOAL_DIARY_KEY = "finperson_goal_diary";
-function loadGoalDiary() { try { return JSON.parse(localStorage.getItem(GOAL_DIARY_KEY)) || {}; } catch (e) { return {}; } }
-function saveGoalDiary(data) { try { localStorage.setItem(GOAL_DIARY_KEY, JSON.stringify(data)); } catch (e) {} }
-function renderGoalDiary() {
-  const list = document.getElementById("goal-list"); if (!list || !currentPersona) return;
-  const entries = loadGoalDiary()[currentPersona] || [];
-  list.innerHTML = entries.length ? entries.map(entry => `<li class="goal-entry ${entry.done ? "goal-done" : ""}"><label><input type="checkbox" data-goal-id="${esc(entry.id)}" ${entry.done ? "checked" : ""}><span>${esc(entry.title)}</span></label>${entry.note ? `<p>${esc(entry.note)}</p>` : ""}<button class="goal-remove" type="button" data-goal-remove="${esc(entry.id)}" aria-label="Remove goal">&times;</button></li>`).join("") : `<li class="goal-empty">Your goals and reflections stay with this sandbox persona on this device.</li>`;
-  list.querySelectorAll("[data-goal-id]").forEach(input => input.addEventListener("change", () => updateGoal(input.dataset.goalId, { done: input.checked })));
-  list.querySelectorAll("[data-goal-remove]").forEach(button => button.addEventListener("click", () => removeGoal(button.dataset.goalRemove)));
-}
-function updateGoal(id, changes) {
-  const diary = loadGoalDiary();
-  const entries = diary[currentPersona] || [];
-  const updated = entries.map(entry => entry.id === id ? { ...entry, ...changes } : entry);
-  diary[currentPersona] = updated;
-  saveGoalDiary(diary);
-  renderGoalDiary();
-  if (typeof changes.done === "boolean" && typeof logGoalEvent === "function") {
-    const entry = updated.find(e => e.id === id);
-    if (entry) logGoalEvent(entry.title, entry.done);
-  }
-}
-function removeGoal(id) { const diary = loadGoalDiary(); diary[currentPersona] = (diary[currentPersona] || []).filter(entry => entry.id !== id); saveGoalDiary(diary); renderGoalDiary(); }
-
 function drawChart() {
   renderHomeostasisChart({
     observed: observedTrack,
@@ -1377,22 +1352,6 @@ if (typeof registerShortcut === "function") {
 
 const restartBtn = document.getElementById("restart-btn");
 if (restartBtn) restartBtn.addEventListener("click", restartPersona);
-const goalForm = document.getElementById("goal-form");
-goalForm?.addEventListener("submit", event => {
-  event.preventDefault();
-  if (!currentPersona) return;
-  const title = document.getElementById("goal-title").value.trim();
-  const note = document.getElementById("goal-note").value.trim();
-  if (!title) return;
-  const diary = loadGoalDiary();
-  const entries = diary[currentPersona] || [];
-  entries.unshift({ id: `${Date.now()}-${Math.random().toString(36).slice(2, 7)}`, title, note, done: false });
-  diary[currentPersona] = entries;
-  saveGoalDiary(diary);
-  goalForm.reset();
-  renderGoalDiary();
-  if (typeof logGoalEvent === "function") logGoalEvent(title, false);
-});
 
 // Restores mid-session progress from a server-saved snapshot without
 // re-fetching baselines or resetting the chart/log counters.
@@ -1450,7 +1409,6 @@ function resumeFromServer(saved) {
   updateHomeostasisPanel();
   drawChart();
   drawNetWorthChart();
-  renderGoalDiary();
   rollScenario();
 }
 

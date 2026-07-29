@@ -52,31 +52,19 @@
       </div>`;
   }
   const cal = typeof calibrationSummary === "function" ? calibrationSummary() : null;
-  // Personal finance diary (dashboard.js's goal-diary) — currently
-  // localStorage-only and scoped per-persona, never surfaced outside the
-  // sandbox. Pull it together here across every persona the person has used.
-  function loadGoalDiaryAcrossPersonas() {
-    try {
-      const diary = JSON.parse(localStorage.getItem("finperson_goal_diary")) || {};
-      const all = [];
-      Object.entries(diary).forEach(([slug, entries]) => {
-        (entries || []).forEach(e => all.push({ ...e, persona: slug }));
-      });
-      return all;
-    } catch (e) {
-      return [];
-    }
-  }
-  const goals = loadGoalDiaryAcrossPersonas();
+  // A short summary here, not the full list — the Goals tab (goals-page.js)
+  // is the real, editable home for these now. Goals are the user's own, not
+  // scoped to any sandbox persona; see goals.js for the shared storage.
+  const goals = typeof loadGoals === "function" ? loadGoals() : [];
   const goalsHtml = goals.length ? `
-    <p class="chart-title">Your personal finance diary</p>
+    <p class="chart-title">Your goals</p>
     <div class="pattern-panel tone-neutral">
-      <p class="pattern-body" style="font-size:13px;color:var(--slate);margin:0 0 10px;">
-        ${goals.filter(g => g.done).length} of ${goals.length} goal(s) done, across every persona you've practiced with.
+      <p class="pattern-body" style="font-size:15px;color:var(--ink);">
+        ${goals.filter(g => g.done).length} of ${goals.length} goal(s) done.
       </p>
-      <ul class="goal-list" style="margin:0;">
-        ${goals.map(g => `<li class="goal-entry ${g.done ? "goal-done" : ""}"><label><input type="checkbox" disabled ${g.done ? "checked" : ""}><span>${esc(g.title)}</span></label>${g.note ? `<p>${esc(g.note)}</p>` : ""}</li>`).join("")}
-      </ul>
+      <p class="pattern-body" style="font-size:13px;color:var(--slate);margin-top:8px;">
+        <a href="#" data-open-goals-tab>Open your goals &rarr;</a>
+      </p>
     </div>` : "";
 
   // A bento grid instead of one long single-column stack — the trend
@@ -131,6 +119,10 @@
       </div>
     </div>
   `;
+  content.querySelector("[data-open-goals-tab]")?.addEventListener("click", e => {
+    e.preventDefault();
+    document.getElementById("progress-tabbtn-goals")?.click();
+  });
 
   // Draw the capability trend.
   const canvas = document.getElementById("cap-chart");
@@ -229,4 +221,6 @@
     const btn = document.getElementById(`progress-tabbtn-${t}`);
     if (btn) btn.addEventListener("click", () => showProgressTab(t));
   });
+  const initial = PROGRESS_TABS.includes(location.hash.slice(1)) ? location.hash.slice(1) : "trends";
+  if (initial !== "trends") showProgressTab(initial);
 })();
