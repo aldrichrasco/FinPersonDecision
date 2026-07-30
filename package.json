@@ -1,0 +1,8 @@
+{
+  "name": "finperson",
+  "private": true,
+  "description": "No build step, no frontend dependencies — this package.json exists only to give `npm test` a home for Node's built-in test runner.",
+  "scripts": {
+    "test": "node --test"
+  }
+}

@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>FinPerson Pro — which investor are you?</title>
+<meta name="description" content="A free style-match against seven real, well-documented investors — Buffett, Dalio, Soros, and more — based on how you actually make decisions, not what you say you'd do.">
+<meta name="theme-color" content="#0B0E11">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="styles.css">
+</head>
+<body class="pro-page">
+<a class="skip-link" href="#main">Skip to content</a>
+
+<header class="topbar">
+  <div class="wrap topbar-inner">
+    <a class="logo" href="pro.html" style="text-decoration:none;">FinPerson <span class="pro-mono" style="color:var(--pro-accent);font-size:13px;">PRO</span></a>
+    <div id="auth-slot"></div>
+  </div>
+</header>
+
+<main class="wrap dash" id="main">
+  <p class="pro-eyebrow">Free style match</p>
+  <h1 class="pro-h1">Which investor are you?</h1>
+  <p class="pro-lede">Seven questions about how you actually decide, matched against seven real, well-documented investors — not archetypes we invented, people with a publicly recorded track record and a written philosophy.</p>
+
+  <section id="pro-investors-content" class="pro-panel">
+    <p class="pro-mono" style="color:var(--pro-muted);">Loading…</p>
+  </section>
+</main>
+
+<footer class="footer" style="border-top-color:var(--pro-line);">
+  <div class="wrap footer-legal">
+    <p class="pro-footer-note"><strong>Not financial advice.</strong> Archetype matches are an illustrative simplification of a public investing philosophy — not a claim about how any of these investors would score on a validated instrument, and not a recommendation to trade like them.</p>
+    <p class="pro-footer-note">&copy; <span id="year">2026</span> FinPerson.</p>
+  </div>
+</footer>
+
+<script src="data.js"></script>
+<script src="api.js"></script>
+<script src="archetype-portraits.js"></script>
+<script src="investor-model.js"></script>
+<script src="investor-portraits.js"></script>
+<script src="ui.js"></script>
+<script src="legal.js"></script>
+<script src="help.js"></script>
+<script src="pro-investors-page.js"></script>
+<script src="https://accounts.google.com/gsi/client" async defer></script>
+<script src="auth.js"></script>
+</body>
+</html>

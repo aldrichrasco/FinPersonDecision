@@ -1,8 +1,9 @@
-(function () {
+(async function () {
   const content = document.getElementById("progress-content");
   const status = document.getElementById("progress-status");
-  const saved = getProfile();
+  const saved = await syncProfileFromServer();
   const history = getCapabilityHistory();
+  const nudgeEntries = typeof fetchProfileNudgeLog === "function" ? await fetchProfileNudgeLog() : [];
 
   if (!saved) {
     status.innerHTML = `You haven't taken the quiz yet. <a href="index.html">Take the 30-second quiz</a> to set your baseline.`;
@@ -67,6 +68,21 @@
       </p>
     </div>` : "";
 
+  // Classroom games can nudge a signed-in user's own axis scores (see
+  // nudgeAxis() in classroom-page.js) — this gives that "tentative" note a
+  // permanent home instead of a one-time toast that vanishes on navigation.
+  const nudgeHtml = nudgeEntries.length ? `
+    <p class="chart-title">Recent adjustments</p>
+    <div class="pattern-panel tone-neutral">
+      ${nudgeEntries.slice(0, 5).map(n => {
+        const label = (typeof AXES !== "undefined" && AXES[n.axis]) ? AXES[n.axis].label : n.axis;
+        const sign = n.delta >= 0 ? "+" : "";
+        const when = new Date(n.created_at * 1000).toLocaleDateString(undefined, { month: "short", day: "numeric" });
+        return `<p class="pattern-body" style="font-size:13.5px;color:var(--ink);margin:4px 0;">${esc(label)} ${sign}${n.delta} <span style="color:var(--slate);">— ${when}, from a classroom game</span></p>`;
+      }).join("")}
+      <p class="pattern-body" style="font-size:12.5px;color:var(--slate);margin-top:8px;">Each one's tentative — a single game, not a full re-test.</p>
+    </div>` : "";
+
   // A bento grid instead of one long single-column stack — the trend
   // chart (the thing most worth a second look) gets the largest tile,
   // everything else sizes to how much room it actually needs rather than
@@ -115,6 +131,8 @@
       </div>
 
       ${goalsHtml ? `<div class="bento-tile bento-goals">${goalsHtml}</div>` : ""}
+
+      ${nudgeHtml ? `<div class="bento-tile bento-nudges">${nudgeHtml}</div>` : ""}
 
       <div class="bento-tile bento-cta sandbox-card">
         <div>

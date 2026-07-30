@@ -152,3 +152,14 @@ function describeAxis(key, value) {
   if (value <= 33) return `${a.low.toLowerCase()}`;
   return "balanced";
 }
+
+// Node-only export (no-op in the browser — `module` is undefined there) so
+// this pure matching/scoring math is unit-testable without a DOM. See
+// tests-js/fbm.test.js.
+if (typeof module !== "undefined" && module.exports) {
+  module.exports = {
+    AXES, AXIS_KEYS, ARCHETYPE_PROFILES, CAPABILITY_AXES,
+    neutralProfile, clamp01to100, distanceToArchetype, axisGapsToArchetype,
+    archetypeCloseness, matchArchetype, capabilityIndex, describeAxis,
+  };
+}

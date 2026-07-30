@@ -22,8 +22,11 @@ const NAV_ITEMS = [
 const MENU_ITEMS = [
   { href: "learn.html", label: "Learn" },
   { href: "model.html", label: "Theory" },
+  { href: "classroom.html", label: "The classroom" },
   { href: "report.html", label: "Your report" },
   { href: "tutorial.html", label: "Quick tour" },
+  { href: "shop.html", label: "Resources" },
+  { href: "pro.html", label: "FinPerson Pro" },
   { href: "donate.html", label: "Donate" },
 ];
 
@@ -38,8 +41,12 @@ function currentPage() {
 // keeps a single, consistent piece of chrome instead of two.
 function initNav() {
   // The landing page is a marketing surface, not part of the app shell.
+  // FinPerson Pro (pro*.html) is a deliberately separate visual register —
+  // see the .pro-page rules in styles.css — so it opts out of the retail
+  // app's bottom nav pill the same way.
   const page = currentPage();
   if (page === "index" || page === "" || page === "admin" || page === "research" || page === "reset-password") return;
+  if (page.startsWith("pro")) return;
   if (document.getElementById("app-nav")) return;
 
   const nav = document.createElement("nav");

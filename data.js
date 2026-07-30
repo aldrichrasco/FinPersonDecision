@@ -123,6 +123,7 @@ function saveProfile(profile, archetype, capability) {
     hist.push({ capability, at: Date.now() });
     localStorage.setItem(CAPABILITY_HISTORY_KEY, JSON.stringify(hist.slice(-50)));
   } catch (e) {}
+  pushProfileToServer();
 }
 
 function getProfile() {
@@ -132,6 +133,28 @@ function getProfile() {
   } catch (e) {
     return null;
   }
+}
+
+function pushProfileToServer() {
+  const current = getProfile();
+  if (current && typeof saveProfileToServer === "function") saveProfileToServer(current);
+}
+
+// Server sync — a profile is a single blob (not a list like goals.js), so
+// the merge rule is simpler: whichever copy has the newer `at` timestamp
+// wins wholesale, then gets pushed back so the loser is overwritten. No-ops
+// harmlessly if api.js isn't loaded on this page or the user is anonymous
+// (server returns { profile: null }).
+async function syncProfileFromServer() {
+  if (typeof fetchProfileFromServer !== "function") return getProfile();
+  const server = await fetchProfileFromServer();
+  const local = getProfile();
+  if (!server || typeof server !== "object") return local;
+  if (!local || (server.at || 0) > (local.at || 0)) {
+    try { localStorage.setItem(PROFILE_STORAGE_KEY, JSON.stringify(server)); } catch (e) {}
+  }
+  pushProfileToServer();
+  return getProfile();
 }
 
 function getCapabilityHistory() {

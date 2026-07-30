@@ -36,6 +36,7 @@ function addGoal({ title, note, targetAmount }) {
     done: false,
   });
   saveGoals(list);
+  pushGoalsToServer();
   if (typeof logGoalEvent === "function") logGoalEvent(title, false);
   return list;
 }
@@ -51,6 +52,7 @@ function logGoalProgress(id, amount) {
     }
   }
   saveGoals(list);
+  pushGoalsToServer();
   return list;
 }
 
@@ -59,10 +61,34 @@ function toggleGoalDone(id, done) {
   const goal = list.find(g => g.id === id);
   if (goal) goal.done = done;
   saveGoals(list);
+  pushGoalsToServer();
   if (goal && typeof logGoalEvent === "function") logGoalEvent(goal.title, done);
   return list;
 }
 
 function removeGoalById(id) {
   saveGoals(loadGoals().filter(g => g.id !== id));
+  pushGoalsToServer();
+}
+
+// Server sync — same "merge by most-recently-touched, then push the result
+// back" spirit as idm.js's syncIDMFromServer, adapted for a list instead of
+// a per-key state blob. No-ops harmlessly if api.js isn't loaded on this
+// page or the user is anonymous (server 401s, fetch just returns null).
+async function syncGoalsFromServer() {
+  if (typeof fetchGoalsFromServer !== "function") return loadGoals();
+  const server = await fetchGoalsFromServer();
+  if (!Array.isArray(server)) return loadGoals();
+  const local = loadGoals();
+  const byId = new Map();
+  server.forEach(g => g && g.id && byId.set(g.id, g));
+  local.forEach(g => g && g.id && byId.set(g.id, g)); // local wins on id collision — most recently active device
+  const merged = [...byId.values()];
+  saveGoals(merged);
+  pushGoalsToServer();
+  return merged;
+}
+
+function pushGoalsToServer() {
+  if (typeof saveGoalsToServer === "function") saveGoalsToServer(loadGoals());
 }

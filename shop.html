@@ -3,8 +3,8 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>FinPerson — your money personality report</title>
-<meta name="description" content="Your full money personality report — archetype, six-axis breakdown, calibration progress, and growth areas, all in one place.">
+<title>FinPerson — resources</title>
+<meta name="description" content="Books, guides, and other resources from FinPerson.">
 <meta name="theme-color" content="#F2EFE6" media="(prefers-color-scheme: light)">
 <meta name="theme-color" content="#0F1524" media="(prefers-color-scheme: dark)">
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -23,16 +23,30 @@
 </header>
 
 <main class="wrap dash" id="main">
-  <section id="report-content">
-    <div class="skeleton-grid scenario-empty-body" id="report-status">
-      <div class="skeleton-card"></div><div class="skeleton-card"></div><div class="skeleton-card"></div>
+  <h1 style="font-family:var(--font-display);font-weight:500;">Resources</h1>
+  <p class="lede" style="font-size:16px;">Books and guides that go deeper than the app does. FinPerson itself stays free either way.</p>
+
+  <!--
+    SETUP REQUIRED: replace the placeholder hrefs below with real listings.
+    Same convention as donate.html — this app never processes a payment or
+    sees card details itself, it only links out to whatever platform you
+    actually sell through (Gumroad, Payhip, Amazon KDP, your own Stripe
+    Payment Link, etc. all work identically here).
+  -->
+  <div class="learn-grid" style="margin-top:24px;">
+    <div class="learn-axis-card">
+      <h3>Your book title here</h3>
+      <p class="learn-axis-blurb">One or two sentences on what it covers and who it's for.</p>
+      <a class="btn btn-primary" href="https://REPLACE-WITH-YOUR-GUMROAD-OR-PAYHIP-LINK" target="_blank" rel="noopener noreferrer">Get the book</a>
     </div>
-  </section>
+  </div>
+
+  <p class="scenario-empty-body" style="margin-top:26px;">Every link above takes you to that platform's own checkout — FinPerson never sees or handles your payment details.</p>
 </main>
 
 <footer class="footer">
   <div class="wrap footer-legal">
-    <p><strong>Not financial advice.</strong> This is an educational practice tool. Nothing here is a credit score, a diagnosis, or a measure of your worth.</p>
+    <p><strong>Not financial advice.</strong> This is an educational practice tool.</p>
     <p class="footer-copy">&copy; <span id="year">2026</span> FinPerson.</p>
   </div>
 </footer>
@@ -41,18 +55,11 @@
 <script src="study.js"></script>
 <script src="data.js"></script>
 <script src="fbm.js"></script>
-<script src="idm.js"></script>
-<script src="deviation.js"></script>
 <script src="observations.js"></script>
-<script src="achievements.js"></script>
-<script src="radar-chart.js"></script>
-<script src="archetype-portraits.js"></script>
-<script src="archetype-characters.js"></script>
 <script src="api.js"></script>
 <script src="ui.js"></script>
 <script src="legal.js"></script>
 <script src="help.js"></script>
-<script src="report-page.js"></script>
 <script src="https://accounts.google.com/gsi/client" async defer></script>
 <script src="auth.js"></script>
 </body>

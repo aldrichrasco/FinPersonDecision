@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>FinPerson — the classroom</title>
+<meta name="description" content="Real money games economists use to teach trust, cooperation, and rational equilibrium — playable solo or as a class.">
+<meta name="theme-color" content="#F2EFE6" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#0F1524" media="(prefers-color-scheme: dark)">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="styles.css">
+</head>
+<body>
+<a class="skip-link" href="#main">Skip to content</a>
+
+<header class="topbar">
+  <div class="wrap topbar-inner">
+    <a class="logo" href="index.html" style="text-decoration:none;color:inherit;">FinPerson</a>
+    <div id="auth-slot"></div>
+  </div>
+</header>
+
+<main class="wrap dash" id="main">
+  <p class="scenario-eyebrow">The classroom</p>
+  <h1 style="font-family:var(--font-display);font-weight:500;margin:0 0 4px;">Real money games</h1>
+  <p class="lede" style="font-size:16px;">The same games economists actually use to study trust and cooperation, with real money on the line. Play one, then see how your instinct compares to what pure rationality predicts — and to what real people actually do.</p>
+
+  <div class="report-section report-support" style="text-align:left;margin:18px 0;">
+    <p class="chart-title">How this works</p>
+    <p class="report-body"><strong>1. Pick a game and a role.</strong> Each one pits textbook rational self-interest against how people actually behave.</p>
+    <p class="report-body"><strong>2. Play it out.</strong> Your "opponent" is a simulated classmate — pick which archetype, and their moves are shaped by that archetype's real risk and prosocial-orientation scores.</p>
+    <p class="report-body" style="margin-bottom:0;"><strong>3. Compare.</strong> See the equilibrium prediction next to the real research finding, plus how everyone else who's played has actually done.</p>
+  </div>
+
+  <div class="dash-setup-row" style="margin:18px 0;max-width:280px;">
+    <label class="dash-label" for="classroom-cohort-input">Class code (optional)</label>
+    <input class="goal-input" id="classroom-cohort-input" type="text" maxlength="32" placeholder="e.g. period-3-econ" autocomplete="off">
+    <p class="report-meta" style="margin:6px 0 0;">Share a code with your class so "what everyone else has done" only counts your students.</p>
+  </div>
+
+  <div class="chip-row" style="margin:18px 0 22px;" role="tablist">
+    <button class="chip active" id="classroom-tabbtn-trust" type="button" role="tab" aria-selected="true" aria-controls="classroom-content" tabindex="0">Trust game</button>
+    <button class="chip" id="classroom-tabbtn-goods" type="button" role="tab" aria-selected="false" aria-controls="classroom-content" tabindex="-1">Public goods game</button>
+    <button class="chip" id="classroom-tabbtn-ultimatum" type="button" role="tab" aria-selected="false" aria-controls="classroom-content" tabindex="-1">Ultimatum game</button>
+  </div>
+
+  <section id="classroom-content" role="tabpanel">
+    <div class="skeleton-grid scenario-empty-body">
+      <div class="skeleton-card"></div><div class="skeleton-card"></div>
+    </div>
+  </section>
+</main>
+
+<footer class="footer">
+  <div class="wrap footer-legal">
+    <p><strong>Not financial advice.</strong> Illustrative amounts only — nothing here touches your real accounts.</p>
+    <p class="footer-copy">&copy; <span id="year">2026</span> FinPerson.</p>
+  </div>
+</footer>
+
+<script src="instruments.js"></script>
+<script src="study.js"></script>
+<script src="data.js"></script>
+<script src="fbm.js"></script>
+<script src="observations.js"></script>
+<script src="api.js"></script>
+<script src="archetype-portraits.js"></script>
+<script src="nudge-formulas.js"></script>
+<script src="ui.js"></script>
+<script src="legal.js"></script>
+<script src="help.js"></script>
+<script src="classroom-page.js"></script>
+<script src="https://accounts.google.com/gsi/client" async defer></script>
+<script src="auth.js"></script>
+</body>
+</html>

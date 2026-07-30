@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>FinPerson Pro — investor style-match + Turtle Trading discipline</title>
+<meta name="description" content="A free investor-archetype match against Buffett, Dalio, Soros and more, plus a paid simulation that trains the discipline to follow a system instead of overriding it.">
+<meta name="theme-color" content="#0B0E11">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="styles.css">
+</head>
+<body class="pro-page">
+<a class="skip-link" href="#main">Skip to content</a>
+
+<header class="topbar">
+  <div class="wrap topbar-inner">
+    <a class="logo" href="index.html" style="text-decoration:none;">FinPerson <span class="pro-mono" style="color:var(--pro-accent);font-size:13px;">PRO</span></a>
+    <div id="auth-slot"></div>
+  </div>
+</header>
+
+<main class="wrap dash" id="main">
+  <p class="pro-eyebrow">For traders, not retail coaching</p>
+  <h1 class="pro-h1" style="font-size:clamp(28px,4vw,40px);">Know your style. Then prove you can follow it.</h1>
+  <p class="pro-lede">FinPerson's free tools are behavioral coaching for personal finance. This is a different product, for a different reason: knowing your investing style is easy — the actual, expensive skill is following a system when your gut disagrees with it.</p>
+
+  <div class="pro-card-grid" style="margin-top:32px;">
+    <div class="pro-panel">
+      <span class="pro-badge">Free</span>
+      <h2 style="font-family:var(--font-display);font-weight:500;font-size:20px;margin:0 0 8px;color:var(--pro-ink);">Which investor are you?</h2>
+      <p style="font-size:14.5px;line-height:1.6;color:var(--pro-ink);">Seven questions, matched against seven real investors with a documented public track record and philosophy — Buffett, Dalio, Soros, Bogle, and more.</p>
+      <a class="pro-btn" href="pro-investors.html" style="margin-top:10px;">Take the free quiz &rarr;</a>
+    </div>
+    <div class="pro-panel pro-panel-raised">
+      <span class="pro-badge">Subscription</span>
+      <h2 style="font-family:var(--font-display);font-weight:500;font-size:20px;margin:0 0 8px;color:var(--pro-ink);">Turtle Trading simulation</h2>
+      <p style="font-size:14.5px;line-height:1.6;color:var(--pro-ink);">A real Donchian breakout rule gives you a signal every round. Follow it, or override it with your own read — two running equity curves make the cost of overriding impossible to miss.</p>
+      <a class="pro-btn" href="pro-turtle.html" style="margin-top:10px;">Open the simulation &rarr;</a>
+    </div>
+  </div>
+
+  <div class="pro-panel" style="margin-top:28px;">
+    <p class="pro-mono" style="color:var(--pro-accent);font-size:12px;text-transform:uppercase;letter-spacing:0.06em;margin:0 0 8px;">Why this exists</p>
+    <p style="font-size:14.5px;line-height:1.65;color:var(--pro-ink);margin:0;">In 1983, Richard Dennis bet his partner William Eckhardt that trading discipline could be taught to complete novices. He was right — the "Turtles" traded a fixed, written rule set for years and made money, not because the rule was magic, but because they didn't override it. Most retail investors do the opposite: they have a plan and abandon it exactly when it matters most. This simulation puts a number on that specific habit, round by round, instead of just telling you it's a problem.</p>
+  </div>
+</main>
+
+<footer class="footer" style="border-top-color:var(--pro-line);">
+  <div class="wrap footer-legal">
+    <p class="pro-footer-note"><strong>Not financial advice.</strong> Illustrative tools for training a decision habit, not investment recommendations.</p>
+    <p class="pro-footer-note">&copy; <span id="year">2026</span> FinPerson.</p>
+  </div>
+</footer>
+
+<script src="data.js"></script>
+<script src="api.js"></script>
+<script src="ui.js"></script>
+<script src="legal.js"></script>
+<script src="help.js"></script>
+<script src="https://accounts.google.com/gsi/client" async defer></script>
+<script src="auth.js"></script>
+</body>
+</html>

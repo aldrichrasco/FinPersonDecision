@@ -1,26 +1,30 @@
 # FinPerson — redesigned landing page + working sandbox
 
-## Deploying to Render (replacing the current mockup)
+## Deploying to Railway
 
-**Recommended — one-click Blueprint (full stack with database):**
-1. Push this folder to a GitHub repo.
-2. In Render: **New → Blueprint** → select the repo. Render reads `render.yaml`
-   and provisions the web service **and** a Postgres database together, wired up.
-3. After the first deploy, set `GOOGLE_CLIENT_ID` in the service's Environment
-   tab, add your Render URL to "Authorized JavaScript origins" in Google Cloud
-   Console, and put the same client ID in `auth.js`.
+1. Push this folder to a GitHub repo, then in Railway: **New Project → Deploy
+   from GitHub repo** → select it. Railway reads `railway.json` (Nixpacks
+   build, `gunicorn` start command, `/health` healthcheck) and `Procfile`.
+2. Add a Postgres database from Railway's plugin catalog and attach it to the
+   service — this sets `DATABASE_URL` automatically, which `db.py` picks up
+   to switch from SQLite to Postgres.
+3. Set the remaining environment variables in the service's Variables tab:
+   `SECRET_KEY`, `GOOGLE_CLIENT_ID`, `ANTHROPIC_API_KEY` (or your chosen
+   `LLM_PROVIDER`/`LLM_MODEL`), and `COOKIE_SECURE=1`. See `.env.example` for
+   the full list.
+4. After the first deploy, add your Railway URL to "Authorized JavaScript
+   origins" in Google Cloud Console, and put the same client ID in `auth.js`.
+
 That's it: signed-in users' sandbox progress now persists in Postgres across
 devices; anonymous users still work fully via localStorage.
 
-**Simpler — static site (frontend only, mock data):**
-1. Push to GitHub → Render: **New → Static Site** → publish directory `.`
-Quiz, sandbox, and dark mode all work with illustrative data; no sign-in.
+**Alternative — Render Blueprint:** `render.yaml` is still in the repo and
+works the same way (Render: **New → Blueprint** → select the repo) if you'd
+rather deploy there instead of Railway.
 
-
-A static, dependency-free rebuild of FinPerson. Drop these files next to your existing
-Flask/Render app and the persona cards will work against your current `/chat_api/<slug>`
-routes with no backend changes. The quiz and sandbox are fully functional client-side —
-not mockups — running on illustrative data until you wire them to real accounts.
+A static, dependency-free frontend backed by its own Flask app (`server.py`).
+The quiz and sandbox are fully functional client-side — not mockups — running
+on illustrative data until you wire them to real accounts.
 
 ## Production features
 
@@ -46,9 +50,10 @@ them (account menu, served by `/api/me/export`) or hard-delete their account
 and all linked data (`/api/me/delete`).
 
 **Backups** — `backup.py` dumps Postgres via pg_dump (or safely copies the
-SQLite file locally), keeping the last 14 with rotation. On Render, add it as a
-Cron Job AND add an upload step to external storage — Render's service disk is
-ephemeral and won't persist dumps.
+SQLite file locally), keeping the last 14 with rotation. On Railway, run it as
+a Cron Job service pointed at the same repo, and add an upload step to
+external storage — Railway's service filesystem is ephemeral and won't
+persist dumps between deploys.
 
 ## Coaching chat (the core product)
 
@@ -387,17 +392,6 @@ documented at the top of the file (`GET /api/persona-finance/:slug`,
 switches from mock to live data automatically; no other file needs to change. Until
 then, it silently falls back to `PERSONA_FINANCE` and logs a console warning.
 
-## Deploying on your current Render setup
-1. Copy the three files into your static/templates folder (wherever your Flask app
-   currently serves the root `/` page).
-2. If `/` is currently rendered server-side, either serve `index.html` as a static
-   file, or port the persona list in `script.js` into your template's data source —
-   the `PERSONAS` array is the single source of truth, so nothing else needs to change.
-3. Point `dashboard.html` at your existing `/dashboard` route, or rename the file to
-   match your routing.
-4. Google font requests go to `fonts.googleapis.com` — if Render's network policy
-   blocks external font loads, self-host the two Fraunces/Plex weight files instead.
-
 ## Design decisions
 - **Type**: Fraunces (display) + IBM Plex Sans (body) + IBM Plex Mono (eyebrow label).
   Avoids the generic "cream background + terracotta accent" AI-default look.
@@ -430,5 +424,3 @@ then, it silently falls back to `PERSONA_FINANCE` and logs a console warning.
    group — e.g. surface debt-related scenarios more often once DTI crosses into
    "watch," so the sandbox responds to how someone's actually doing, not just who
    they picked at the start.
-#   F i n P e r s o n D e c i s i o n  
- 

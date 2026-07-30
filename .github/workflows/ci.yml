@@ -18,7 +18,7 @@ jobs:
       - run: pip install -r requirements.txt
       - run: python -m unittest discover -s tests -v
 
-  frontend-syntax:
+  frontend:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -32,3 +32,5 @@ jobs:
             node --check "$f" || status=1
           done
           exit $status
+      - name: Run frontend unit tests
+        run: npm test

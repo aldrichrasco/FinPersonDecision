@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>FinPerson Pro — Turtle Trading simulation</title>
+<meta name="description" content="Train the specific discipline the original 1983 Turtle Traders were taught: following a systematic rule instead of overriding it with gut instinct — and seeing exactly what the override costs.">
+<meta name="theme-color" content="#0B0E11">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="styles.css">
+</head>
+<body class="pro-page">
+<a class="skip-link" href="#main">Skip to content</a>
+
+<header class="topbar">
+  <div class="wrap topbar-inner">
+    <a class="logo" href="pro.html" style="text-decoration:none;">FinPerson <span class="pro-mono" style="color:var(--pro-accent);font-size:13px;">PRO</span></a>
+    <div id="auth-slot"></div>
+  </div>
+</header>
+
+<main class="wrap dash" id="main">
+  <p class="pro-eyebrow">Turtle Trading simulation</p>
+  <h1 class="pro-h1">Rule vs. instinct</h1>
+  <p class="pro-lede">Each round, a real trend-following rule — a Donchian breakout, the actual system the original Turtles traded — gives you a signal. Follow it, or override it with your own read. Fifteen rounds, two running equity curves, no ambiguity about which one you actually rode.</p>
+
+  <section id="pro-turtle-content" class="pro-panel">
+    <p class="pro-mono" style="color:var(--pro-muted);">Loading…</p>
+  </section>
+</main>
+
+<footer class="footer" style="border-top-color:var(--pro-line);">
+  <div class="wrap footer-legal">
+    <p class="pro-footer-note"><strong>Not financial advice.</strong> Prices are synthetic — a random walk with drift, not live market data — this trains the decision habit, not a specific market view.</p>
+    <p class="pro-footer-note">&copy; <span id="year">2026</span> FinPerson.</p>
+  </div>
+</footer>
+
+<script src="data.js"></script>
+<script src="api.js"></script>
+<script src="chart.js"></script>
+<script src="turtle-sim.js"></script>
+<script src="turtle-chart.js"></script>
+<script src="ui.js"></script>
+<script src="legal.js"></script>
+<script src="help.js"></script>
+<script src="pro-turtle-page.js"></script>
+<script src="https://accounts.google.com/gsi/client" async defer></script>
+<script src="auth.js"></script>
+</body>
+</html>

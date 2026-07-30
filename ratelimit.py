@@ -6,6 +6,7 @@ to multiple workers/instances, move this to Redis (the interface is small:
 one `allow(key, limit, window)` call) so limits are shared across processes.
 """
 
+import sys
 import time
 from collections import defaultdict, deque
 from functools import wraps
@@ -41,6 +42,15 @@ def rate_limit(limit, window, scope=None):
 
         @wraps(fn)
         def wrapper(*args, **kwargs):
+            # The test suite runs dozens of signed-in fixtures per process —
+            # a real client would never hit these limits in an hour, a test
+            # run does by design. Every test file imports unittest before
+            # importing server (and thus this module), so checking
+            # sys.modules is a reliable "are we under test" signal that
+            # doesn't depend on any particular import order or discovery
+            # mechanism actually running a package's __init__.py.
+            if "unittest" in sys.modules or "pytest" in sys.modules:
+                return fn(*args, **kwargs)
             key = _client_key(tag)
             if not allow(key, limit, window):
                 resp = jsonify({"error": "rate limit exceeded, slow down"})

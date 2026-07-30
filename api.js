@@ -177,6 +177,63 @@ function saveIdmState(state) {
   }).catch(() => {});
 }
 
+async function fetchGoalsFromServer() {
+  try {
+    const res = await fetchWithTimeout(`${API_BASE_URL}/api/goals`, { credentials: "include" });
+    if (!res.ok) return null;
+    return (await res.json()).goals;
+  } catch (e) {
+    return null;
+  }
+}
+
+function saveGoalsToServer(goals) {
+  fetch(`${API_BASE_URL}/api/goals`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    credentials: "include",
+    body: JSON.stringify({ goals }),
+  }).catch(() => {});
+}
+
+async function fetchProfileFromServer() {
+  try {
+    const res = await fetchWithTimeout(`${API_BASE_URL}/api/profile`, { credentials: "include" });
+    if (!res.ok) return null;
+    return (await res.json()).profile;
+  } catch (e) {
+    return null;
+  }
+}
+
+function saveProfileToServer(blob) {
+  fetch(`${API_BASE_URL}/api/profile`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    credentials: "include",
+    body: JSON.stringify(blob),
+  }).catch(() => {});
+}
+
+function logProfileNudge(axis, delta, source) {
+  fetch(`${API_BASE_URL}/api/profile/nudge-log`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    credentials: "include",
+    body: JSON.stringify({ axis, delta, source }),
+  }).catch(() => {});
+}
+
+async function fetchProfileNudgeLog() {
+  try {
+    const res = await fetchWithTimeout(`${API_BASE_URL}/api/profile/nudge-log`, { credentials: "include" });
+    if (!res.ok) return [];
+    return (await res.json()).entries || [];
+  } catch (e) {
+    return [];
+  }
+}
+
 // Shorter timeout than the default — a slow/failed generation must never
 // stall the quiz. Caller always has the fixed TIEBREAKER_QUESTIONS bank to
 // fall back to.

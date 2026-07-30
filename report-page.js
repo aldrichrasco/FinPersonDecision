@@ -6,9 +6,9 @@
 // this" is to make the report itself excellent, then ask for support at
 // the moment it's delivered the most value — not to fake-lock content a
 // static site has no real way to unlock.
-(function () {
+(async function () {
   const content = document.getElementById("report-content");
-  const saved = getProfile();
+  const saved = await syncProfileFromServer();
 
   if (!saved) {
     content.innerHTML = `<p class="scenario-empty-body">You haven't taken the quiz yet. <a href="index.html">Take the 30-second quiz</a> to generate your report.</p>`;
@@ -83,6 +83,43 @@
     ? `Your capability score has moved from ${history[0].capability} to ${saved.capability} over ${history.length} check-ins.`
     : `This is your first recorded snapshot — retake the quiz later to see how it shifts.`;
 
+  // Fun, shareable layer — fictional characters, not real people (see the
+  // comment at the top of archetype-characters.js for why), plus a
+  // practical "who balances you out" compatibility read. Both are
+  // illustrative pattern-matching, same register as the classroom games'
+  // "illustrative, not research-backed" framing, not a psychometric claim.
+  const charInfo = (typeof ARCHETYPE_CHARACTERS !== "undefined" && ARCHETYPE_CHARACTERS[saved.archetype]) || null;
+  const whoYoureLikeHtml = charInfo ? `
+    <section class="report-section report-support" style="text-align:left;">
+      <p class="chart-title">Who you're like</p>
+      <p class="report-body" style="color:var(--slate);font-size:13.5px;margin-top:-4px;">Fictional characters, not real people — a fun pattern-match, not a claim about anyone real.</p>
+      <div class="report-columns" style="margin-top:10px;">
+        ${charInfo.characters.map(c => `
+          <div>
+            <p class="report-body" style="font-family:var(--font-display);font-size:18px;font-weight:500;margin:0 0 4px;">${esc(c.name)}</p>
+            <p class="report-body" style="font-size:14px;color:var(--slate);margin:0;">${esc(c.why)}</p>
+          </div>`).join("")}
+      </div>
+    </section>` : "";
+
+  const compat = (typeof ARCHETYPE_COMPATIBILITY !== "undefined" && ARCHETYPE_COMPATIBILITY[saved.archetype]) || null;
+  const compatPersona = slug => (PERSONAS.find(p => p.slug === slug) || {}).name || slug;
+  const compatibilityHtml = compat ? `
+    <section class="report-section">
+      <p class="chart-title">Money compatibility</p>
+      <p class="report-body" style="color:var(--slate);font-size:13.5px;margin-top:-4px;">Who tends to balance your money habits out day-to-day, and who tends to rub against them — illustrative, based on the archetype pattern, not the two of you specifically.</p>
+      <div class="report-columns" style="margin-top:10px;">
+        <div class="report-gap" style="border-left-color:var(--teal);">
+          <p><strong>Balances you out:</strong> ${esc(compatPersona(compat.complements.slug))}</p>
+          <p style="font-size:14px;color:var(--slate);">${esc(compat.complements.why)}</p>
+        </div>
+        <div class="report-gap" style="border-left-color:var(--brick);">
+          <p><strong>Tends to clash:</strong> ${esc(compatPersona(compat.friction.slug))}</p>
+          <p style="font-size:14px;color:var(--slate);">${esc(compat.friction.why)}</p>
+        </div>
+      </div>
+    </section>` : "";
+
   content.innerHTML = `
     <div class="report-header">
       <div class="report-portrait" id="report-portrait" aria-hidden="true"></div>
@@ -100,6 +137,8 @@
       <p class="report-body" style="font-size:16px;">${esc(characterise(profile, saved.archetype))}</p>
       <p class="report-body" style="color:var(--slate);font-size:14px;">${esc(trendLine)}</p>
     </section>
+
+    ${whoYoureLikeHtml}
 
     <section class="report-section">
       <p class="chart-title">Your six axes</p>
@@ -135,6 +174,8 @@
       <p class="chart-title">Badges earned</p>
       ${achievementsHtml}
     </section>
+
+    ${compatibilityHtml}
 
     <section class="report-section report-support no-print">
       <p class="chart-title">If this was useful</p>

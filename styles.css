@@ -56,8 +56,6 @@
     --card-shadow: 0 8px 24px rgba(0,0,0,0.35);
     --overlay: rgba(4,4,6,0.65);
   }
-  .sandbox-card{background:#0B0C0D;}
-  .sandbox-card p{color:#9CA39C;}
 }
 
 @media (prefers-reduced-motion: reduce){
@@ -74,6 +72,14 @@ html{scroll-behavior:smooth;}
    (.linkish, .footer-links a, etc.) still take precedence via the
    cascade, this is only the fallback. */
 a{color:var(--teal);}
+/* Browsers don't let <button> inherit color from its ancestors by default
+   (unlike almost every other element) — it uses a UA system color
+   instead. .choice-btn (scenario/classroom choice buttons) never declares
+   its own color, so it silently rode on that system default: black-ish
+   text, which happened to still read against --paper's light-mode value
+   by luck, then went black-on-near-black the moment --paper flips dark —
+   a real, confirmed 1.1:1 contrast failure, found live in dark mode. */
+button{color:inherit;}
 body{
   margin:0;
   background:var(--paper);
@@ -399,6 +405,13 @@ h1{
 .compare-pane{position:absolute;inset:0;padding:22px 26px;display:flex;flex-direction:column;justify-content:center;}
 .compare-pane-b{background:var(--paper-raised);padding-left:calc(50% + 28px);}
 .compare-pane-a{background:var(--ink);color:var(--paper-raised);clip-path:inset(0 50% 0 0);}
+/* .choice-btn's own background is var(--paper) — similar tone to
+   var(--paper-raised) in every theme (both are "light surface" tokens,
+   just paper vs. card), so nesting it inside a pane whose text color is
+   var(--paper-raised) made the button's own label unreadable against its
+   own background in BOTH light and dark mode, not just one. var(--ink)
+   always contrasts against var(--paper), unlike var(--paper-raised). */
+.compare-pane-a .choice-btn{color:var(--ink);}
 /* Each pane's actual text is width-constrained to its own "home" half
    and wraps within that half — otherwise a full-width paragraph gets
    bisected mid-line by the clip-path, which reads fine for a photo but
@@ -413,6 +426,15 @@ h1{
 .compare-label{font-family:var(--font-mono);font-size:10.5px;font-weight:600;
   text-transform:uppercase;letter-spacing:.06em;color:var(--marigold-ink);margin-bottom:8px;}
 .compare-pane-a .compare-label{color:var(--marigold);}
+/* Same flip-mismatch as the .choice-btn fix above: this label sits on
+   var(--ink) (dark in light mode, light in dark mode), but --marigold
+   barely changes tone between themes, so it read fine in light mode
+   (5.97:1) and dropped to 2.01:1 in dark mode. --marigold-ink's light-mode
+   value (a dark gold-brown, meant for text on the light --paper) reads
+   well against dark mode's now-light --ink background instead (6.63:1). */
+@media (prefers-color-scheme: dark){
+  .compare-pane-a .compare-label{color:#6B4A1F;}
+}
 .compare-heading{font-family:var(--font-display);font-weight:500;font-size:17px;margin:0 0 8px;line-height:1.3;}
 .compare-body{font-size:13.5px;line-height:1.55;color:var(--slate);margin:0;}
 .compare-handle{
@@ -509,8 +531,14 @@ h1{
 /* sandbox teaser */
 .sandbox-teaser{padding:clamp(40px,6vh,72px) 0 clamp(72px,11vh,120px);}
 .sandbox-card{
-  background:var(--ink);
-  color:var(--paper);
+  /* Fixed, not var(--ink)/var(--paper) — this card is meant to always read
+     as a bold dark accent moment (see the second .sandbox-card rule's
+     comment below), not to flip light/dark with the theme like the rest of
+     the page. It used to use those variables and silently broke in dark
+     mode: --ink becomes near-white there, so the h3 (no color of its own,
+     inherited this) went from light-on-dark to near-invisible dark-on-dark. */
+  background:#0B0C0D;
+  color:#F5F1E8;
   border-radius:16px;
   padding:36px;
   display:flex;
@@ -984,6 +1012,20 @@ h1{
 .tip-homeostasis{color:#7FD8C8;} .tip-breakdown{color:#F2A28A;} .tip-distortion{color:#F2C878;}
 .tip-trigger{margin:5px 0 0;padding-top:5px;border-top:1px solid rgba(255,255,255,.18);
   font-size:11px;color:#F2A28A;}
+/* .chart-tooltip's own background/text (above) correctly inverts with the
+   theme via var(--ink)/var(--paper-raised) — but these three pastel accent
+   colors and the white-ish divider were only ever legible against the
+   *dark* form of that background (light mode). In dark mode the tooltip
+   background flips to near-white and these light pastels drop to ~1.3-1.7:1.
+   Darker, saturated versions of the same hues (checked: ~5.4-6.6:1) restore
+   it. Placed here, after the base rule, not in the shared :root dark-mode
+   block up top — a same-specificity override declared earlier in the file
+   loses to a later one regardless of which media query it's in, which is
+   exactly the bug that broke .sandbox-card until this session. */
+@media (prefers-color-scheme: dark){
+  .tip-homeostasis{color:#1B6B45;} .tip-breakdown{color:#93402C;} .tip-distortion{color:#6B4A1F;}
+  .tip-trigger{border-top-color:rgba(24,24,27,.18);color:#93402C;}
+}
 
 .chart-hint{margin:2px 18px 0;font-size:11px;color:var(--slate);}
 .chart-hint kbd{font-family:var(--font-mono);font-size:10px;background:var(--paper);
@@ -1883,7 +1925,14 @@ body.has-app-nav .study-badge{bottom:84px;}
 .archetype-card-type{
   display:inline-block;font-family:var(--font-mono);font-size:10px;font-weight:600;
   text-transform:uppercase;letter-spacing:.06em;padding:4px 11px;border-radius:999px;
-  color:#fff;margin-bottom:10px;
+  /* Not a fixed #fff — marigold-ink and plum are intentionally much
+     lighter in dark mode (they double as readable text-on-paper there),
+     so white text on those two badges' backgrounds dropped to ~1.7-2.2:1
+     in dark mode. var(--paper-raised) flips white<->near-black exactly
+     opposite to how these badge backgrounds flip light<->dark, so it
+     stays readable (~6.3-10.7:1, checked per group both themes) instead
+     of only working for some groups in light mode alone. */
+  color:var(--paper-raised);margin-bottom:10px;
 }
 .archetype-card[data-group="conservative"] .archetype-card-type{background:var(--teal);}
 .archetype-card[data-group="growth"] .archetype-card-type{background:var(--marigold-ink);}
@@ -2111,6 +2160,7 @@ body.has-app-nav .study-badge{bottom:84px;}
 .report-columns{display:grid;grid-template-columns:1fr 1fr;gap:32px;}
 .report-list{margin:0;padding-left:18px;font-size:14px;line-height:1.7;color:var(--ink);}
 .report-inline-value{font-family:var(--font-mono);font-size:12px;color:var(--slate);}
+.report-gap{border-left:3px solid var(--line);padding-left:14px;}
 .report-gap p{margin:0 0 8px;font-size:14px;line-height:1.55;color:var(--ink);}
 .report-clevel-badge{
   display:inline-block;font-family:var(--font-display);font-weight:500;font-size:17px;
@@ -2131,3 +2181,76 @@ body.has-app-nav .study-badge{bottom:84px;}
   body{background:#fff;color:#000;}
   .report-section{break-inside:avoid;border-bottom-color:#ddd;}
 }
+
+/* ============================================================ FinPerson Pro
+   A deliberately distinct register from the rest of the site — the retail
+   product follows the reader's OS light/dark preference throughout; this
+   section (investor-archetype quiz, Turtle Trading simulation) intentionally
+   does not. Trading tools read as "always dark, data-dense, monospace
+   numerics" regardless of system theme, so .pro-page fixes its own palette
+   rather than reusing the toggling --ink/--paper tokens — same reasoning
+   that made .sandbox-card break in dark mode until this session fixed it:
+   a card meant to always look one way can't safely depend on a variable
+   that flips. Every pairing below is contrast-checked (7.5:1+). */
+.pro-page{
+  --pro-bg:#0B0E11;
+  --pro-panel:#12161B;
+  --pro-panel-raised:#181D24;
+  --pro-ink:#E8ECEF;
+  --pro-muted:#8A93A0;
+  --pro-accent:#D99A3E;
+  --pro-accent-contrast:#0B0E11;
+  --pro-line:rgba(232,236,239,0.12);
+  --pro-good:#4FAE7E;
+  --pro-bad:#DD8368;
+  background:var(--pro-bg);
+  color:var(--pro-ink);
+  min-height:100vh;
+}
+.pro-page .topbar{background:var(--pro-bg);border-bottom:1px solid var(--pro-line);}
+.pro-page .logo{color:var(--pro-ink);}
+.pro-eyebrow{
+  font-family:var(--font-mono);font-size:11px;text-transform:uppercase;
+  letter-spacing:0.08em;color:var(--pro-accent);margin:0 0 10px;
+}
+.pro-h1{font-family:var(--font-display);font-weight:500;color:var(--pro-ink);margin:0 0 8px;}
+.pro-lede{color:var(--pro-muted);font-size:16px;max-width:640px;}
+.pro-panel{
+  background:var(--pro-panel);border:1px solid var(--pro-line);border-radius:14px;
+  padding:24px 26px;margin:18px 0;
+}
+.pro-panel-raised{background:var(--pro-panel-raised);}
+.pro-mono{font-family:var(--font-mono);}
+.pro-btn{
+  font-family:var(--font-body);font-weight:500;font-size:14.5px;padding:12.5px 24px;
+  border-radius:var(--radius);border:1px solid transparent;cursor:pointer;
+  display:inline-flex;align-items:center;justify-content:center;gap:6px;min-height:44px;
+  background:var(--pro-accent);color:var(--pro-accent-contrast);
+  transition:filter 0.15s ease;
+}
+.pro-btn:hover{filter:brightness(1.1);}
+.pro-btn:disabled{opacity:0.5;cursor:not-allowed;}
+.pro-btn-secondary{background:transparent;border-color:var(--pro-line);color:var(--pro-ink);}
+.pro-btn-secondary:hover{border-color:var(--pro-accent);filter:none;}
+.pro-card-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:14px;}
+.pro-option-btn{
+  text-align:left;background:var(--pro-panel);border:1px solid var(--pro-line);
+  border-radius:var(--radius);padding:14px 16px;font-size:14.5px;color:var(--pro-ink);
+  cursor:pointer;transition:border-color 0.15s ease;width:100%;
+}
+.pro-option-btn:hover{border-color:var(--pro-accent);}
+.pro-badge{
+  display:inline-block;font-family:var(--font-mono);font-size:10px;font-weight:600;
+  text-transform:uppercase;letter-spacing:0.06em;padding:4px 11px;border-radius:999px;
+  background:var(--pro-accent);color:var(--pro-accent-contrast);margin-bottom:10px;
+}
+.pro-axis-row{padding:10px 0;border-bottom:1px solid var(--pro-line);}
+.pro-axis-head{display:flex;justify-content:space-between;font-size:13px;margin-bottom:6px;}
+.pro-axis-scale{position:relative;height:6px;border-radius:999px;background:var(--pro-line);}
+.pro-axis-marker{
+  position:absolute;top:50%;width:12px;height:12px;border-radius:50%;
+  background:var(--pro-accent);transform:translate(-50%,-50%);
+}
+.pro-axis-poles{display:flex;justify-content:space-between;font-size:11px;color:var(--pro-muted);margin-top:5px;}
+.pro-footer-note{color:var(--pro-muted);font-size:12px;line-height:1.6;max-width:760px;}
+

@@ -16,7 +16,9 @@ Production (Render): see render.yaml — build/start commands and env vars
 are declared there; attach a Postgres instance and it's used automatically.
 """
 
+import csv
 import hashlib
+import io
 import os
 import re
 import secrets
@@ -49,6 +51,7 @@ import db
 import ratelimit
 import coach
 import llm
+import billing
 import mailer
 import safeguarding
 import study
@@ -99,6 +102,7 @@ PERSONA_FINANCE = {
     "purposeful_giver":        {"income": 4700, "expenses": 3500, "savings": 5000,  "investments": 5000,  "debt": 2000},
 }
 VALID_SLUGS = set(PERSONA_FINANCE)
+CLASSROOM_GAMES = {"trust", "goods", "ultimatum"}
 
 # Mirrors fbm.js AXIS_KEYS — kept as a plain set here since the server never
 # needs axis labels/poles, only to validate a client-supplied axis key.
@@ -524,6 +528,347 @@ def achievements():
     ids = [str(i)[:64] for i in payload["unlocked"] if isinstance(i, str)][:100]
     db.save_achievements(uid, ids)
     return jsonify({"ok": True})
+
+
+def _sanitize_goals(items):
+    """Same shape goals.js keeps in localStorage — validated defensively
+    since it arrives as arbitrary client JSON."""
+    cleaned = []
+    for g in items[:200]:
+        if not isinstance(g, dict):
+            continue
+        gid, title = g.get("id"), g.get("title")
+        if not isinstance(gid, str) or not isinstance(title, str) or not title.strip():
+            continue
+        target = g.get("targetAmount")
+        saved = g.get("savedAmount")
+        cleaned.append({
+            "id": gid[:64],
+            "title": title[:120],
+            "note": g.get("note")[:400] if isinstance(g.get("note"), str) else "",
+            "targetAmount": target if isinstance(target, (int, float)) else None,
+            "savedAmount": saved if isinstance(saved, (int, float)) else 0,
+            "done": bool(g.get("done")),
+        })
+    return cleaned
+
+
+@app.route("/api/goals", methods=["GET", "POST"])
+@rate_limit(limit=120, window=60, scope="state")
+def goals():
+    """Persist goals.js's per-user goal list for signed-in users; anonymous
+    users get a no-op empty list (client falls back to localStorage-only)."""
+    uid = current_user_id()
+    if not uid:
+        if request.method == "GET":
+            return jsonify({"goals": []})
+        payload = request.get_json(silent=True)
+        if not isinstance(payload, dict) or not isinstance(payload.get("goals"), list):
+            return jsonify({"error": "invalid JSON body"}), 400
+        return jsonify({"ok": True})
+
+    if request.method == "GET":
+        return jsonify({"goals": db.get_user_goals(uid) or []})
+    payload = request.get_json(silent=True)
+    if not isinstance(payload, dict) or not isinstance(payload.get("goals"), list):
+        return jsonify({"error": "invalid JSON body"}), 400
+    db.save_user_goals(uid, _sanitize_goals(payload["goals"]))
+    return jsonify({"ok": True})
+
+
+def _valid_profile_blob(payload):
+    if not isinstance(payload, dict):
+        return None
+    profile = payload.get("profile")
+    if not isinstance(profile, dict) or set(profile) != FBM_AXIS_KEYS:
+        return None
+    for v in profile.values():
+        if not isinstance(v, (int, float)) or not (0 <= v <= 100):
+            return None
+    archetype = payload.get("archetype")
+    if archetype is not None and archetype not in VALID_SLUGS:
+        return None
+    capability = payload.get("capability")
+    if capability is not None and (not isinstance(capability, (int, float)) or not (0 <= capability <= 100)):
+        return None
+    at = payload.get("at")
+    if not isinstance(at, (int, float)):
+        return None
+    return {"profile": profile, "archetype": archetype, "capability": capability, "at": at}
+
+
+@app.route("/api/profile", methods=["GET", "POST"])
+@rate_limit(limit=120, window=60, scope="state")
+def profile():
+    """Server copy of data.js's six-axis quiz profile (getProfile()/
+    saveProfile()), same anonymous-no-op / signed-in-real-persistence shape
+    as /api/goals above. Anonymous users keep working entirely on
+    localStorage; only signed-in profiles ever reach this table."""
+    uid = current_user_id()
+    if not uid:
+        if request.method == "GET":
+            return jsonify({"profile": None})
+        blob = _valid_profile_blob(request.get_json(silent=True))
+        if blob is None:
+            return jsonify({"error": "invalid JSON body"}), 400
+        return jsonify({"ok": True})
+
+    if request.method == "GET":
+        return jsonify({"profile": db.get_user_profile(uid)})
+    blob = _valid_profile_blob(request.get_json(silent=True))
+    if blob is None:
+        return jsonify({"error": "invalid JSON body"}), 400
+    db.save_user_profile(uid, blob)
+    return jsonify({"ok": True})
+
+
+@app.route("/api/profile/nudge-log", methods=["GET", "POST"])
+@rate_limit(limit=120, window=60, scope="state")
+def profile_nudge_log():
+    """Audit trail for classroom-driven profile nudges (see nudgeAxis() in
+    classroom-page.js) — signed-in only, since a nudge only ever applies to
+    an identifiable person's own saved profile, not an anonymous play."""
+    uid = current_user_id()
+    if not uid:
+        if request.method == "GET":
+            return jsonify({"entries": []})
+        return jsonify({"ok": True})
+
+    if request.method == "GET":
+        return jsonify({"entries": db.get_profile_nudge_log(uid)})
+
+    payload = request.get_json(silent=True)
+    if not isinstance(payload, dict):
+        return jsonify({"error": "invalid JSON body"}), 400
+    axis = payload.get("axis")
+    delta = payload.get("delta")
+    source = payload.get("source")
+    if axis not in FBM_AXIS_KEYS:
+        return jsonify({"error": "invalid axis"}), 400
+    if not isinstance(delta, int) or not (-4 <= delta <= 4):
+        return jsonify({"error": "invalid delta"}), 400
+    if source is not None and (not isinstance(source, str) or len(source) > 64):
+        return jsonify({"error": "invalid source"}), 400
+    db.record_profile_nudge(uid, axis, delta, source)
+    return jsonify({"ok": True})
+
+
+@app.route("/api/billing/create-checkout-session", methods=["POST"])
+@rate_limit(limit=10, window=60, scope="billing")
+def billing_create_checkout_session():
+    """Starts a real Stripe Checkout session for a monthly-supporter
+    subscription — Stripe's hosted page collects the card, FinPerson never
+    sees it. Nothing is gated on the result yet; see billing.py."""
+    uid = current_user_id()
+    if not uid:
+        return jsonify({"error": "not signed in"}), 401
+    if not billing.billing_configured():
+        return jsonify({"error": "billing not configured"}), 503
+    email = db.get_user_email(uid)
+    base = request.host_url.rstrip("/")
+    try:
+        url = billing.create_checkout_session(
+            customer_email=email,
+            client_reference_id=str(uid),
+            success_url=f"{base}/donate.html?billing=success",
+            cancel_url=f"{base}/donate.html?billing=cancel",
+        )
+    except billing.BillingError as err:
+        app.logger.warning("billing error: %s", err)
+        return jsonify({"error": "could not start checkout"}), 503
+    return jsonify({"url": url})
+
+
+@app.route("/api/billing/webhook", methods=["POST"])
+def billing_webhook():
+    """Stripe calls this directly (no session cookie) — authenticity comes
+    from the signature, not from being signed in. Not rate-limited by IP
+    since Stripe's own webhook IPs would all share whatever bucket."""
+    if not billing.billing_configured():
+        return jsonify({"error": "billing not configured"}), 503
+    sig = request.headers.get("Stripe-Signature", "")
+    try:
+        event = billing.parse_webhook_event(request.get_data(), sig)
+    except billing.BillingError as err:
+        app.logger.warning("billing webhook rejected: %s", err)
+        return jsonify({"error": "invalid signature"}), 400
+
+    obj = event.get("data", {}).get("object", {})
+    event_type = event.get("type")
+    if event_type in ("checkout.session.completed", "customer.subscription.updated", "customer.subscription.deleted"):
+        # checkout.session.completed carries `subscription`/`customer`;
+        # customer.subscription.* events carry `id`/`customer` directly.
+        provider_subscription_id = obj.get("subscription") or obj.get("id")
+        provider_customer_id = obj.get("customer")
+        status = obj.get("status", "active" if event_type == "checkout.session.completed" else "unknown")
+        # client_reference_id only ever appears on checkout.session.completed
+        # (it's a Checkout-session field, not a Subscription field) — that's
+        # the one moment we can link a Stripe subscription to a FinPerson
+        # user_id. Later customer.subscription.* events for the same
+        # provider_subscription_id update that same row without needing it
+        # again, since upsert_subscription only touches user_id on insert.
+        raw_uid = obj.get("client_reference_id")
+        user_id = int(raw_uid) if raw_uid and str(raw_uid).isdigit() else None
+        if provider_subscription_id:
+            db.upsert_subscription(
+                user_id=user_id,
+                provider="stripe",
+                provider_customer_id=provider_customer_id,
+                provider_subscription_id=provider_subscription_id,
+                plan="supporter",
+                status=status,
+                current_period_end=obj.get("current_period_end"),
+            )
+    return jsonify({"ok": True})
+
+
+@app.route("/api/billing/status")
+@rate_limit(limit=60, window=60, scope="billing")
+def billing_status():
+    uid = current_user_id()
+    if not uid:
+        return jsonify({"plan": None})
+    sub = db.get_subscription(uid)
+    return jsonify(sub or {"plan": None})
+
+
+def subscription_active(uid):
+    """Gate for FinPerson Pro features (the Turtle Trading simulation).
+    Nothing else in the app reads this — the retail product stays free."""
+    if not uid:
+        return False
+    sub = db.get_subscription(uid)
+    return bool(sub and sub.get("status") in ("active", "trialing"))
+
+
+@app.route("/api/turtle/session", methods=["GET", "POST"])
+@rate_limit(limit=60, window=60, scope="turtle")
+def turtle_session():
+    """Save/list completed Turtle Trading simulation runs — gated behind an
+    active subscription, not just sign-in. The quiz in pro-investors.html
+    stays free; this is the paid depth."""
+    uid = current_user_id()
+    if not uid:
+        return jsonify({"error": "not signed in"}), 401
+    if not subscription_active(uid):
+        return jsonify({"error": "subscription required"}), 402
+
+    if request.method == "GET":
+        return jsonify({"sessions": db.get_turtle_sessions(uid)})
+
+    payload = request.get_json(silent=True)
+    if not isinstance(payload, dict):
+        return jsonify({"error": "invalid JSON body"}), 400
+    rounds = payload.get("rounds")
+    final_rule_equity = payload.get("final_rule_equity")
+    final_player_equity = payload.get("final_player_equity")
+    override_count = payload.get("override_count")
+    if not isinstance(rounds, list) or len(rounds) > 200:
+        return jsonify({"error": "invalid rounds"}), 400
+    if not all(isinstance(v, (int, float)) for v in (final_rule_equity, final_player_equity)):
+        return jsonify({"error": "invalid equity values"}), 400
+    if not isinstance(override_count, int) or override_count < 0:
+        return jsonify({"error": "invalid override_count"}), 400
+    db.record_turtle_session(uid, rounds, final_rule_equity, final_player_equity, override_count)
+    return jsonify({"ok": True})
+
+
+def _classroom_stats(game, plays):
+    """Aggregate stats are computed per-game here (not in db.py) since each
+    game's detail_json has a different shape and db.py shouldn't need to
+    know what a 'sent' or an 'offer' means for any particular game."""
+    details = [p["detail"] for p in plays if isinstance(p.get("detail"), dict)]
+    count = len(details)
+    if game == "trust":
+        sents = [d["sent"] for d in details if isinstance(d.get("sent"), (int, float))]
+        return_pcts = [
+            d["returned"] / d["pool"] for d in details
+            if isinstance(d.get("returned"), (int, float)) and isinstance(d.get("pool"), (int, float)) and d["pool"] > 0
+        ]
+        return {
+            "count": count,
+            "avg_sent": round(sum(sents) / len(sents), 2) if sents else None,
+            "avg_return_pct": round(sum(return_pcts) / len(return_pcts) * 100, 1) if return_pcts else None,
+        }
+    if game == "ultimatum":
+        offer_pcts = [
+            d["offer"] / d["pot"] for d in details
+            if isinstance(d.get("offer"), (int, float)) and isinstance(d.get("pot"), (int, float)) and d["pot"] > 0
+        ]
+        accepted_flags = [d["accepted"] for d in details if isinstance(d.get("accepted"), bool)]
+        return {
+            "count": count,
+            "avg_offer_pct": round(sum(offer_pcts) / len(offer_pcts) * 100, 1) if offer_pcts else None,
+            "rejection_rate_pct": round((1 - sum(accepted_flags) / len(accepted_flags)) * 100, 1) if accepted_flags else None,
+        }
+    if game == "goods":
+        firsts = [d["firstRoundTotal"] for d in details if isinstance(d.get("firstRoundTotal"), (int, float))]
+        lasts = [d["lastRoundTotal"] for d in details if isinstance(d.get("lastRoundTotal"), (int, float))]
+        return {
+            "count": count,
+            "avg_first_round_total": round(sum(firsts) / len(firsts), 2) if firsts else None,
+            "avg_last_round_total": round(sum(lasts) / len(lasts), 2) if lasts else None,
+        }
+    return {"count": count}
+
+
+@app.route("/api/classroom-play", methods=["POST"])
+@rate_limit(limit=300, window=60, scope="classroom-write")
+def classroom_play():
+    """Log one classroom.html game result. No user_id is stored — this is
+    anonymous by construction, works the same signed-in or not, and a
+    school's whole class is often behind one shared IP, hence the higher
+    per-IP limit than most write endpoints."""
+    payload = request.get_json(silent=True)
+    if not isinstance(payload, dict):
+        return jsonify({"error": "invalid JSON body"}), 400
+    game = payload.get("game")
+    role = payload.get("role")
+    archetype = payload.get("archetype")
+    detail = payload.get("detail")
+    cohort = payload.get("cohort")
+    if game not in CLASSROOM_GAMES:
+        return jsonify({"error": "invalid game"}), 400
+    if archetype not in VALID_SLUGS:
+        return jsonify({"error": "invalid archetype"}), 400
+    if not isinstance(role, str) or len(role) > 32:
+        return jsonify({"error": "invalid role"}), 400
+    if not isinstance(detail, dict):
+        return jsonify({"error": "invalid detail"}), 400
+    if cohort is not None and (not isinstance(cohort, str) or not cohort.strip() or len(cohort) > 32):
+        return jsonify({"error": "invalid cohort"}), 400
+    db.record_classroom_play(game, role, archetype, detail, cohort=(cohort.strip() if cohort else None))
+    return jsonify({"ok": True})
+
+
+@app.route("/api/classroom-stats")
+@rate_limit(limit=120, window=60, scope="classroom-read")
+def classroom_stats():
+    """Aggregate, anonymized stats across everyone who's played a given
+    classroom game — public, no auth required, since none of this is
+    personal data. ?format=csv returns the underlying (still anonymous)
+    rows for a quick download instead of the summary."""
+    game = request.args.get("game", "")
+    cohort = request.args.get("cohort") or None
+    if game not in CLASSROOM_GAMES:
+        return jsonify({"error": "invalid game"}), 400
+    plays = db.get_classroom_plays(game, cohort=cohort, limit=1000)
+
+    if request.args.get("format") == "csv":
+        buf = io.StringIO()
+        detail_keys = sorted({k for p in plays for k in p["detail"].keys()})
+        fieldnames = ["role", "archetype", "created_at"] + detail_keys
+        writer = csv.DictWriter(buf, fieldnames=fieldnames)
+        writer.writeheader()
+        for p in plays:
+            row = {"role": p["role"], "archetype": p["archetype"], "created_at": p["created_at"]}
+            row.update(p["detail"])
+            writer.writerow(row)
+        resp = app.response_class(buf.getvalue(), mimetype="text/csv")
+        resp.headers["Content-Disposition"] = f"attachment; filename={game}-plays.csv"
+        return resp
+
+    return jsonify(_classroom_stats(game, plays))
 
 
 @app.route("/api/scenario-choice", methods=["POST"])
@@ -961,9 +1306,27 @@ def too_large(_e):
 
 
 @app.errorhandler(500)
-def server_error(_e):
-    # Never leak stack traces to clients.
+def server_error(e):
+    # Never leak stack traces to clients, but do log the real exception —
+    # without this, a production crash shows up in Railway/Render's log
+    # viewer as just "internal error" with no way to tell what broke.
+    app.logger.exception("unhandled server error: %s", e)
     return jsonify({"error": "internal error"}), 500
+
+
+# ---------------------------------------------------------------- health
+
+@app.route("/health")
+def health():
+    """Liveness/readiness check for Railway/Render — verifies the app can
+    actually reach its database, not just that the process is up. A cheap
+    query, not a full init_db() — this can be polled every few seconds."""
+    try:
+        db.ping()
+        return jsonify({"status": "ok"}), 200
+    except Exception as e:
+        app.logger.exception("health check failed: %s", e)
+        return jsonify({"status": "error"}), 503
 
 
 if __name__ == "__main__":

@@ -74,3 +74,4 @@ function render() {
 }
 
 render();
+if (typeof syncGoalsFromServer === "function") syncGoalsFromServer().then(render);
