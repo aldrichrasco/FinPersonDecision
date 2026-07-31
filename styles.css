@@ -63,7 +63,7 @@
 }
 
 *{box-sizing:border-box;}
-html{scroll-behavior:smooth;}
+html{scroll-behavior:smooth;scrollbar-width:thin;scrollbar-color:var(--slate) transparent;}
 /* Base link color — without this, any anchor tag added without an
    explicit class (a real, live example: progress.html's "See your
    strengths" link and progress-page.js's "What do these stages mean?"
@@ -80,6 +80,17 @@ a{color:var(--teal);}
    by luck, then went black-on-near-black the moment --paper flips dark —
    a real, confirmed 1.1:1 contrast failure, found live in dark mode. */
 button{color:inherit;}
+/* Default text-selection and scrollbar colors are the browser's own blue
+   and grey — small, constant details that don't match the palette on
+   every single page. Both fall back cleanly to system defaults on
+   browsers without support (Firefox lacks ::selection color-mix in some
+   older versions; -webkit-scrollbar has no Firefox equivalent, covered
+   by the scrollbar-color line instead). */
+::selection{background:color-mix(in srgb, var(--teal) 35%, transparent);color:var(--ink);}
+::-webkit-scrollbar{width:11px;height:11px;}
+::-webkit-scrollbar-track{background:transparent;}
+::-webkit-scrollbar-thumb{background:color-mix(in srgb, var(--slate) 55%, transparent);border-radius:999px;border:3px solid transparent;background-clip:content-box;}
+::-webkit-scrollbar-thumb:hover{background:color-mix(in srgb, var(--slate) 80%, transparent);background-clip:content-box;}
 body{
   margin:0;
   background:var(--paper);
