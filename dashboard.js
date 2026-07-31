@@ -536,6 +536,31 @@ async function selectPersona(slug, { fromCache = false, seedState = null } = {})
   rollScenario();
 }
 
+// Swaps which of two elements is visible with a brief cross-fade instead
+// of the instant `hidden` toggle this used to be — one snaps away while
+// the other rises in from the opposite edge, so the picker collapsing (or
+// reopening) reads as one panel replacing another, not a flicker.
+function crossfadeSwap(hideEl, showEl) {
+  const reduce = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  if (reduce) { hideEl.hidden = true; showEl.hidden = false; return; }
+  hideEl.style.transition = "opacity .16s ease-out, transform .16s ease-out";
+  hideEl.style.opacity = "0";
+  hideEl.style.transform = "translateY(4px)";
+  setTimeout(() => {
+    hideEl.hidden = true;
+    hideEl.style.transition = hideEl.style.opacity = hideEl.style.transform = "";
+    showEl.hidden = false;
+    showEl.style.transition = "none";
+    showEl.style.opacity = "0";
+    showEl.style.transform = "translateY(-4px)";
+    requestAnimationFrame(() => {
+      showEl.style.transition = "opacity .2s ease-out, transform .2s ease-out";
+      showEl.style.opacity = "1";
+      showEl.style.transform = "translateY(0)";
+    });
+  }, 160);
+}
+
 // Eleven chips at once was the single densest row on the page for anyone
 // who already has a persona settled (matched from the quiz, resumed from a
 // save, or just chosen a moment ago) — collapse to a one-line summary with
@@ -546,11 +571,9 @@ function collapsePersonaPicker(slug) {
   if (!row || !current) return;
   const p = PERSONAS.find(p => p.slug === slug);
   current.innerHTML = `Coaching style: <strong>${esc(p ? p.name : slug)}</strong> &middot; <button class="linkish" type="button" id="persona-try-else">Not you? Try someone else</button>`;
-  current.hidden = false;
-  row.hidden = true;
+  if (row.hidden) { current.hidden = false; } else { crossfadeSwap(row, current); }
   document.getElementById("persona-try-else")?.addEventListener("click", () => {
-    current.hidden = true;
-    row.hidden = false;
+    crossfadeSwap(current, row);
   });
 }
 
@@ -1487,6 +1510,22 @@ function initGridGlow() {
   }, { passive: true });
 }
 
+// The drawer's content used to just snap into view the instant <details>
+// opened — a brief fade+rise on the content itself gives the reveal a
+// bridge instead of a flicker. Restarts the animation on every open by
+// removing then re-adding the class (forcing reflow between the two).
+function initDrawerReveal() {
+  const drawer = document.getElementById("detail-drawer");
+  const content = drawer && drawer.querySelector(".wellbeing");
+  if (!drawer || !content) return;
+  drawer.addEventListener("toggle", () => {
+    if (!drawer.open) return;
+    content.classList.remove("is-revealing");
+    void content.offsetWidth;
+    content.classList.add("is-revealing");
+  });
+}
+
 renderPersonaChips();
 renderPredictionBanner();
 renderDifficultyChips();
@@ -1494,6 +1533,7 @@ initHomeostasisChart();
 initCoachPanel();
 initDrawerTabs();
 initGridGlow();
+initDrawerReveal();
 renderDashboardCompanion();
 if (typeof syncIDMFromServer === "function") syncIDMFromServer();
 if (typeof runAchievementCheck === "function") {

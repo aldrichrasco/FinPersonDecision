@@ -2,8 +2,13 @@
   const content = document.getElementById("achievements-content");
   const status = document.getElementById("achievements-status");
 
-  function render(unlockedIds) {
+  // freshIds get a one-time unlock flourish (scale + glow) instead of just
+  // appearing already-flipped — the one place on this page a badge going
+  // from locked to earned is a rare, first-time moment worth a small
+  // celebration rather than a plain re-render.
+  function render(unlockedIds, freshIds) {
     const unlocked = new Set(unlockedIds);
+    const fresh = new Set(freshIds || []);
     status.style.display = "none";
     content.innerHTML = `
       <p class="chart-title">${unlocked.size} of ${ACHIEVEMENTS.length} unlocked</p>
@@ -11,7 +16,7 @@
         ${ACHIEVEMENTS.map(a => {
           const done = unlocked.has(a.id);
           return `
-            <div class="learn-axis-card ${done ? "is-strength" : ""}" style="${done ? "" : "opacity:.55;"}">
+            <div class="learn-axis-card ${done ? "is-strength" : ""} ${fresh.has(a.id) ? "is-newly-unlocked" : ""}" style="${done ? "" : "opacity:.55;"}">
               <span class="learn-axis-tag">${done ? "Unlocked" : "Locked"}</span>
               <h3>${done ? a.icon : "🔒"} ${esc(a.title)}</h3>
               <p class="learn-axis-blurb">${esc(a.description)}</p>
@@ -31,5 +36,5 @@
     if (newly.length && typeof toast === "function") {
       toast(`Unlocked: ${newly.map(a => a.title).join(", ")}`, { tone: "good", duration: 4500 });
     }
-  }).then(({ unlocked }) => render(unlocked));
+  }).then(({ unlocked, newlyUnlocked }) => render(unlocked, newlyUnlocked));
 })();

@@ -670,10 +670,12 @@ h1{
   padding:7px 14px;min-height:44px;display:inline-flex;align-items:center;
   border-radius:999px;
   background:var(--paper-raised);border:1px solid var(--line);color:var(--ink);
-  cursor:pointer;
+  cursor:pointer;transition:transform .13s ease-out,border-color .15s ease,background .15s ease,color .15s ease;
 }
 .chip:hover{border-color:var(--ink);}
+.chip:active{transform:scale(.97);}
 .chip.active{background:var(--ink);color:var(--paper-raised);border-color:var(--ink);}
+@media (prefers-reduced-motion: reduce){.chip{transition:border-color .15s ease,background .15s ease,color .15s ease;}.chip:active{transform:none;}}
 
 /* Stat strip — the immediate "what did that choice just do" feedback.
    Replaces the earlier two-column layout (scenario + a permanent side
@@ -1503,6 +1505,9 @@ body.has-app-nav .help-fab{bottom:84px;}
 .drawer-title{font-size:14px;font-weight:500;color:var(--ink);}
 .drawer-title::before{content:"▸ ";font-size:10px;color:var(--slate);}
 .detail-drawer[open] .drawer-title::before{content:"▾ ";}
+.detail-drawer .wellbeing.is-revealing{animation:drawer-content-in .22s ease-out;}
+@keyframes drawer-content-in{from{opacity:0;transform:translateY(4px);}to{opacity:1;transform:translateY(0);}}
+@media (prefers-reduced-motion: reduce){.detail-drawer .wellbeing.is-revealing{animation:none;}}
 .drawer-hint{font-family:var(--font-mono);font-size:11.5px;color:var(--slate);}
 .detail-drawer .wellbeing{padding:0 18px 18px;}
 
@@ -1859,6 +1864,16 @@ body.has-app-nav .study-badge{bottom:84px;}
    repeat it less legibly. */
 .learn-axis-card.is-strength .learn-axis-tag{color:var(--teal);}
 .learn-axis-card.is-growth .learn-axis-tag{color:var(--marigold-ink);}
+/* One-time flourish for a badge that just flipped from locked to earned —
+   the only "rare, celebratory" moment on this page, so it's the one place
+   a little bounce and glow are warranted rather than a plain re-render. */
+.learn-axis-card.is-newly-unlocked{animation:achievement-unlock .5s cubic-bezier(.34,1.56,.64,1);}
+@keyframes achievement-unlock{
+  0%{transform:scale(.92);box-shadow:var(--shadow);}
+  55%{transform:scale(1.035);box-shadow:0 0 0 3px color-mix(in srgb, var(--teal) 35%, transparent);}
+  100%{transform:scale(1);box-shadow:var(--card-shadow);}
+}
+@media (prefers-reduced-motion: reduce){.learn-axis-card.is-newly-unlocked{animation:none;}}
 .learn-axis-blurb{font-size:13.5px;line-height:1.5;color:var(--ink);margin:0 0 12px;}
 .learn-axis-complete-badge{display:inline-block;margin-left:8px;font-size:11px;font-weight:500;
   color:var(--teal);}

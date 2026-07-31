@@ -27,6 +27,33 @@ const MENU_ITEMS = [
   { href: "donate.html", label: "Donate" },
 ];
 
+// Grows a dropdown panel in from the corner nearest its trigger instead of
+// the instant [hidden] snap it used to be, and shrinks back the same way on
+// close — used by both the "Explore" pill panel and index.html's header
+// menu, which are otherwise identical open/close patterns.
+function toggleDropdownPanel(panel, btn, open, origin) {
+  btn.setAttribute("aria-expanded", String(open));
+  const reduce = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  if (reduce) { panel.hidden = !open; return; }
+  if (open) {
+    panel.hidden = false;
+    panel.style.transformOrigin = origin;
+    panel.style.transition = "none";
+    panel.style.opacity = "0";
+    panel.style.transform = "scale(.95)";
+    requestAnimationFrame(() => {
+      panel.style.transition = "opacity .16s ease-out, transform .16s ease-out";
+      panel.style.opacity = "1";
+      panel.style.transform = "scale(1)";
+    });
+  } else {
+    panel.style.transition = "opacity .14s ease-out, transform .14s ease-out";
+    panel.style.opacity = "0";
+    panel.style.transform = "scale(.95)";
+    setTimeout(() => { panel.hidden = true; }, 140);
+  }
+}
+
 function currentPage() {
   const path = location.pathname.split("/").pop() || "index.html";
   return path.replace(".html", "");
@@ -74,20 +101,16 @@ function initNav() {
   const panel = document.getElementById("app-nav-more-panel");
   btn.addEventListener("click", (e) => {
     e.stopPropagation();
-    const open = panel.hidden;
-    panel.hidden = !open;
-    btn.setAttribute("aria-expanded", String(open));
+    toggleDropdownPanel(panel, btn, panel.hidden, "bottom right");
   });
   document.addEventListener("click", (e) => {
     if (!panel.hidden && !panel.contains(e.target) && e.target !== btn) {
-      panel.hidden = true;
-      btn.setAttribute("aria-expanded", "false");
+      toggleDropdownPanel(panel, btn, false, "bottom right");
     }
   });
   document.addEventListener("keydown", (e) => {
     if (e.key === "Escape" && !panel.hidden) {
-      panel.hidden = true;
-      btn.setAttribute("aria-expanded", "false");
+      toggleDropdownPanel(panel, btn, false, "bottom right");
       btn.focus();
     }
   });
@@ -129,20 +152,16 @@ function initHeaderMenu() {
   const panel = document.getElementById("header-menu-panel");
   btn.addEventListener("click", (e) => {
     e.stopPropagation();
-    const open = panel.hidden;
-    panel.hidden = !open;
-    btn.setAttribute("aria-expanded", String(open));
+    toggleDropdownPanel(panel, btn, panel.hidden, "top right");
   });
   document.addEventListener("click", (e) => {
     if (!panel.hidden && !wrap.contains(e.target)) {
-      panel.hidden = true;
-      btn.setAttribute("aria-expanded", "false");
+      toggleDropdownPanel(panel, btn, false, "top right");
     }
   });
   document.addEventListener("keydown", (e) => {
     if (e.key === "Escape" && !panel.hidden) {
-      panel.hidden = true;
-      btn.setAttribute("aria-expanded", "false");
+      toggleDropdownPanel(panel, btn, false, "top right");
       btn.focus();
     }
   });
