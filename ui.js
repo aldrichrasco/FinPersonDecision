@@ -21,10 +21,7 @@ const NAV_ITEMS = [
 // bottom — inconsistent reachability was flagged directly.
 const MENU_ITEMS = [
   { href: "learn.html", label: "Learn" },
-  { href: "model.html", label: "Theory" },
   { href: "classroom.html", label: "Games" },
-  { href: "report.html", label: "Your report" },
-  { href: "tutorial.html", label: "Quick tour" },
   { href: "shop.html", label: "Resources" },
   { href: "pro.html", label: "FinPerson Pro" },
   { href: "donate.html", label: "Donate" },

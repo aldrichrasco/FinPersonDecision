@@ -532,7 +532,26 @@ async function selectPersona(slug, { fromCache = false, seedState = null } = {})
   updateMetrics();
   drawChart();
   drawNetWorthChart();
+  collapsePersonaPicker(slug);
   rollScenario();
+}
+
+// Eleven chips at once was the single densest row on the page for anyone
+// who already has a persona settled (matched from the quiz, resumed from a
+// save, or just chosen a moment ago) — collapse to a one-line summary with
+// an explicit way back out, rather than showing the full picker forever.
+function collapsePersonaPicker(slug) {
+  const row = document.getElementById("persona-chips");
+  const current = document.getElementById("persona-current");
+  if (!row || !current) return;
+  const p = PERSONAS.find(p => p.slug === slug);
+  current.innerHTML = `Coaching style: <strong>${esc(p ? p.name : slug)}</strong> &middot; <button class="linkish" type="button" id="persona-try-else">Not you? Try someone else</button>`;
+  current.hidden = false;
+  row.hidden = true;
+  document.getElementById("persona-try-else")?.addEventListener("click", () => {
+    current.hidden = true;
+    row.hidden = false;
+  });
 }
 
 async function restartPersona() {
@@ -1566,6 +1585,7 @@ function resumeFromServer(saved) {
   updateHomeostasisPanel();
   drawChart();
   drawNetWorthChart();
+  collapsePersonaPicker(currentPersona);
   rollScenario();
 }
 
@@ -1597,7 +1617,17 @@ function resumeFromServer(saved) {
   const saved = getSavedPersona();
   if (saved) {
     selectPersona(saved);
-  } else {
-    rollScenario();
+    return;
   }
+
+  // No prior chip choice, but the quiz already told us who this person
+  // matches closest — use that instead of making them pick cold out of
+  // eleven options (still fully reversible via "Try someone else").
+  const profile = typeof getProfile === "function" ? getProfile() : null;
+  if (profile && profile.archetype && PERSONA_FINANCE[profile.archetype]) {
+    await selectPersona(profile.archetype);
+    return;
+  }
+
+  rollScenario();
 })();

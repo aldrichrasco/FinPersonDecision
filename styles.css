@@ -662,6 +662,8 @@ h1{
 .dash-setup-row{display:flex;align-items:center;gap:16px;flex-wrap:wrap;margin-bottom:12px;}
 #restart-btn{margin-left:auto;}
 .dash-label{font-family:var(--font-mono);font-size:12px;text-transform:uppercase;letter-spacing:0.06em;color:var(--slate);width:70px;flex-shrink:0;}
+.persona-current{font-size:14px;color:var(--ink);margin:0;}
+.persona-current .linkish{font-size:13px;color:var(--slate);}
 .chip-row{display:flex;flex-wrap:wrap;gap:8px;}
 .chip{
   font-family:var(--font-body);font-size:13px;font-weight:500;
