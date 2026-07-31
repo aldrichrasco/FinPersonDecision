@@ -1136,12 +1136,17 @@ def study_status():
     p = study.get_participant(code)
     if not p:
         return jsonify({"enrolled": False})
+    consented = study.has_valid_consent(code)
     return jsonify({
         "enrolled": True,
-        "consented": study.has_valid_consent(code),
+        "consented": consented,
         "consent_version_current": study.CONSENT_VERSION,
         "consent_version_given": p["consent_version"],
         "features": study.features_for(code),
+        # Only ever revealed to an already-consented participant, and only
+        # once a batch's code is actually configured — never shown to prove
+        # completion before it's earned.
+        "completion_code": study.COMPLETION_CODE if consented and study.COMPLETION_CODE else None,
     })
 
 

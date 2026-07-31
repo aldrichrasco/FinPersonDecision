@@ -38,6 +38,15 @@ import db
 # under an older version are excluded from data collection until re-consent.
 CONSENT_VERSION = os.environ.get("CONSENT_VERSION", "1.0")
 
+# Shown to a participant once they've completed the task (see the completion
+# screen in study.js, triggered after their first sandbox round), so they can
+# paste it back into Prolific (or whatever panel sent them here) as proof of
+# completion. Set per recruitment batch — different studies/batches can use
+# different codes without a code change. Blank by default: the frontend
+# simply won't show a completion screen until this is set, same safe-fallback
+# pattern as billing_configured() in billing.py.
+COMPLETION_CODE = os.environ.get("STUDY_COMPLETION_CODE", "")
+
 # Study arms for the efficacy trial (paper §8.4, Phase 3).
 ARM_FULL = "full"          # complete artefact
 ARM_ABLATED = "ablated"    # personalisation + characteristic drift disabled

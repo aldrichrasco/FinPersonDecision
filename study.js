@@ -219,6 +219,72 @@ function closeConsentGate() {
   document.body.style.overflow = "";
 }
 
+// --- Completion screen -------------------------------------------------
+// Shown once, after a consented participant finishes the task (see the
+// dashboard.js hook after their first sandbox round) — the piece that was
+// missing: without this, nothing ever told a participant they were done or
+// gave them something to paste back into Prolific. No-ops entirely if the
+// researcher hasn't set STUDY_COMPLETION_CODE for this batch, rather than
+// showing a broken "your code is: (blank)" screen.
+const STUDY_COMPLETION_SHOWN_KEY = "finperson_study_completion_shown";
+
+async function showStudyCompletion() {
+  if (!studyCode || !studyConsented) return;
+  try {
+    if (localStorage.getItem(STUDY_COMPLETION_SHOWN_KEY) === studyCode) return;
+  } catch (e) {}
+
+  let code;
+  try {
+    const res = await fetch(`${typeof API_BASE_URL !== "undefined" ? API_BASE_URL : ""}/api/study/status`, {
+      credentials: "include",
+      headers: { "X-Study-Code": studyCode },
+    });
+    if (!res.ok) return;
+    code = (await res.json()).completion_code;
+  } catch (e) {
+    return;
+  }
+  if (!code) return; // no batch code configured — nothing to show
+
+  try { localStorage.setItem(STUDY_COMPLETION_SHOWN_KEY, studyCode); } catch (e) {}
+  if (typeof track === "function") track("instrument_completed", { key: "task_completion" });
+
+  const overlay = document.createElement("div");
+  overlay.className = "quiz-overlay open";
+  overlay.id = "study-completion-overlay";
+  overlay.innerHTML = `
+    <div class="quiz-modal consent-modal" role="dialog" aria-modal="true" aria-labelledby="study-completion-title">
+      <h3 id="study-completion-title" class="consent-title">You're done — thank you</h3>
+      <div class="consent-body">
+        <p>That's the whole task. Enter this code wherever you were sent here from to record your completion:</p>
+        <p class="study-completion-code" id="study-completion-code">${esc(code)}</p>
+        <p class="consent-meta">You can keep using the app, but nothing further is needed for the study.</p>
+      </div>
+      <div class="consent-actions">
+        <button class="btn btn-primary" id="study-completion-copy" type="button">Copy code</button>
+        <button class="btn btn-secondary" id="study-completion-close" type="button">Close</button>
+      </div>
+    </div>`;
+  document.body.appendChild(overlay);
+  document.body.style.overflow = "hidden";
+  document.getElementById("study-completion-copy").focus();
+
+  document.getElementById("study-completion-copy").addEventListener("click", async e => {
+    try {
+      await navigator.clipboard.writeText(code);
+      e.target.textContent = "Copied";
+    } catch (err) {
+      // Clipboard permission can be denied; the code is already shown as
+      // selectable text, so this is a convenience, not the only way to get it.
+    }
+  });
+  document.getElementById("study-completion-close").addEventListener("click", () => {
+    overlay.remove();
+    document.body.style.overflow = "";
+  });
+}
+
 // --- Participant panel -----------------------------------------------------
 // Persistent, unobtrusive access to study status, instruments and withdrawal.
 function renderStudyBadge() {

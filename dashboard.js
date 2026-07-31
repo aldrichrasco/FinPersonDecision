@@ -796,6 +796,10 @@ function applyChoice(choice, chosenIndex) {
   const rp = roundProgress(decisionCount);
   if (rp.complete) {
     if (typeof track === "function") track("round_completed", { round: rp.round - 1, decisions: decisionCount });
+    // A study participant's first completed round is the task's finish
+    // line — checked here (not inside showRoundRecap/closeRecap) so the
+    // ordinary, non-study round recap is completely untouched.
+    pendingStudyCompletion = decisionCount === ROUND_LENGTH;
     showRoundRecap(buildRoundRecap(decisionLog, zoneHistory, rp.round - 1));
     if (typeof featureEnabled !== "function" || featureEnabled("personalisation")) {
       applyInferredArchetype(inferArchetype());
@@ -1153,6 +1157,7 @@ function showRoundRecap(recap) {
 }
 
 let recapOpener = null;
+let pendingStudyCompletion = false;
 
 function recapKeys(e) {
   if (e.key === "Escape") { closeRecap(); return; }
@@ -1177,6 +1182,11 @@ function closeRecap() {
   // Return focus where it was, falling back to the next decision.
   if (recapOpener && document.contains(recapOpener)) recapOpener.focus();
   else document.querySelector(".choice-btn")?.focus();
+
+  if (pendingStudyCompletion) {
+    pendingStudyCompletion = false;
+    if (typeof showStudyCompletion === "function") showStudyCompletion();
+  }
 }
 
 function renderPatternPanel() {
