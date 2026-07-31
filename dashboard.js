@@ -526,7 +526,7 @@ async function selectPersona(slug, { fromCache = false, seedState = null } = {})
   updateHomeostasisPanel();
   document.getElementById("wellbeing-note").textContent = "Starting numbers loaded — try a scenario below.";
   document.getElementById("change-log").innerHTML = '<li class="log-empty">No decisions yet.</li>';
-  const logTitle = document.querySelector(".log-block .chart-title");
+  const logTitle = document.getElementById("change-log-title");
   if (logTitle) logTitle.textContent = "Change log";
   resetStatStrip();
   updateMetrics();
@@ -951,7 +951,7 @@ function logChange(label, applied, reaction, why, observation, scaffoldPrompt, s
     openScaffoldResponse(e.target.dataset.principle, li);
   });
   log.prepend(li);
-  const title = document.querySelector(".log-block .chart-title");
+  const title = document.getElementById("change-log-title");
   if (title) title.textContent = `What you've done · ${decisionCount} decision${decisionCount === 1 ? "" : "s"}`;
 }
 
@@ -1404,6 +1404,45 @@ function initDrawerTabs() {
   });
 }
 
+// The same "living twin" companion shown on progress.html — surfaced here
+// too since the sandbox, not the trends page, is where people actually
+// spend their time. Lives in the History tab next to the change log: it's
+// about trajectory across sessions, not today's decision.
+async function renderDashboardCompanion() {
+  const slot = document.getElementById("companion-slot");
+  if (!slot || typeof computeCompanionState !== "function") return;
+  const saved = typeof getProfile === "function" ? getProfile() : null;
+  if (!saved || !saved.profile) {
+    slot.innerHTML = `<p class="scenario-empty-body">Take the quiz to see your companion here.</p>`;
+    return;
+  }
+  const history = typeof getCapabilityHistory === "function" ? getCapabilityHistory() : [];
+  const primary = PERSONAS.find(p => p.slug === saved.archetype);
+
+  function companionHtml(state) {
+    const portrait = (primary && typeof archetypePortraitSvg === "function")
+      ? archetypePortraitSvg(primary.slug, primary.group) : "";
+    return `
+      <p class="chart-title">Your companion</p>
+      <div class="companion-card companion-glow-${esc(state.glow)}">
+        <div class="companion-portrait-wrap"><div class="companion-portrait">${portrait}</div></div>
+        <div class="companion-copy">
+          <span class="companion-badge companion-badge-${esc(state.glow)}">${esc(state.badge)}</span>
+          <p class="companion-headline">${esc(state.headline)}</p>
+          <p class="companion-detail">${esc(state.detail)}</p>
+        </div>
+      </div>`;
+  }
+
+  slot.innerHTML = companionHtml(computeCompanionState({ history, currentArchetype: saved.archetype }));
+  if (typeof fetchAxisConsistency === "function") {
+    const byAxis = await fetchAxisConsistency();
+    slot.innerHTML = companionHtml(computeCompanionState({
+      history, axisConsistency: byAxis, currentArchetype: saved.archetype,
+    }));
+  }
+}
+
 // Cursor-follow highlight for the sandbox's ledger-grid background (see
 // .sandbox-grid-bg in styles.css) — only listens while the pointer is
 // actually over the page, and skips entirely on touch devices where
@@ -1426,6 +1465,7 @@ initHomeostasisChart();
 initCoachPanel();
 initDrawerTabs();
 initGridGlow();
+renderDashboardCompanion();
 if (typeof syncIDMFromServer === "function") syncIDMFromServer();
 if (typeof runAchievementCheck === "function") {
   runAchievementCheck((newly) => {

@@ -286,7 +286,77 @@ function coachError(serverMsg) {
   return "Something went wrong reaching the coach. Please try again in a moment.";
 }
 
+// The quiz/archetype match and the practice sandbox are the free "Financial
+// MRI" — live AI coaching is the paid tier (see subscription_active() in
+// server.py, same gate as /api/turtle/session). Checked once up front
+// rather than letting someone type a message and hit a 402, matching the
+// pro-turtle-page.js pattern of gating the whole page before rendering it.
+async function renderChatPaywall() {
+  const main = document.getElementById("main");
+  main.innerHTML = `
+    <div class="chat-persona-head">
+      <a href="index.html" class="chat-back">&larr; All coaches</a>
+      <div class="chat-persona-id">
+        <span class="persona-icon grp-${esc(personaMeta.group)}">${esc(monogram(personaMeta.name))}</span>
+        <div>
+          <p class="chat-persona-name">${esc(personaMeta.name)}</p>
+          <p class="chat-persona-trait">${esc(personaMeta.trait)}</p>
+        </div>
+      </div>
+    </div>
+    <div class="chat-paywall">
+      <span class="donate-featured-badge">Coaching</span>
+      <h2 class="chat-paywall-h2">Talk it through with your ${esc(personaMeta.name)} coach</h2>
+      <p class="chat-paywall-body">The quiz, your archetype match, and the practice sandbox are free — that's the whole point of the Financial MRI. Live back-and-forth coaching from a persona-voiced AI that actually reads your sandbox history and goals is the paid part.</p>
+      <ul class="donate-featured-perks">
+        <li>Unlimited conversations, any persona</li>
+        <li>Reads your real sandbox history, not a blank slate</li>
+        <li>Cancel anytime, no lock-in</li>
+      </ul>
+      <button class="btn btn-primary" id="chat-subscribe-btn" type="button">Become a supporter</button>
+      <p class="chat-paywall-status" id="chat-paywall-status"></p>
+      <p class="chat-paywall-alt">Not ready yet? <a href="dashboard.html?persona=${encodeURIComponent(chatPersona)}">Keep practicing in the free sandbox &rarr;</a></p>
+    </div>
+  `;
+  const btn = document.getElementById("chat-subscribe-btn");
+  const status = document.getElementById("chat-paywall-status");
+  btn.addEventListener("click", async () => {
+    btn.disabled = true;
+    status.textContent = "Starting checkout…";
+    try {
+      const res = await fetch(`${API_BASE_URL}/api/billing/create-checkout-session`, { method: "POST", credentials: "include" });
+      if (res.status === 401) {
+        status.textContent = "Sign in first, then come back to subscribe.";
+        btn.disabled = false;
+        return;
+      }
+      if (res.status === 503) {
+        status.textContent = "Subscriptions aren't set up yet on this deployment.";
+        btn.disabled = false;
+        return;
+      }
+      if (!res.ok) throw new Error("checkout failed");
+      const data = await res.json();
+      window.location.href = data.url;
+    } catch (e) {
+      status.textContent = "Something went wrong — try again in a moment.";
+      btn.disabled = false;
+    }
+  });
+}
+
 async function init() {
+  let subscriptionActive = false;
+  try {
+    const res = await fetch(`${API_BASE_URL}/api/billing/status`, { credentials: "include" });
+    const data = await res.json();
+    subscriptionActive = data.status === "active" || data.status === "trialing";
+  } catch (e) {}
+  if (!subscriptionActive) {
+    await renderChatPaywall();
+    return;
+  }
+
   setPersonaHead();
   renderContextBanner();
 

@@ -120,6 +120,78 @@ const QUIZ_QUESTIONS = [
       { label: "I don't really factor anyone in — I just decide", d: { financial_attentiveness: -12, impulse_regulation: -10 } },
     ],
   },
+  {
+    q: "A subscription you barely use auto-renews. What actually happens?",
+    options: [
+      { label: "I catch it and cancel before it charges", d: { financial_attentiveness: +18, impulse_regulation: +8 } },
+      { label: "I mean to cancel it, but somehow don't get to it", d: { financial_attentiveness: -15 } },
+      { label: "I don't even notice until I see the charge", d: { financial_attentiveness: -20 } },
+      { label: "I keep it — I might use it again", d: { impulse_regulation: -10, financial_attentiveness: -5 } },
+    ],
+  },
+  {
+    q: "A friend asks to borrow money you're not sure you'll get back. What do you do?",
+    options: [
+      { label: "Say no, or only lend what I can afford to lose", d: { impulse_regulation: +12, financial_self_efficacy: +10 } },
+      { label: "Lend it anyway — they're a friend", d: { prosocial_orientation: +20, financial_attentiveness: -8 } },
+      { label: "Lend it and quietly write it off in my head", d: { prosocial_orientation: +15, financial_self_efficacy: -10 } },
+      { label: "Feel too anxious to say no, even though I want to", d: { financial_self_efficacy: -18, prosocial_orientation: +8 } },
+    ],
+  },
+  {
+    q: "It's time to negotiate your pay. What's your instinct?",
+    options: [
+      { label: "Ask for more, with a number in mind", d: { financial_self_efficacy: +18, risk_disposition: +10 } },
+      { label: "Wait to be offered more — I don't want to push", d: { financial_self_efficacy: -15, risk_disposition: -8 } },
+      { label: "Ask, but brace for rejection the whole time", d: { financial_self_efficacy: -8, risk_disposition: +5 } },
+      { label: "Avoid the conversation entirely", d: { financial_self_efficacy: -20, financial_attentiveness: -10 } },
+    ],
+  },
+  {
+    q: "You're offered an extended warranty at checkout. What do you do?",
+    options: [
+      { label: "Decline — I do the math on whether it's worth it", d: { financial_attentiveness: +15, impulse_regulation: +10 } },
+      { label: "Usually say yes, just in case", d: { risk_disposition: -15, impulse_regulation: -5 } },
+      { label: "Say no without really thinking about it either way", d: { financial_attentiveness: -5 } },
+      { label: "Depends entirely on how the person selling it makes me feel", d: { impulse_regulation: -15, financial_attentiveness: -10 } },
+    ],
+  },
+  {
+    q: "Splitting a bill with friends, one of them clearly ordered more. What happens?",
+    options: [
+      { label: "I mention it and we split it fairly", d: { financial_attentiveness: +12, prosocial_orientation: -5 } },
+      { label: "I just split it evenly — not worth the awkwardness", d: { prosocial_orientation: +15 } },
+      { label: "I quietly resent it but don't say anything", d: { financial_self_efficacy: -12, prosocial_orientation: +8 } },
+      { label: "I offer to cover the difference myself", d: { prosocial_orientation: +22 } },
+    ],
+  },
+  {
+    q: "An unexpected bonus lands at work. What's the first thing that crosses your mind?",
+    options: [
+      { label: "Where this fits into my existing plan", d: { temporal_orientation: +18, financial_attentiveness: +10 } },
+      { label: "What I'm going to buy with it", d: { impulse_regulation: -18 } },
+      { label: "Whether I should invest it somewhere", d: { risk_disposition: +15, temporal_orientation: +12 } },
+      { label: "Who else could use this more than me", d: { prosocial_orientation: +20 } },
+    ],
+  },
+  {
+    q: "Markets drop sharply and it's all over the news. What do you actually do?",
+    options: [
+      { label: "Nothing — I don't check, the plan doesn't change", d: { risk_disposition: +12, financial_self_efficacy: +15 } },
+      { label: "Check constantly and feel sick about it", d: { financial_self_efficacy: -18, financial_attentiveness: +10 } },
+      { label: "See it as a buying opportunity", d: { risk_disposition: +20, financial_self_efficacy: +10 } },
+      { label: "Pull money out before it gets worse", d: { risk_disposition: -22, financial_self_efficacy: -8 } },
+    ],
+  },
+  {
+    q: "Your rent or mortgage is due in three days and a bill you forgot about just landed. What's your reaction?",
+    options: [
+      { label: "Annoyed, but I have a buffer for exactly this", d: { temporal_orientation: +18, financial_self_efficacy: +15 } },
+      { label: "Scramble, but it works out", d: { financial_self_efficacy: -8, financial_attentiveness: -5 } },
+      { label: "Real stress — I don't know how this resolves", d: { financial_self_efficacy: -22, financial_attentiveness: -10 } },
+      { label: "I'd have already seen it coming", d: { financial_attentiveness: +22 } },
+    ],
+  },
 ];
 
 // Escalation: after the 12 base questions, if the top two candidate
@@ -371,6 +443,9 @@ function renderQuizResult() {
       <a class="btn btn-primary" href="${esc(sandboxHref)}">Open this persona in sandbox</a>
       <a class="btn btn-secondary" href="${esc(personaUrl(primarySlug))}">Talk it through instead</a>
     </div>
+    <p class="quiz-read-hedge" style="margin-top:14px;">
+      Want a more careful read than a 30-second quiz can give? <a href="assessment.html">Take the full assessment &rarr;</a>
+    </p>
   `;
   document.querySelector(".quiz-result-actions .btn-primary")?.focus();
 }

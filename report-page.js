@@ -31,9 +31,12 @@
     return C_ORDER[Math.round(Math.max(0, Math.min(3, rank || 0)))];
   }
 
-  const unlockedIds = (() => {
-    try { return JSON.parse(localStorage.getItem("finperson_achievements")) || []; } catch (e) { return []; }
-  })();
+  // Synced with the server (not just this browser's localStorage) — same
+  // as achievements-page.js/dashboard.js/learn-page.js — so a badge earned
+  // on another device still shows up here instead of reading "No badges yet."
+  const unlockedIds = typeof runAchievementCheck === "function"
+    ? (await runAchievementCheck()).unlocked
+    : (() => { try { return JSON.parse(localStorage.getItem("finperson_achievements")) || []; } catch (e) { return []; } })();
   const unlockedAchievements = (typeof ACHIEVEMENTS !== "undefined" ? ACHIEVEMENTS : []).filter(a => unlockedIds.includes(a.id));
 
   const axisRowHtml = axisEntries.map(a => `
@@ -177,9 +180,9 @@
 
     ${compatibilityHtml}
 
-    <section class="report-section report-support no-print">
+    <section class="report-section report-support report-support-cta no-print">
       <p class="chart-title">If this was useful</p>
-      <p class="report-body">FinPerson is free, ad-free, and doesn't sell your data. If this report was worth having, the best way to help keep it that way is a small one-off or monthly show of support.</p>
+      <p class="report-body">You've now got a full read on your ${esc(persona ? persona.name : "money personality")} pattern — six axes, where it holds up and where it doesn't, and what to work on next. None of that ran on ads or on selling this data. If it was worth having, a small one-off or monthly show of support is what keeps it that way for the next person too.</p>
       <a class="btn btn-primary" href="donate.html">Support FinPerson &rarr;</a>
     </section>
   `;

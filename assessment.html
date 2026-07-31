@@ -3,8 +3,8 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>FinPerson — Goals</title>
-<meta name="description" content="Your financial goals and notes, across every persona you've practiced with.">
+<title>FinPerson — the full assessment</title>
+<meta name="description" content="A longer, five-statement-per-axis assessment that refines your quick-quiz profile into a more precise read.">
 <meta name="theme-color" content="#F2EFE6" media="(prefers-color-scheme: light)">
 <meta name="theme-color" content="#0F1524" media="(prefers-color-scheme: dark)">
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -22,16 +22,13 @@
   </div>
 </header>
 
-<main class="wrap dash" id="main">
-  <h1 style="font-family:var(--font-display);font-weight:500;">Goals</h1>
-  <p class="lede" style="font-size:16px;">Everything you've written down, from every persona — nothing here disappears when you switch.</p>
-
-  <section id="goals-content"></section>
+<main class="wrap dash" id="main" style="max-width:640px;">
+  <section id="assessment-content"></section>
 </main>
 
 <footer class="footer">
   <div class="wrap footer-legal">
-    <p><strong>Not financial advice.</strong> This is an educational practice tool.</p>
+    <p><strong>Not financial advice.</strong> This is an educational practice tool. Nothing here is a credit score, a diagnosis, or a measure of your worth.</p>
     <p class="footer-copy">&copy; <span id="year">2026</span> FinPerson.</p>
   </div>
 </footer>
@@ -40,14 +37,13 @@
 <script src="study.js"></script>
 <script src="data.js"></script>
 <script src="fbm.js"></script>
+<script src="assessment-items.js"></script>
 <script src="observations.js"></script>
 <script src="api.js"></script>
 <script src="ui.js"></script>
 <script src="legal.js"></script>
 <script src="help.js"></script>
-<script src="goals.js"></script>
-<script src="goal-projection.js"></script>
-<script src="goals-page.js"></script>
+<script src="assessment-page.js"></script>
 <script src="https://accounts.google.com/gsi/client" async defer></script>
 <script src="auth.js"></script>
 </body>

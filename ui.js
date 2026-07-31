@@ -22,7 +22,7 @@ const NAV_ITEMS = [
 const MENU_ITEMS = [
   { href: "learn.html", label: "Learn" },
   { href: "model.html", label: "Theory" },
-  { href: "classroom.html", label: "The classroom" },
+  { href: "classroom.html", label: "Games" },
   { href: "report.html", label: "Your report" },
   { href: "tutorial.html", label: "Quick tour" },
   { href: "shop.html", label: "Resources" },

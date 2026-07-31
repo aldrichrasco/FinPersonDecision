@@ -546,6 +546,14 @@ h1{
   justify-content:space-between;
   gap:24px;
   flex-wrap:wrap;
+  /* In light mode this card already reads as a bold dark accent against
+     --paper (#F5F1E8) with room to spare. But in dark mode --paper is
+     #101012 — only 5 RGB units off this card's own fixed #0B0C0D — so
+     without its own edge the "accent moment" this card exists to be
+     visually disappeared into the page. A border + lifted shadow keeps it
+     reading as a raised card in both themes, not just the light one. */
+  border:1px solid rgba(245,241,232,0.10);
+  box-shadow:0 24px 56px -28px rgba(0,0,0,0.55);
 }
 .sandbox-card h3{font-family:var(--font-display);font-weight:500;font-size:24px;margin:0 0 8px;}
 .sandbox-card p{margin:0;max-width:460px;color:#C7CEDB;font-size:14px;}
@@ -808,6 +816,7 @@ h1{
 .bento-character{grid-column:span 3;grid-row:span 2;display:flex;flex-direction:column;justify-content:center;}
 .bento-wellbeing{grid-column:span 4;}
 .bento-calibration{grid-column:span 2;}
+.bento-companion{grid-column:span 3;grid-row:span 2;display:flex;flex-direction:column;justify-content:center;}
 .bento-goals{grid-column:span 4;}
 .bento-cta{grid-column:span 6;}
 /* .sandbox-card and .pattern-panel already carry their own background/
@@ -817,8 +826,39 @@ h1{
 @media (max-width:900px){
   .bento-grid{grid-template-columns:repeat(2, 1fr);}
   .bento-trend, .bento-headline, .bento-radar, .bento-character,
-  .bento-wellbeing, .bento-calibration, .bento-goals, .bento-cta{grid-column:span 2;grid-row:auto;}
+  .bento-wellbeing, .bento-calibration, .bento-companion, .bento-goals, .bento-cta{grid-column:span 2;grid-row:auto;}
 }
+
+/* ---------------------------------------------------------------- companion
+   A small "living twin" read of real tracked trend data (see companion.js) —
+   deliberately reuses the existing archetype-portrait art and the site's
+   existing status tint tokens (teal/slate/brick) rather than introducing a
+   new visual language, so it reads as one more view onto the same person's
+   data, not a bolted-on gimmick. */
+.companion-card{display:flex;gap:16px;align-items:flex-start;}
+.companion-portrait-wrap{position:relative;flex-shrink:0;width:64px;height:64px;}
+.companion-portrait-wrap::before{
+  content:"";position:absolute;inset:-9px;border-radius:50%;z-index:0;pointer-events:none;
+  background:radial-gradient(circle, color-mix(in srgb, var(--_companion-hue) 38%, transparent) 0%, transparent 72%);
+}
+.companion-portrait{
+  position:relative;z-index:1;width:64px;height:64px;border-radius:50%;overflow:hidden;
+  background:var(--paper);border:1px solid var(--line);
+}
+.companion-portrait svg{width:100%;height:100%;display:block;}
+.companion-glow-teal{--_companion-hue:var(--teal);}
+.companion-glow-slate{--_companion-hue:var(--slate);}
+.companion-glow-brick{--_companion-hue:var(--brick);}
+.companion-copy{min-width:0;}
+.companion-badge{
+  display:inline-block;font-family:var(--font-mono);font-size:10.5px;font-weight:600;
+  text-transform:uppercase;letter-spacing:.05em;padding:3px 10px;border-radius:999px;margin-bottom:8px;
+}
+.companion-badge-teal{background:var(--teal-tint);color:var(--teal);}
+.companion-badge-slate{background:var(--slate-tint);color:var(--slate);}
+.companion-badge-brick{background:var(--brick-tint);color:var(--brick);}
+.companion-headline{margin:0 0 6px;font-family:var(--font-display);font-weight:500;font-size:16px;line-height:1.3;}
+.companion-detail{margin:0;font-size:13px;color:var(--slate);line-height:1.5;}
 
 .log-block{margin-bottom:24px;}
 .change-log{list-style:none;padding:0;margin:0;border-top:1px solid var(--line);}
@@ -867,6 +907,14 @@ h1{
 .goal-progress-input{flex:1;border:1px solid var(--line);border-radius:8px;background:var(--paper-raised);color:var(--ink);font-family:var(--font-body);font-size:13px;padding:7px 10px;}
 .goal-progress-input:focus{outline:2px solid var(--ink);outline-offset:2px;}
 .goal-progress-form .btn{padding:7px 14px;font-size:13px;}
+.goal-projection{margin-top:10px;padding-top:10px;border-top:1px dashed var(--line);}
+.goal-projection-label{display:flex;align-items:center;gap:8px;font-size:12.5px;color:var(--slate);flex-wrap:wrap;}
+.goal-projection-input{
+  width:90px;border:1px solid var(--line);border-radius:8px;background:var(--paper-raised);
+  color:var(--ink);font-family:var(--font-mono);font-size:13px;padding:6px 8px;
+}
+.goal-projection-input:focus{outline:2px solid var(--ink);outline-offset:2px;}
+.goal-projection-result{margin:8px 0 0;font-size:12.5px;color:var(--teal);min-height:1.4em;}
 
 @media (max-width:600px){
   .hero{padding:48px 0 40px;}
@@ -892,6 +940,20 @@ h1{
 .chat-persona-id{display:flex;align-items:center;gap:12px;}
 .chat-persona-name{font-family:var(--font-display);font-weight:500;font-size:18px;margin:0;}
 .chat-persona-trait{font-size:13px;color:var(--slate);margin:2px 0 0;}
+/* Chat's paywall gate — reuses .donate-featured-badge/.donate-featured-perks
+   from the donate-page redesign directly rather than re-defining them, so
+   the two "here's why to pay" moments in the app look like one language. */
+.chat-paywall{
+  margin-top:24px;padding:30px 32px;border-radius:18px;
+  border:1px solid color-mix(in srgb, var(--marigold) 45%, var(--line));
+  background:var(--paper-raised);
+  box-shadow:0 14px 34px -18px color-mix(in srgb, var(--marigold) 55%, transparent);
+}
+.chat-paywall-h2{font-family:var(--font-display);font-weight:500;font-size:22px;margin:0 0 12px;line-height:1.25;}
+.chat-paywall-body{font-size:14.5px;line-height:1.6;color:var(--ink);margin:0 0 16px;max-width:56ch;}
+.chat-paywall .donate-featured-perks{margin:0 0 22px;}
+.chat-paywall-status{font-size:12.5px;color:var(--slate);margin:10px 0 0;min-height:1.4em;}
+.chat-paywall-alt{font-size:13px;color:var(--slate);margin:18px 0 0;padding-top:16px;border-top:1px solid var(--line);}
 .chat-window{flex:1;overflow-y:auto;display:flex;flex-direction:column;gap:14px;padding:8px 0;}
 .chat-msg{display:flex;gap:10px;max-width:85%;}
 .chat-msg-user{align-self:flex-end;}
@@ -2172,6 +2234,10 @@ body.has-app-nav .study-badge{bottom:84px;}
   color:var(--marigold-ink);border:1px solid transparent;
 }
 .report-support{text-align:center;background:var(--paper-raised);border-radius:14px;padding:26px 24px;border-bottom:0;}
+/* The closing donate nudge only — a hairline of the same marigold used for
+   the donate page's recommended tier, so the two moments feel like one
+   continuous thought instead of the report suddenly turning into an ad. */
+.report-support-cta{border-top:2px solid var(--marigold);}
 @media (max-width:640px){
   .report-columns{grid-template-columns:1fr;gap:24px;}
   .report-print-btn{margin-left:0;}
@@ -2180,6 +2246,24 @@ body.has-app-nav .study-badge{bottom:84px;}
   .topbar,.footer,.no-print,#app-nav{display:none !important;}
   body{background:#fff;color:#000;}
   .report-section{break-inside:avoid;border-bottom-color:#ddd;}
+}
+
+/* ---------------------------------------------------------------- assessment */
+.assess-items{display:flex;flex-direction:column;gap:26px;margin-bottom:26px;}
+.assess-item{padding-bottom:22px;border-bottom:1px solid var(--line);}
+.assess-item:last-child{border-bottom:0;padding-bottom:0;}
+.assess-item-text{font-size:15.5px;line-height:1.5;color:var(--ink);margin:0 0 14px;}
+.assess-scale{display:flex;gap:8px;}
+.assess-scale-btn{
+  flex:1;min-height:44px;border-radius:10px;border:1px solid var(--line);
+  background:var(--paper);color:var(--ink);font-family:var(--font-mono);font-size:14px;font-weight:500;
+  cursor:pointer;transition:border-color .15s ease,background .15s ease,transform .15s ease;
+}
+.assess-scale-btn:hover{border-color:var(--ink);}
+.assess-scale-btn.selected{background:var(--ink);color:var(--paper-raised);border-color:var(--ink);transform:scale(1.04);}
+.assess-scale-labels{display:flex;justify-content:space-between;font-size:11px;color:var(--slate);margin-top:6px;}
+@media (max-width:480px){
+  .assess-scale-btn{font-size:12.5px;}
 }
 
 /* ============================================================ FinPerson Pro
@@ -2253,4 +2337,94 @@ body.has-app-nav .study-badge{bottom:84px;}
 }
 .pro-axis-poles{display:flex;justify-content:space-between;font-size:11px;color:var(--pro-muted);margin-top:5px;}
 .pro-footer-note{color:var(--pro-muted);font-size:12px;line-height:1.6;max-width:760px;}
+
+/* ---------------------------------------------------------------- donate
+   Previously four identical .learn-axis-card tiles (a lesson-card component
+   borrowed wholesale) with no hierarchy and no reason to prefer one option
+   over another. Redesigned as: a warmer hero moment, a short credibility
+   row (why the ask is trustworthy) ahead of any button, three quieter
+   one-off options, then the recurring Stripe option pulled out and lit up
+   as the recommended tier — same "highlight with color/emphasis, not just
+   height" logic as a real pricing table, since it's the one option that
+   actually funds ongoing hosting/model costs predictably. */
+.donate-hero{position:relative;padding:8px 0 6px;overflow:visible;}
+.donate-hero::before{
+  content:"";position:absolute;top:-60px;left:-80px;
+  width:420px;height:420px;pointer-events:none;z-index:0;
+  background:radial-gradient(circle, color-mix(in srgb, var(--marigold) 14%, transparent) 0%, transparent 70%);
+}
+.donate-eyebrow{position:relative;z-index:1;font-family:var(--font-mono);font-size:11.5px;font-weight:500;
+  text-transform:uppercase;letter-spacing:.08em;color:var(--marigold-ink);margin:0 0 12px;}
+.donate-h1{position:relative;z-index:1;font-family:var(--font-display);font-weight:500;
+  font-size:clamp(30px,4.2vw,44px);line-height:1.08;letter-spacing:-0.01em;margin:0 0 14px;
+  text-wrap:balance;}
+.donate-lede{position:relative;z-index:1;font-size:16.5px;line-height:1.6;color:var(--slate);
+  max-width:60ch;margin:0;}
+
+.donate-trust-row{
+  position:relative;z-index:1;display:flex;flex-wrap:wrap;gap:22px 28px;
+  margin:28px 0 8px;padding:18px 22px;border:1px solid var(--line);border-radius:14px;
+  background:color-mix(in srgb, var(--paper-raised) 60%, transparent);
+}
+.donate-trust-item{display:flex;align-items:center;gap:9px;font-size:13.5px;color:var(--ink);}
+.donate-trust-item svg{flex-shrink:0;color:var(--teal);}
+
+.donate-grid{display:grid;grid-template-columns:repeat(3, minmax(0,1fr));gap:14px;margin:34px 0 22px;}
+.donate-card{
+  border:1px solid var(--line);border-radius:16px;padding:22px 20px;
+  background:var(--paper);box-shadow:var(--shadow);
+  display:flex;flex-direction:column;
+  transition:transform .2s cubic-bezier(.22,1,.36,1),box-shadow .2s ease,border-color .2s ease;
+}
+.donate-card:hover{transform:translateY(-3px);box-shadow:var(--card-shadow);
+  border-color:color-mix(in srgb, var(--ink) 22%, var(--line));}
+.donate-card-icon{
+  width:38px;height:38px;border-radius:10px;margin-bottom:14px;
+  display:flex;align-items:center;justify-content:center;flex-shrink:0;
+  background:var(--slate-tint);color:var(--ink);
+}
+.donate-card h3{font-family:var(--font-display);font-weight:500;font-size:17px;margin:0 0 6px;}
+.donate-card p{font-size:13.5px;line-height:1.55;color:var(--slate);margin:0 0 16px;flex:1;}
+.donate-card .btn{margin-top:auto;align-self:flex-start;}
+
+/* The recommended tier — its own row so it can breathe at full width, a
+   tinted (not black) shadow, and the same marigold used for --marigold-ink
+   badges/eyebrows elsewhere, not a new accent color. */
+.donate-featured{
+  position:relative;overflow:hidden;
+  display:grid;grid-template-columns:1fr auto;gap:28px;align-items:center;
+  margin:0 0 28px;padding:30px 32px;border-radius:18px;
+  border:1px solid color-mix(in srgb, var(--marigold) 45%, var(--line));
+  background:var(--paper-raised);
+  box-shadow:0 14px 34px -18px color-mix(in srgb, var(--marigold) 55%, transparent);
+}
+.donate-featured::before{
+  content:"";position:absolute;top:-70%;right:-10%;width:340px;height:340px;z-index:0;pointer-events:none;
+  background:radial-gradient(circle, color-mix(in srgb, var(--marigold) 20%, transparent) 0%, transparent 70%);
+}
+.donate-featured-badge{
+  position:relative;z-index:1;display:inline-block;font-family:var(--font-mono);font-size:10.5px;
+  font-weight:600;text-transform:uppercase;letter-spacing:.06em;padding:4px 11px;border-radius:999px;
+  background:var(--marigold);color:var(--marigold-contrast);margin-bottom:12px;
+}
+.donate-featured h3{position:relative;z-index:1;font-family:var(--font-display);font-weight:500;
+  font-size:21px;margin:0 0 8px;}
+.donate-featured p{position:relative;z-index:1;font-size:14.5px;line-height:1.6;color:var(--ink);
+  margin:0 0 14px;max-width:52ch;}
+.donate-featured-perks{position:relative;z-index:1;display:flex;flex-wrap:wrap;gap:10px 20px;
+  margin:0 0 4px;padding:0;list-style:none;}
+.donate-featured-perks li{font-size:12.5px;color:var(--slate);display:flex;align-items:center;gap:6px;}
+.donate-featured-perks li::before{content:"";width:5px;height:5px;border-radius:50%;background:var(--marigold);flex-shrink:0;}
+.donate-featured-action{position:relative;z-index:1;display:flex;flex-direction:column;align-items:flex-end;gap:8px;}
+.donate-featured-action .btn{min-width:200px;}
+.donate-featured-status{font-size:12.5px;color:var(--slate);text-align:right;margin:0;min-height:1.4em;}
+
+@media (max-width:760px){
+  .donate-grid{grid-template-columns:1fr;}
+  .donate-featured{grid-template-columns:1fr;text-align:left;}
+  .donate-featured-action{align-items:flex-start;}
+  .donate-featured-action .btn{width:100%;}
+}
+
+.donate-footnote{position:relative;z-index:1;color:var(--slate);font-size:13px;margin-top:8px;}
 

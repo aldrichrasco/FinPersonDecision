@@ -126,9 +126,13 @@ async function askCoach(text) {
     const data = await res.json();
     pending?.remove();
     if (!res.ok) {
-      addCoachLine("assistant", data.error === "the coach is unavailable right now"
-        ? "The coach isn't switched on in this deployment."
-        : "Couldn't reach the coach just then.");
+      if (data.paywall) {
+        addCoachPaywallLine();
+      } else {
+        addCoachLine("assistant", data.error === "the coach is unavailable right now"
+          ? "The coach isn't switched on in this deployment."
+          : "Couldn't reach the coach just then.");
+      }
       return;
     }
     if (data.reply) {
@@ -146,6 +150,20 @@ async function askCoach(text) {
   } finally {
     coachBusy = false;
   }
+}
+
+// Live coaching is the paid tier (see subscription_active() in server.py);
+// the quiz and this sandbox stay free. Distinct from a generic connection
+// error — this is a real, well-defined state, not something to soften into
+// "couldn't reach the coach."
+function addCoachPaywallLine() {
+  const body = document.getElementById("coach-body");
+  if (!body) return;
+  const el = document.createElement("div");
+  el.className = "coach-line coach-assistant";
+  el.innerHTML = `Live coaching needs an active subscription — the quiz and this sandbox stay free. <a href="chat.html?persona=${encodeURIComponent(currentPersona)}">Subscribe on the full coach page &rarr;</a>`;
+  body.appendChild(el);
+  body.scrollTop = body.scrollHeight;
 }
 
 function renderInlineSafeguarding(sg) {

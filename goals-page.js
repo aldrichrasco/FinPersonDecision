@@ -22,7 +22,12 @@ function render() {
           <form class="goal-progress-form" data-goal-progress-form>
             <input type="number" min="1" step="1" class="goal-progress-input" placeholder="Add amount saved" aria-label="Add to amount saved for ${esc(g.title)}">
             <button class="btn btn-secondary" type="submit">Add</button>
-          </form>` : ""}
+          </form>
+          ${!g.done ? `
+          <div class="goal-projection" data-goal-projection>
+            <label class="goal-projection-label">What if I saved <input type="number" min="1" step="1" class="goal-projection-input" placeholder="amount" aria-label="Monthly amount toward ${esc(g.title)}"> a month?</label>
+            <p class="goal-projection-result" data-projection-result aria-live="polite"></p>
+          </div>` : ""}` : ""}
         <button class="goal-remove" type="button" data-goal-remove aria-label="Remove goal">&times;</button>
       </li>`;
   }).join("") : `<li class="goal-empty">No goals yet — add one below.</li>`;
@@ -71,6 +76,31 @@ function render() {
       render();
     });
   });
+
+  // "What if I saved $X a month?" — real arithmetic on the goal's own
+  // remaining amount (see goal-projection.js), recomputed on every
+  // keystroke rather than requiring a submit, since there's nothing to
+  // save here — it's just a question, not a change to the goal.
+  if (typeof projectGoalCompletion === "function") {
+    content.querySelectorAll("[data-goal-projection]").forEach(box => {
+      const id = box.closest("[data-goal-id]").dataset.goalId;
+      const goal = goals.find(g => g.id === id);
+      const input = box.querySelector(".goal-projection-input");
+      const result = box.querySelector("[data-projection-result]");
+      input.addEventListener("input", () => {
+        const monthly = Number(input.value);
+        const projection = projectGoalCompletion(goal, monthly, Date.now());
+        if (!projection) { result.textContent = ""; return; }
+        if (projection.monthsToGoal === 0) {
+          result.textContent = "You've already saved enough for this goal.";
+          return;
+        }
+        const when = projection.projectedDate.toLocaleDateString(undefined, { month: "long", year: "numeric" });
+        const monthWord = projection.monthsToGoal === 1 ? "month" : "months";
+        result.textContent = `At ${fmt(monthly)}/month, you'd reach this in ${projection.monthsToGoal} ${monthWord} — around ${when}.`;
+      });
+    });
+  }
 }
 
 render();

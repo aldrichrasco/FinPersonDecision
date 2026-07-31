@@ -23,8 +23,26 @@
 </header>
 
 <main class="wrap dash" id="main">
-  <h1 style="font-family:var(--font-display);font-weight:500;">Support this project</h1>
-  <p class="lede" style="font-size:16px;">FinPerson is free, ad-free, and doesn't sell your data. If it's been useful, here's how to help keep it that way.</p>
+  <div class="donate-hero">
+    <p class="donate-eyebrow">Keep it free</p>
+    <h1 class="donate-h1">Support FinPerson</h1>
+    <p class="donate-lede">FinPerson runs without ads and without selling anyone's data — which means the only thing keeping it online is people who've found it useful choosing to help pay for it. Every option below goes straight to hosting, the coaching model, and the time to keep building this.</p>
+
+    <div class="donate-trust-row">
+      <div class="donate-trust-item">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="7" width="14" height="9" rx="1.5"/><path d="M3 3l18 18"/></svg>
+        <span>No ads, on any page</span>
+      </div>
+      <div class="donate-trust-item">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2.5 12S6 6 12 6s9.5 6 9.5 6-3.5 6-9.5 6-9.5-6-9.5-6z"/><circle cx="12" cy="12" r="2.6"/><path d="M3 3l18 18"/></svg>
+        <span>Never sells or shares your data</span>
+      </div>
+      <div class="donate-trust-item">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="8" r="3.4"/><path d="M5.5 20c0-3.6 3-6 6.5-6s6.5 2.4 6.5 6"/></svg>
+        <span>Built and maintained by one person, not a company</span>
+      </div>
+    </div>
+  </div>
 
   <!--
     SETUP REQUIRED for Ko-fi/GitHub Sponsors below: still placeholder links,
@@ -32,31 +50,51 @@
     to the real account. This app never processes a payment itself, it only
     links out to a platform that does.
   -->
-  <div class="learn-grid" style="margin-top:24px;">
-    <div class="learn-axis-card">
-      <h3>Ko-fi</h3>
-      <p class="learn-axis-blurb">One-off or monthly support, no account needed to give.</p>
-      <a class="btn btn-primary" href="https://ko-fi.com/rascodecision" target="_blank" rel="noopener noreferrer">Support on Ko-fi</a>
+  <div class="donate-featured">
+    <div>
+      <span class="donate-featured-badge">Recommended</span>
+      <h3>Become a monthly supporter</h3>
+      <p>A small recurring amount, charged automatically through Stripe, that covers FinPerson's actual running costs without you having to remember to come back and do it again.</p>
+      <ul class="donate-featured-perks">
+        <li>Cancel anytime, no lock-in</li>
+        <li>Set it once, no need to return</li>
+        <li>The most predictable way to help</li>
+      </ul>
     </div>
-    <div class="learn-axis-card">
-      <h3>GitHub Sponsors</h3>
-      <p class="learn-axis-blurb">If you're a developer and this codebase itself was useful to you.</p>
-      <a class="btn btn-primary" href="https://github.com/sponsors/REPLACE-WITH-YOUR-LINK" target="_blank" rel="noopener noreferrer">Sponsor on GitHub</a>
-    </div>
-    <div class="learn-axis-card">
-      <h3>Buy Me a Coffee</h3>
-      <p class="learn-axis-blurb">A simple one-time thank-you.</p>
-      <a class="btn btn-primary" href="https://buymeacoffee.com/rascofinance" target="_blank" rel="noopener noreferrer">Buy a coffee</a>
-    </div>
-    <div class="learn-axis-card">
-      <h3>Monthly supporter</h3>
-      <p class="learn-axis-blurb">A recurring card subscription via Stripe, if you'd rather it renew on its own.</p>
+    <div class="donate-featured-action">
       <button class="btn btn-primary" id="donate-stripe-btn" type="button">Become a supporter</button>
-      <p class="report-meta" id="donate-stripe-status" style="margin-top:8px;"></p>
+      <p class="donate-featured-status" id="donate-stripe-status"></p>
     </div>
   </div>
 
-  <p class="scenario-empty-body" style="margin-top:26px;">Every one of these takes you to that platform's own site to complete — FinPerson never sees or handles your payment details.</p>
+  <div class="donate-grid">
+    <div class="donate-card">
+      <div class="donate-card-icon">
+        <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 8h13v6a5 5 0 0 1-5 5H9a5 5 0 0 1-5-5V8z"/><path d="M17 9.5h1.5a2.5 2.5 0 0 1 0 5H17"/><path d="M8 3.5c-.6.8-.6 1.6 0 2.4M11.3 3.5c-.6.8-.6 1.6 0 2.4"/></svg>
+      </div>
+      <h3>A one-off or monthly gift</h3>
+      <p>Give whatever feels right, once or on a schedule you set — no FinPerson account needed to give.</p>
+      <a class="btn btn-secondary" href="https://ko-fi.com/rascodecision" target="_blank" rel="noopener noreferrer">Give on Ko-fi</a>
+    </div>
+    <div class="donate-card">
+      <div class="donate-card-icon">
+        <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="6" cy="6" r="2.4"/><circle cx="6" cy="18" r="2.4"/><circle cx="17" cy="12" r="2.4"/><path d="M6 8.4V15.6"/><path d="M8.3 12H14.6"/><path d="M8.3 6h4a3 3 0 0 1 3 3v.6"/></svg>
+      </div>
+      <h3>Sponsor the code</h3>
+      <p>If the codebase itself — not just the app — was worth something to you as a developer.</p>
+      <a class="btn btn-secondary" href="https://github.com/sponsors/REPLACE-WITH-YOUR-LINK" target="_blank" rel="noopener noreferrer">Sponsor on GitHub</a>
+    </div>
+    <div class="donate-card">
+      <div class="donate-card-icon">
+        <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 4h8l3 3v2.5c0 5.4-4 8.7-7 10-3-1.3-7-4.6-7-10V7z"/><path d="M13 1.5c-.6.9-.6 1.8 0 2.7"/></svg>
+      </div>
+      <h3>Buy a coffee</h3>
+      <p>The simplest way to say thanks: one coffee, one click, done.</p>
+      <a class="btn btn-secondary" href="https://buymeacoffee.com/rascofinance" target="_blank" rel="noopener noreferrer">Buy a coffee</a>
+    </div>
+  </div>
+
+  <p class="donate-footnote">Every option above takes you to that platform's own checkout — FinPerson never sees or handles your payment details.</p>
 </main>
 
 <footer class="footer">

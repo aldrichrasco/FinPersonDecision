@@ -450,7 +450,8 @@
       const totalPayoff = state.history.reduce((sum, h) => sum + h.payoff, 0);
       const startTotal = ENDOWMENT * ROUNDS;
       const firstTotal = state.history[0].total;
-      const lastTotal = state.history[state.history.length - 1].total;
+      const last = state.history[state.history.length - 1];
+      const lastTotal = last.total;
       const yourTotalContribution = state.history.reduce((sum, h) => sum + h.yours, 0);
       logPlay("goods", "player", state.classmates[0], {
         firstRoundTotal: firstTotal,
@@ -466,6 +467,7 @@
           <p class="chart-title">After ${ROUNDS} rounds</p>
           <p class="report-body">Group contribution went from <strong>${fmt(firstTotal)}</strong> in round 1 to <strong>${fmt(lastTotal)}</strong> by round ${ROUNDS} (out of a possible ${fmt(ENDOWMENT * PLAYERS)} each round).</p>
           ${contributionChart()}
+          <p class="report-body">Round ${ROUNDS} (your last): you put in <strong>${fmt(last.yours)}</strong> and got back <strong>${fmt(last.share)}</strong> (net ${last.payoff >= ENDOWMENT ? "+" : ""}${fmt(last.payoff - ENDOWMENT)}) — folded into the total below, same as every other round.</p>
           <p class="report-clevel-badge" style="margin-top:14px;">You ended with ${fmt(totalPayoff)} across ${ROUNDS} rounds (started with ${fmt(startTotal)})</p>
         </section>
 

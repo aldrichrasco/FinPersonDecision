@@ -951,6 +951,24 @@ def chat(slug):
     if not messages or messages[-1]["role"] != "user":
         return jsonify({"error": "last message must be from the user"}), 400
 
+    # Safeguarding is computed before the paywall gate below and never
+    # blocked by it — a person in real distress must never be turned away
+    # by a subscription check. See the "never silently fail" comment further
+    # down for why this same signal is threaded through every later branch.
+    signal = safeguarding.detect(messages[-1]["content"])
+
+    # AI coaching is the paid tier; the quiz/archetype match (the "Financial
+    # MRI") and the practice sandbox stay free. Same subscription_active()
+    # gate as /api/turtle/session.
+    if not subscription_active(current_user_id()):
+        if signal:
+            return jsonify({
+                "reply": "",
+                "persona": slug,
+                "safeguarding": safeguarding.response_for(signal),
+            })
+        return jsonify({"error": "subscription required", "paywall": True}), 402
+
     # Optional sandbox context. Every field is bounds-checked and type-coerced:
     # this text goes into a model prompt, so untrusted input must not pass
     # through freely.
@@ -1025,10 +1043,9 @@ def chat(slug):
     system = (coach.build_decision_prompt(slug, context=ctx, scenario=scenario_ctx)
               if scenario_ctx else coach.build_system_prompt(slug, context=ctx))
 
-    # Safeguarding runs on the person's latest message. It never blocks the
-    # reply — it augments the system prompt and attaches resources alongside,
-    # because being cut off mid-disclosure is its own harm.
-    signal = safeguarding.detect(messages[-1]["content"])
+    # Signal was already computed above (before the paywall gate). It never
+    # blocks the reply — it augments the system prompt and attaches
+    # resources alongside, because being cut off mid-disclosure is its own harm.
     if signal:
         system += safeguarding.coach_instruction(signal)
         app.logger.info("safeguarding signal: %s/%s", signal["severity"], signal["category"])

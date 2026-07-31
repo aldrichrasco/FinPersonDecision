@@ -149,7 +149,7 @@
       const c = LEARN_CONTENT[axis];
       const blurb = axisStatus === "growth" ? c.growth_blurb
         : axisStatus === "strength" ? c.strength_blurb
-        : c.growth_blurb;
+        : c.balanced_blurb;
       const gap = gaps[axis];
       const gapNote = (typeof gap === "number" && Math.abs(gap) >= 8)
         ? `<span class="learn-axis-gap">${Math.round(Math.abs(gap))} pts ${gap > 0 ? "above" : "below"} the ${esc(PERSONAS.find(p => p.slug === saved.archetype)?.name || "archetype")} pattern</span>`
@@ -202,7 +202,7 @@
 
       return `
         <div class="learn-axis-card ${axisStatus === "growth" ? "is-growth" : axisStatus === "strength" ? "is-strength" : ""}">
-          <span class="learn-axis-tag">${axisStatus === "growth" ? "Growth area" : axisStatus === "strength" ? "Strength" : meta.label}</span>
+          <span class="learn-axis-tag">${axisStatus === "growth" ? "Growth area" : axisStatus === "strength" ? "Strength" : "Balanced"}</span>
           ${axisComplete ? `<span class="learn-axis-complete-badge" title="All lessons done">✓ Complete</span>` : ""}
           <h3>${esc(meta.label)}</h3>
           <p class="learn-axis-blurb">${esc(blurb)}</p>

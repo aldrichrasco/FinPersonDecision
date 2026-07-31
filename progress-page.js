@@ -21,7 +21,7 @@
     ? Math.max(1, Math.round((history[history.length - 1].at - history[0].at) / 86400000))
     : 0;
 
-  const trendWord = change > 3 ? "moving in a good direction"
+  const trendWord = change > 3 ? "been moving in a good direction"
     : change < -3 ? "drifted a bit"
     : "held fairly steady";
 
@@ -67,6 +67,28 @@
         <a href="#" data-open-goals-tab>Open your goals &rarr;</a>
       </p>
     </div>` : "";
+
+  // A small, honest "living twin" read of real tracked trend data — see
+  // companion.js for why it only speaks in specifics it can actually back
+  // with data, and why a dip is framed as "worth a look" rather than a
+  // failure. Rendered from the quiz-profile portrait already used elsewhere
+  // (archetype-portraits.js), not a new art asset.
+  function companionCardHtml(state) {
+    if (!state) return "";
+    const portrait = (primary && typeof archetypePortraitSvg === "function")
+      ? archetypePortraitSvg(primary.slug, primary.group) : "";
+    return `
+      <div class="companion-card companion-glow-${esc(state.glow)}">
+        <div class="companion-portrait-wrap"><div class="companion-portrait">${portrait}</div></div>
+        <div class="companion-copy">
+          <span class="companion-badge companion-badge-${esc(state.glow)}">${esc(state.badge)}</span>
+          <p class="companion-headline">${esc(state.headline)}</p>
+          <p class="companion-detail">${esc(state.detail)}</p>
+        </div>
+      </div>`;
+  }
+  const companionState = typeof computeCompanionState === "function"
+    ? computeCompanionState({ history, currentArchetype: saved.archetype }) : null;
 
   // Classroom games can nudge a signed-in user's own axis scores (see
   // nudgeAxis() in classroom-page.js) — this gives that "tentative" note a
@@ -115,6 +137,8 @@
         <p class="pattern-body" style="font-size:14.5px;color:var(--ink);">${esc(characterise(saved.profile, saved.archetype))}</p>
       </div>
 
+      <div class="bento-tile bento-companion" id="companion-slot">${companionCardHtml(companionState)}</div>
+
       <div class="bento-tile bento-wellbeing">
         <p class="chart-title">Your real sandbox trajectory</p>
         <p class="chart-sub" style="margin:-6px 0 12px;font-size:13px;color:var(--slate);">Your illustrative wellbeing score (0-100) after each real decision you've made — not a real balance, just the trend.</p>
@@ -137,7 +161,7 @@
       <div class="bento-tile bento-cta sandbox-card">
         <div>
           <h3 style="font-family:var(--font-display);font-weight:500;margin:0 0 6px;">Answer them again?</h3>
-          <p style="margin:0;color:#C7CEDB;font-size:14px;">People change. Re-answering is how you see whether you have.</p>
+          <p style="margin:0;color:#C7CEDB;font-size:14px;">People change. Re-answering is how you see whether you have. Or take the <a href="assessment.html" style="color:inherit;">full assessment</a> for a more precise read.</p>
         </div>
         <a class="btn btn-primary" href="index.html" style="background:var(--marigold);color:var(--marigold-contrast);">Retake</a>
       </div>
@@ -161,6 +185,12 @@
     animate(radarCanvas, saved.profile, {});
     fetchAxisConsistency().then(byAxis => {
       drawRadarChart(radarCanvas, saved.profile, byAxis);
+      const slot = document.getElementById("companion-slot");
+      if (slot && typeof computeCompanionState === "function") {
+        slot.innerHTML = companionCardHtml(computeCompanionState({
+          history, axisConsistency: byAxis, currentArchetype: saved.archetype,
+        }));
+      }
     });
   }
 
