@@ -40,7 +40,7 @@
   const unlockedAchievements = (typeof ACHIEVEMENTS !== "undefined" ? ACHIEVEMENTS : []).filter(a => unlockedIds.includes(a.id));
 
   const axisRowHtml = axisEntries.map(a => `
-    <div class="report-axis-row">
+    <div class="report-axis-row" data-value="${a.value}">
       <div class="report-axis-row-head">
         <span class="report-axis-dot" style="background:${a.value >= 60 ? "var(--teal)" : a.value <= 40 ? "var(--brick)" : "var(--slate)"}"></span>
         <span class="report-axis-label">${esc(a.meta.label)}</span>
@@ -198,4 +198,38 @@
   if (radarCanvas && typeof animateRadarChart === "function") {
     animateRadarChart(radarCanvas, profile, {});
   }
+  animateAxisBreakdown(content);
 })();
+
+// Grows each axis row's marker and number out from neutral (50) to its
+// real score, staggered slightly per row so the six read as a cascading
+// reveal rather than popping in at once — same ease-out cubic and 700ms
+// timing as animateRadarChart/animateMetric, so this reads as the same
+// motion language as the rest of the report, not a separate effect.
+// Skipped for prefers-reduced-motion: the server-rendered markup already
+// has the final values, so there's nothing left to do.
+function animateAxisBreakdown(container) {
+  if (window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+  const rows = container.querySelectorAll(".report-axis-row[data-value]");
+  rows.forEach((row, i) => {
+    const target = Number(row.dataset.value);
+    const marker = row.querySelector(".model-axis-marker");
+    const valueEl = row.querySelector(".report-axis-value");
+    if (!marker || !valueEl) return;
+    marker.style.left = "50%";
+    valueEl.textContent = "50";
+    setTimeout(() => {
+      const duration = 700;
+      const start = performance.now();
+      function tick(now) {
+        const t = Math.min(1, (now - start) / duration);
+        const eased = 1 - Math.pow(1 - t, 3);
+        const current = 50 + (target - 50) * eased;
+        marker.style.left = current + "%";
+        valueEl.textContent = String(Math.round(current));
+        if (t < 1) requestAnimationFrame(tick);
+      }
+      requestAnimationFrame(tick);
+    }, i * 70);
+  });
+}
