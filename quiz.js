@@ -14,7 +14,7 @@ const QUIZ_QUESTIONS = [
       { label: "Research the best way to grow it", d: { risk_disposition: +15, temporal_orientation: +15, financial_attentiveness: +10 } },
       { label: "Treat yourself, plan later", d: { impulse_regulation: -20, temporal_orientation: -12 } },
       { label: "Let it sit — deal with it eventually", d: { financial_attentiveness: -18, temporal_orientation: -8 } },
-      { label: "Think about who needs it more than you", d: { prosocial_orientation: +22 } },
+      { label: "Think about who needs it more than you", d: { prosocial_orientation: +10 } },
     ],
   },
   {
@@ -24,17 +24,17 @@ const QUIZ_QUESTIONS = [
       { label: "Curious how it's tracking against my goals", d: { financial_attentiveness: +18, temporal_orientation: +10 } },
       { label: "Fine, as long as I don't look too closely", d: { financial_attentiveness: -12, impulse_regulation: -8 } },
       { label: "Anxious — I put it off as long as I can", d: { financial_self_efficacy: -22, financial_attentiveness: -18 } },
-      { label: "Fine — I care more about what I can do for others", d: { prosocial_orientation: +15, financial_self_efficacy: +6 } },
+      { label: "Fine — I care more about what I can do for others", d: { prosocial_orientation: +7, financial_self_efficacy: +6 } },
     ],
   },
   {
     q: "A big purchase decision usually comes down to...",
     options: [
-      { label: "Whether I can afford it without touching savings", d: { impulse_regulation: +18, temporal_orientation: +10 } },
+      { label: "Whether I can afford it without touching savings", d: { impulse_regulation: +24, temporal_orientation: +10 } },
       { label: "Whether it grows my income or skills long-term", d: { temporal_orientation: +18, risk_disposition: +8 } },
       { label: "How much I want it right now", d: { impulse_regulation: -22, temporal_orientation: -12 } },
       { label: "I rarely make it that far before deciding", d: { financial_attentiveness: -15, impulse_regulation: -10 } },
-      { label: "Whether it means I can give less elsewhere", d: { prosocial_orientation: +18 } },
+      { label: "Whether it means I can give less elsewhere", d: { prosocial_orientation: +8 } },
     ],
   },
   {
@@ -44,7 +44,7 @@ const QUIZ_QUESTIONS = [
       { label: "Ambitious, with real upside", d: { risk_disposition: +18, temporal_orientation: +12 } },
       { label: "Flexible — plans stress me out", d: { temporal_orientation: -15, financial_self_efficacy: -8 } },
       { label: "I don't really have one", d: { temporal_orientation: -18, financial_attentiveness: -12 } },
-      { label: "One that supports people and causes I care about", d: { prosocial_orientation: +20, temporal_orientation: +6 } },
+      { label: "One that supports people and causes I care about", d: { prosocial_orientation: +9, temporal_orientation: +6 } },
     ],
   },
   {
@@ -54,13 +54,13 @@ const QUIZ_QUESTIONS = [
       { label: "Treat it as a problem to optimize around", d: { financial_attentiveness: +15, financial_self_efficacy: +12 } },
       { label: "Deal with it later, somehow it works out", d: { impulse_regulation: -12, financial_attentiveness: -10 } },
       { label: "Feel a wave of stress and avoid looking", d: { financial_self_efficacy: -20, financial_attentiveness: -15 } },
-      { label: "Adjust my giving before anything else", d: { prosocial_orientation: +15 } },
+      { label: "Adjust my giving before anything else", d: { prosocial_orientation: +7 } },
     ],
   },
   {
     q: "Taking a financial risk with real upside makes you...",
     options: [
-      { label: "Uneasy — I'd rather protect what I have", d: { risk_disposition: -20, financial_self_efficacy: -5 } },
+      { label: "Uneasy — I'd rather protect what I have", d: { risk_disposition: -20, financial_self_efficacy: -5, financial_attentiveness: +12 } },
       { label: "Energized — that's where growth happens", d: { risk_disposition: +22, financial_self_efficacy: +10 } },
       { label: "Confident I can read it by instinct", d: { risk_disposition: +15, financial_self_efficacy: +18, financial_attentiveness: -8 } },
       { label: "Overwhelmed — I'd avoid the decision", d: { financial_attentiveness: -15, financial_self_efficacy: -15 } },
@@ -79,9 +79,9 @@ const QUIZ_QUESTIONS = [
     q: "Which sounds most like you?",
     options: [
       { label: "I track my money closely and feel in control", d: { financial_attentiveness: +18, financial_self_efficacy: +15 } },
-      { label: "I spend to enjoy life now", d: { impulse_regulation: -18, temporal_orientation: -10 } },
+      { label: "I spend to enjoy life now", d: { impulse_regulation: -8, temporal_orientation: -10 } },
       { label: "I'd rather not think about money at all", d: { financial_attentiveness: -20, financial_self_efficacy: -12 } },
-      { label: "Giving to others is part of my identity", d: { prosocial_orientation: +22 } },
+      { label: "Giving to others is part of my identity", d: { prosocial_orientation: +10 } },
     ],
   },
   {
@@ -90,16 +90,16 @@ const QUIZ_QUESTIONS = [
       { label: "Good — it was for a person or cause, not for me", d: { prosocial_orientation: +18 } },
       { label: "Good — I picked it because it says something about me", d: { prosocial_orientation: -18, impulse_regulation: +6 } },
       { label: "I don't really think about it that way", d: { financial_attentiveness: +8, temporal_orientation: +5 } },
-      { label: "Slightly guilty — I hadn't planned to spend that", d: { impulse_regulation: -18 } },
+      { label: "Slightly guilty — I hadn't planned to spend that", d: { impulse_regulation: -10 } },
     ],
   },
   {
     q: "A financial risk goes wrong for someone you know. Your first thought?",
     options: [
-      { label: "What did they miss — I'd watch for that", d: { financial_attentiveness: +18, risk_disposition: -5 } },
+      { label: "What did they miss — I'd watch for that", d: { financial_attentiveness: +10, risk_disposition: -5 } },
       { label: "Bad luck, could happen to anyone", d: { risk_disposition: +12, financial_self_efficacy: +12, financial_attentiveness: -8 } },
       { label: "That's exactly why I avoid risk", d: { risk_disposition: -20, financial_self_efficacy: -8 } },
-      { label: "I'd have caught it early — I watch things closely", d: { financial_attentiveness: +22, risk_disposition: +12 } },
+      { label: "I'd have caught it early — I watch things closely", d: { financial_attentiveness: +10, risk_disposition: +12 } },
     ],
   },
   {
@@ -114,64 +114,64 @@ const QUIZ_QUESTIONS = [
   {
     q: "When you make a big financial decision, who else factors in?",
     options: [
-      { label: "Just me and my own goals", d: { prosocial_orientation: -15 } },
+      { label: "Just me and my own goals", d: { prosocial_orientation: -20 } },
       { label: "People who depend on me, before myself", d: { prosocial_orientation: +20 } },
-      { label: "Whoever's watching, if I'm honest", d: { prosocial_orientation: -20, financial_self_efficacy: +8 } },
+      { label: "Whoever's watching, if I'm honest", d: { prosocial_orientation: -24, financial_self_efficacy: +8 } },
       { label: "I don't really factor anyone in — I just decide", d: { financial_attentiveness: -12, impulse_regulation: -10 } },
     ],
   },
   {
     q: "A subscription you barely use auto-renews. What actually happens?",
     options: [
-      { label: "I catch it and cancel before it charges", d: { financial_attentiveness: +18, impulse_regulation: +8 } },
+      { label: "I catch it and cancel before it charges", d: { financial_attentiveness: +26, impulse_regulation: +8 } },
       { label: "I mean to cancel it, but somehow don't get to it", d: { financial_attentiveness: -15 } },
-      { label: "I don't even notice until I see the charge", d: { financial_attentiveness: -20 } },
+      { label: "I don't even notice until I see the charge", d: { financial_attentiveness: -14 } },
       { label: "I keep it — I might use it again", d: { impulse_regulation: -10, financial_attentiveness: -5 } },
     ],
   },
   {
     q: "A friend asks to borrow money you're not sure you'll get back. What do you do?",
     options: [
-      { label: "Say no, or only lend what I can afford to lose", d: { impulse_regulation: +12, financial_self_efficacy: +10 } },
-      { label: "Lend it anyway — they're a friend", d: { prosocial_orientation: +20, financial_attentiveness: -8 } },
-      { label: "Lend it and quietly write it off in my head", d: { prosocial_orientation: +15, financial_self_efficacy: -10 } },
-      { label: "Feel too anxious to say no, even though I want to", d: { financial_self_efficacy: -18, prosocial_orientation: +8 } },
+      { label: "Say no, or only lend what I can afford to lose", d: { impulse_regulation: +12, financial_self_efficacy: +10, prosocial_orientation: -12 } },
+      { label: "Lend it anyway — they're a friend", d: { prosocial_orientation: +12, financial_attentiveness: -8 } },
+      { label: "Lend it and quietly write it off in my head", d: { prosocial_orientation: +8, financial_self_efficacy: -10 } },
+      { label: "Feel too anxious to say no, even though I want to", d: { financial_self_efficacy: -18 } },
     ],
   },
   {
     q: "It's time to negotiate your pay. What's your instinct?",
     options: [
-      { label: "Ask for more, with a number in mind", d: { financial_self_efficacy: +18, risk_disposition: +10 } },
-      { label: "Wait to be offered more — I don't want to push", d: { financial_self_efficacy: -15, risk_disposition: -8 } },
+      { label: "Ask for more, with a number in mind", d: { financial_self_efficacy: +26, risk_disposition: +10 } },
+      { label: "Wait to be offered more — I don't want to push", d: { financial_self_efficacy: -10, risk_disposition: -8 } },
       { label: "Ask, but brace for rejection the whole time", d: { financial_self_efficacy: -8, risk_disposition: +5 } },
-      { label: "Avoid the conversation entirely", d: { financial_self_efficacy: -20, financial_attentiveness: -10 } },
+      { label: "Avoid the conversation entirely", d: { financial_self_efficacy: -14, financial_attentiveness: -10 } },
     ],
   },
   {
     q: "You're offered an extended warranty at checkout. What do you do?",
     options: [
-      { label: "Decline — I do the math on whether it's worth it", d: { financial_attentiveness: +15, impulse_regulation: +10 } },
+      { label: "Decline — I do the math on whether it's worth it", d: { financial_attentiveness: +15, impulse_regulation: +14 } },
       { label: "Usually say yes, just in case", d: { risk_disposition: -15, impulse_regulation: -5 } },
       { label: "Say no without really thinking about it either way", d: { financial_attentiveness: -5 } },
-      { label: "Depends entirely on how the person selling it makes me feel", d: { impulse_regulation: -15, financial_attentiveness: -10 } },
+      { label: "Depends entirely on how the person selling it makes me feel", d: { impulse_regulation: -11, financial_attentiveness: -10 } },
     ],
   },
   {
     q: "Splitting a bill with friends, one of them clearly ordered more. What happens?",
     options: [
-      { label: "I mention it and we split it fairly", d: { financial_attentiveness: +12, prosocial_orientation: -5 } },
-      { label: "I just split it evenly — not worth the awkwardness", d: { prosocial_orientation: +15 } },
-      { label: "I quietly resent it but don't say anything", d: { financial_self_efficacy: -12, prosocial_orientation: +8 } },
-      { label: "I offer to cover the difference myself", d: { prosocial_orientation: +22 } },
+      { label: "I mention it and we split it fairly", d: { financial_attentiveness: +12, prosocial_orientation: -14 } },
+      { label: "I just split it evenly — not worth the awkwardness", d: { prosocial_orientation: +8 } },
+      { label: "I quietly resent it but don't say anything", d: { financial_self_efficacy: -12, prosocial_orientation: +4 } },
+      { label: "I offer to cover the difference myself", d: { prosocial_orientation: +12 } },
     ],
   },
   {
     q: "An unexpected bonus lands at work. What's the first thing that crosses your mind?",
     options: [
-      { label: "Where this fits into my existing plan", d: { temporal_orientation: +18, financial_attentiveness: +10 } },
-      { label: "What I'm going to buy with it", d: { impulse_regulation: -18 } },
+      { label: "Where this fits into my existing plan", d: { temporal_orientation: +12, financial_attentiveness: +10 } },
+      { label: "What I'm going to buy with it", d: { impulse_regulation: -10, temporal_orientation: -14 } },
       { label: "Whether I should invest it somewhere", d: { risk_disposition: +15, temporal_orientation: +12 } },
-      { label: "Who else could use this more than me", d: { prosocial_orientation: +20 } },
+      { label: "Who else could use this more than me", d: { prosocial_orientation: +9 } },
     ],
   },
   {
@@ -186,9 +186,9 @@ const QUIZ_QUESTIONS = [
   {
     q: "Your rent or mortgage is due in three days and a bill you forgot about just landed. What's your reaction?",
     options: [
-      { label: "Annoyed, but I have a buffer for exactly this", d: { temporal_orientation: +18, financial_self_efficacy: +15 } },
+      { label: "Annoyed, but I have a buffer for exactly this", d: { temporal_orientation: +10, financial_self_efficacy: +21 } },
       { label: "Scramble, but it works out", d: { financial_self_efficacy: -8, financial_attentiveness: -5 } },
-      { label: "Real stress — I don't know how this resolves", d: { financial_self_efficacy: -22, financial_attentiveness: -10 } },
+      { label: "Real stress — I don't know how this resolves", d: { financial_self_efficacy: -16, financial_attentiveness: -10 } },
       { label: "I'd have already seen it coming", d: { financial_attentiveness: +22 } },
     ],
   },
@@ -456,4 +456,11 @@ function initQuiz() {
   document.getElementById("quiz-overlay").addEventListener("click", e => {
     if (e.target.id === "quiz-overlay") closeQuiz();
   });
+}
+
+// Node-only export (no-op in the browser) so the question bank itself is
+// testable for aggregate per-axis balance — see tests-js/quiz-balance.test.js.
+// A quiz page never has `module`, so this never runs client-side.
+if (typeof module !== "undefined" && module.exports) {
+  module.exports = { QUIZ_QUESTIONS, TIEBREAKER_QUESTIONS };
 }
