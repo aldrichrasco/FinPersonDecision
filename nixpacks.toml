@@ -1,0 +1,13 @@
+# Forces Nixpacks to build this as a Python app.
+#
+# package.json exists only to give `npm test` a home for the JS test suite
+# (see its own description field) — no build step, no frontend deps. But
+# Nixpacks' auto-detection treats a top-level package.json as a strong
+# Node.js signal, and once it was added (in the "Service update" commit),
+# every Railway build since has silently built a Node environment instead
+# of Python: `setup: nodejs_18, npm-9_x`, `install: npm i` — skipping
+# requirements.txt entirely. The start command (from railway.json) still
+# tried to run `gunicorn`, which was never installed, so the container
+# never came up and the healthcheck timed out on every deploy — Railway
+# just kept serving the last build from before package.json existed.
+providers = ["python"]
