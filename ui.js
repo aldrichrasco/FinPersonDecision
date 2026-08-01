@@ -59,17 +59,18 @@ function currentPage() {
   return path.replace(".html", "");
 }
 
-// A separate top-of-page "Menu" button read as an awkward second nav system
-// sitting next to the floating pill. Folding secondary pages into the pill
-// itself (as a "More" item, same visual language as Practise/Coach/Progress)
-// keeps a single, consistent piece of chrome instead of two.
+// A separate top-of-page "Menu" button (index.html used to keep its own,
+// distinct from this pill) read as a second nav system with a different
+// shape and position — worse, landing on FinPerson Pro or an admin/research
+// page dropped every trace of navigation entirely. Same pill everywhere in
+// the retail app now, so wayfinding doesn't reset depending on which page
+// you happen to be on. Admin/research/reset-password stay nav-free (utility
+// pages a regular visitor never lands on directly); Pro keeps its separate
+// visual register (see .pro-page rules in styles.css) but still gets back to
+// the rest of the app via its own logo, same as every other page's logo.
 function initNav() {
-  // The landing page is a marketing surface, not part of the app shell.
-  // FinPerson Pro (pro*.html) is a deliberately separate visual register —
-  // see the .pro-page rules in styles.css — so it opts out of the retail
-  // app's bottom nav pill the same way.
   const page = currentPage();
-  if (page === "index" || page === "" || page === "admin" || page === "research" || page === "reset-password") return;
+  if (page === "admin" || page === "research" || page === "reset-password") return;
   if (page.startsWith("pro")) return;
   if (document.getElementById("app-nav")) return;
 
@@ -111,57 +112,6 @@ function initNav() {
   document.addEventListener("keydown", (e) => {
     if (e.key === "Escape" && !panel.hidden) {
       toggleDropdownPanel(panel, btn, false, "bottom right");
-      btn.focus();
-    }
-  });
-}
-
-// index.html has no bottom pill (it's a marketing surface, not the app
-// shell), so it keeps a small header dropdown as its only way to reach
-// secondary pages.
-function initHeaderMenu() {
-  const page = currentPage();
-  if (page !== "index" && page !== "") return;
-  const slot = document.getElementById("auth-slot");
-  if (!slot || document.getElementById("header-menu")) return;
-
-  const wrap = document.createElement("div");
-  wrap.id = "header-menu";
-  wrap.className = "header-menu";
-  wrap.innerHTML = `
-    <button class="header-menu-btn" id="header-menu-btn" type="button" aria-haspopup="true" aria-expanded="false">
-      Menu <span class="header-menu-caret" aria-hidden="true">▾</span>
-    </button>
-    <div class="header-menu-panel" id="header-menu-panel" hidden>
-      ${MENU_ITEMS.map(item => `<a href="${item.href}">${item.label}</a>`).join("")}
-    </div>`;
-  // Grouped with auth-slot in a shared right-hand cluster rather than
-  // inserted as a third topbar-inner child — with justify-content:
-  // space-between, a third child lands dead-center in the bar instead of
-  // sitting next to the account control it's related to.
-  let right = slot.parentElement.querySelector(".topbar-right");
-  if (!right) {
-    right = document.createElement("div");
-    right.className = "topbar-right";
-    slot.parentElement.insertBefore(right, slot);
-    right.appendChild(slot);
-  }
-  right.insertBefore(wrap, right.firstChild);
-
-  const btn = document.getElementById("header-menu-btn");
-  const panel = document.getElementById("header-menu-panel");
-  btn.addEventListener("click", (e) => {
-    e.stopPropagation();
-    toggleDropdownPanel(panel, btn, panel.hidden, "top right");
-  });
-  document.addEventListener("click", (e) => {
-    if (!panel.hidden && !wrap.contains(e.target)) {
-      toggleDropdownPanel(panel, btn, false, "top right");
-    }
-  });
-  document.addEventListener("keydown", (e) => {
-    if (e.key === "Escape" && !panel.hidden) {
-      toggleDropdownPanel(panel, btn, false, "top right");
       btn.focus();
     }
   });
@@ -358,7 +308,6 @@ function initOfflineWatch() {
 }
 
 initNav();
-initHeaderMenu();
 initStickyHeader();
 initTabKeyboardNav();
 initHoverGlow();

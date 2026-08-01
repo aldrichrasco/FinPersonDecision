@@ -2187,25 +2187,6 @@ body.has-app-nav .study-badge{bottom:84px;}
   .theory-banner-scrim{padding:20px 18px;}
 }
 
-/* ---------------------------------------------------------------- header menu */
-.header-menu{position:relative;}
-.header-menu-btn{background:transparent;border:1px solid var(--line);border-radius:999px;
-  padding:8px 14px;min-height:44px;display:inline-flex;align-items:center;
-  font-family:var(--font-body);font-size:13px;color:var(--ink);cursor:pointer;}
-.header-menu-btn:hover{border-color:var(--ink);}
-.header-menu-btn:focus-visible{outline:2px solid var(--ink);outline-offset:2px;}
-.header-menu-caret{display:inline-block;transition:transform .15s ease;}
-.header-menu-btn[aria-expanded="true"] .header-menu-caret{transform:rotate(180deg);}
-.header-menu-panel{position:absolute;top:calc(100% + 8px);right:0;z-index:50;
-  min-width:180px;padding:6px;border:1px solid var(--line);border-radius:12px;
-  background:var(--paper-raised);box-shadow:0 12px 30px -10px color-mix(in srgb, var(--ink) 40%, transparent);
-  display:flex;flex-direction:column;}
-.header-menu-panel[hidden]{display:none;}
-.header-menu-panel a{display:block;padding:9px 12px;border-radius:8px;font-size:14px;
-  color:var(--ink);text-decoration:none;}
-.header-menu-panel a:hover{background:var(--paper);}
-.header-menu-panel a[aria-current="page"]{font-weight:500;color:var(--teal);}
-
 .zone-status-line{font-size:13px;font-weight:500;margin:6px 0 0;}
 .zone-status-line.zone-homeostasis{color:var(--teal);}
 .zone-status-line.zone-breakdown,.zone-status-line.zone-distortion{color:var(--brick, #A6402F);}
