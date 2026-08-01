@@ -71,7 +71,12 @@ function currentPage() {
 function initNav() {
   const page = currentPage();
   if (page === "admin" || page === "research" || page === "reset-password") return;
-  if (page.startsWith("pro")) return;
+  // Exact/prefix match on the actual Pro filenames only — `startsWith("pro")`
+  // used to also catch "progress", silently stripping the bottom nav from
+  // progress.html this whole time (confirmed live: no way back to the rest
+  // of the app from the Trends/Milestones/Goals tabs). Every other page on
+  // this exclusion list is checked by exact name for the same reason.
+  if (page === "pro" || page.startsWith("pro-")) return;
   if (document.getElementById("app-nav")) return;
 
   const nav = document.createElement("nav");
