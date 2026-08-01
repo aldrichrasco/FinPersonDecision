@@ -80,7 +80,7 @@
 
   const achievementsHtml = unlockedAchievements.length
     ? `<div class="report-badges">${unlockedAchievements.map(a => `<span class="report-badge" title="${esc(a.description)}">${a.icon} ${esc(a.title)}</span>`).join("")}</div>`
-    : `<p class="scenario-empty-body">No badges yet — <a href="achievements.html">see what's available &rarr;</a></p>`;
+    : `<p class="scenario-empty-body">No badges yet — <a href="progress.html#milestones">see what's available &rarr;</a></p>`;
 
   const trendLine = history.length > 1
     ? `Your capability score has moved from ${history[0].capability} to ${saved.capability} over ${history.length} check-ins.`

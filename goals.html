@@ -4,52 +4,23 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>FinPerson — Goals</title>
-<meta name="description" content="Your financial goals and notes, across every persona you've practiced with.">
-<meta name="theme-color" content="#F2EFE6" media="(prefers-color-scheme: light)">
-<meta name="theme-color" content="#0F1524" media="(prefers-color-scheme: dark)">
+<meta name="robots" content="noindex">
+<!-- Superseded by the Goals tab on progress.html (see progress-page.js,
+     which already renders this exact same goals-page.js content inside
+     that page's shell) — this used to be a second, separately reachable
+     copy of the same feature with its own chrome, and had zero incoming
+     links anywhere in the app. Kept as a redirect rather than deleted
+     outright so any existing bookmark or link still lands somewhere real
+     instead of a dead 404. -->
+<meta http-equiv="refresh" content="0; url=progress.html#goals">
+<link rel="canonical" href="progress.html#goals">
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%231B2A4A'/%3E%3Ctext x='16' y='22' font-family='Georgia,serif' font-size='17' fill='%23EDEFE6' text-anchor='middle'%3EFP%3C/text%3E%3C/svg%3E">
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@500&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="styles.css">
 </head>
 <body>
-<a class="skip-link" href="#main">Skip to content</a>
-
-<header class="topbar">
-  <div class="wrap topbar-inner">
-    <a class="logo" href="index.html" style="text-decoration:none;color:inherit;">FinPerson</a>
-    <div id="auth-slot"></div>
-  </div>
-</header>
-
-<main class="wrap dash" id="main">
-  <h1 style="font-family:var(--font-display);font-weight:500;">Goals</h1>
-  <p class="lede" style="font-size:16px;">Everything you've written down, from every persona — nothing here disappears when you switch.</p>
-
-  <section id="goals-content"></section>
+<main class="wrap dash" id="main" style="padding-top:60px;text-align:center;">
+  <p class="lede">Goals moved to <a href="progress.html#goals">the Goals tab on Progress</a>.</p>
 </main>
-
-<footer class="footer">
-  <div class="wrap footer-legal">
-    <p><strong>Not financial advice.</strong> This is an educational practice tool.</p>
-    <p class="footer-copy">&copy; <span id="year">2026</span> FinPerson.</p>
-  </div>
-</footer>
-
-<script src="instruments.js"></script>
-<script src="study.js"></script>
-<script src="data.js"></script>
-<script src="fbm.js"></script>
-<script src="observations.js"></script>
-<script src="api.js"></script>
-<script src="ui.js"></script>
-<script src="legal.js"></script>
-<script src="help.js"></script>
-<script src="goals.js"></script>
-<script src="goal-projection.js"></script>
-<script src="goals-page.js"></script>
-<script src="https://accounts.google.com/gsi/client" async defer></script>
-<script src="auth.js"></script>
+<script>location.replace("progress.html#goals");</script>
 </body>
 </html>
