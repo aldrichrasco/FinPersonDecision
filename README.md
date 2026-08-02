@@ -320,6 +320,7 @@ pointers.
 - `api.js` — backend integration seam: real fetch calls with mock-data fallback (both pages)
 - `server.py` / `requirements.txt` — a real, runnable reference backend implementing every endpoint `api.js` expects
 - `styles.css` — shared design system for both pages (dark mode, motion, all of it)
+- `analysis/research_analysis.py` — pandas/statsmodels analysis pipeline for the Phase 3 study data described in `PAPER.md` §8 (`pip install -r analysis/requirements-analysis.txt` first; kept out of the app's own `requirements.txt` since the deployed server never needs it)
 
 ## What's real vs. what's a stub
 - **Real**: quiz scoring, the scenario engine (including persona-themed scenarios and

@@ -1,0 +1,6 @@
+# Only needed to run analysis/research_analysis.py locally — the deployed
+# Flask app (requirements.txt) never imports pandas/statsmodels, so these
+# stay out of the production dependency set.
+pandas==3.0.5
+statsmodels==0.14.6
+numpy==2.5.1
