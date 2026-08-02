@@ -50,6 +50,7 @@ from werkzeug.security import generate_password_hash, check_password_hash
 import db
 import ratelimit
 import coach
+import coach_agent
 import llm
 import billing
 import mailer
@@ -922,6 +923,14 @@ def scenario_choice():
 MAX_HISTORY_MESSAGES = 20
 MAX_MESSAGE_CHARS = 2000
 
+# "direct" (default) is coach.py's static prompt + llm.py's single-shot call.
+# "agent" swaps in coach_agent.py: a LangChain tool-using agent that looks up
+# the signed-in user's own profile/decisions/goals from the database itself
+# instead of trusting a client-supplied context blob. Falls back to "direct"
+# automatically if langchain isn't installed (see coach_agent.AgentUnavailable
+# below) — this is a config switch, not a hard dependency.
+LLM_ENGINE = os.environ.get("LLM_ENGINE", "direct").lower()
+
 
 @app.route("/api/chat/<slug>", methods=["POST"])
 @rate_limit(limit=30, window=60, scope="chat")
@@ -1040,21 +1049,36 @@ def chat(slug):
             "options": [str(o)[:120] for o in opts[:4]] if isinstance(opts, list) else [],
         }
 
-    system = (coach.build_decision_prompt(slug, context=ctx, scenario=scenario_ctx)
-              if scenario_ctx else coach.build_system_prompt(slug, context=ctx))
-
     # Signal was already computed above (before the paywall gate). It never
     # blocks the reply — it augments the system prompt and attaches
     # resources alongside, because being cut off mid-disclosure is its own harm.
+    # Built once and threaded into whichever engine runs below, so the
+    # safeguarding instruction reaches the model the same way regardless of
+    # which one is active.
+    signal_instruction = None
     if signal:
-        system += safeguarding.coach_instruction(signal)
+        signal_instruction = safeguarding.coach_instruction(signal)
         app.logger.info("safeguarding signal: %s/%s", signal["severity"], signal["category"])
 
     try:
-        reply = llm.chat(system, messages)
-    except llm.LLMError as err:
+        if LLM_ENGINE == "agent":
+            # coach_agent builds its own system prompt (guardrails +
+            # homeostasis + persona, same building blocks as coach.py) and
+            # fetches its own context via tools instead of the client-
+            # supplied `ctx` blob — see coach_agent.py's module docstring.
+            reply = coach_agent.run(
+                slug, current_user_id(), messages,
+                scenario=scenario_ctx, extra_system=signal_instruction,
+            )
+        else:
+            system = (coach.build_decision_prompt(slug, context=ctx, scenario=scenario_ctx)
+                      if scenario_ctx else coach.build_system_prompt(slug, context=ctx))
+            if signal_instruction:
+                system += signal_instruction
+            reply = llm.chat(system, messages)
+    except (llm.LLMError, coach_agent.AgentUnavailable) as err:
         # Never leak provider/key details to the client; log server-side.
-        app.logger.warning("LLM error: %s", err)
+        app.logger.warning("LLM error (%s engine): %s", LLM_ENGINE, err)
         # A safeguarding signal must still reach the person even if the model
         # is unavailable — this is the one path that cannot silently fail.
         if signal:
@@ -1310,7 +1334,7 @@ def chat_info():
         or _os.environ.get("OPENAI_API_KEY")
         or _os.environ.get("GOOGLE_API_KEY")
     )
-    return jsonify({"enabled": key_present, "provider": provider})
+    return jsonify({"enabled": key_present, "provider": provider, "engine": LLM_ENGINE})
 
 
 # ---------------------------------------------------------------- errors

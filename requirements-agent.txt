@@ -1,0 +1,15 @@
+# Only needed for LLM_ENGINE=agent (coach_agent.py) — the default "direct"
+# engine (coach.py + llm.py) doesn't import any of this, so it stays out of
+# the base requirements.txt the same way the openai/gemini SDKs do.
+#
+#   pip install -r requirements-agent.txt
+#   LLM_ENGINE=agent python server.py
+#
+# Note: langchain-anthropic pulls in a newer `anthropic` SDK than the
+# requirements.txt pin (0.119.0 -> 0.120.2 as of this writing). llm.py's
+# direct-engine usage only calls the stable client.messages.create() API and
+# has been tested against the newer version with no changes needed, but if
+# you install both requirement files into the same environment, `anthropic`
+# will end up at whatever langchain-anthropic resolves to, not the pin below.
+langchain==1.3.14
+langchain-anthropic==1.5.3
