@@ -192,5 +192,133 @@ class ChatRouteAgentEngineTests(unittest.TestCase):
         self.assertEqual(data["safeguarding"]["severity"], "crisis")
 
 
+class ToolCallLoggingTests(unittest.TestCase):
+    """The queryable trace requirement: every tool call must land in
+    agent_tool_calls, both on success and on failure, without needing a
+    working LLM to produce them -- these drive the logger's callback
+    methods directly, the same events LangChain itself would fire."""
+
+    def test_db_round_trip(self):
+        run_id = str(uuid.uuid4())
+        db.log_agent_tool_call(run_id, None, PERSONA, "get_my_profile", {"x": 1}, "archetype: steady_saver", "ok")
+        rows = db.get_recent_agent_tool_calls(limit=200)
+        matching = [r for r in rows if r["run_id"] == run_id]
+        self.assertEqual(len(matching), 1)
+        self.assertEqual(matching[0]["tool_name"], "get_my_profile")
+        self.assertEqual(matching[0]["status"], "ok")
+
+    def test_db_round_trip_error(self):
+        run_id = str(uuid.uuid4())
+        db.log_agent_tool_call(run_id, None, PERSONA, "get_my_goals", None, None, "error", error_message="boom")
+        rows = db.get_recent_agent_tool_calls(limit=200)
+        matching = [r for r in rows if r["run_id"] == run_id]
+        self.assertEqual(matching[0]["status"], "error")
+        self.assertEqual(matching[0]["error_message"], "boom")
+
+    @unittest.skipUnless(_HAS_LANGCHAIN, "langchain not installed")
+    def test_logger_writes_a_row_on_tool_success(self):
+        ToolCallLogger = coach_agent._tool_call_logger_class()
+        run_id = str(uuid.uuid4())
+        logger = ToolCallLogger(run_id, None, PERSONA)
+        fake_lc_run_id = uuid.uuid4()
+        logger.on_tool_start({"name": "get_my_goals"}, "{}", run_id=fake_lc_run_id, inputs={})
+        logger.on_tool_end("No goals saved yet.", run_id=fake_lc_run_id)
+
+        rows = db.get_recent_agent_tool_calls(limit=200)
+        matching = [r for r in rows if r["run_id"] == run_id]
+        self.assertEqual(len(matching), 1)
+        self.assertEqual(matching[0]["tool_name"], "get_my_goals")
+        self.assertEqual(matching[0]["tool_output"], "No goals saved yet.")
+        self.assertEqual(matching[0]["status"], "ok")
+
+    @unittest.skipUnless(_HAS_LANGCHAIN, "langchain not installed")
+    def test_logger_writes_a_row_on_tool_error(self):
+        ToolCallLogger = coach_agent._tool_call_logger_class()
+        run_id = str(uuid.uuid4())
+        logger = ToolCallLogger(run_id, None, PERSONA)
+        fake_lc_run_id = uuid.uuid4()
+        logger.on_tool_start({"name": "search_research_notes"}, "{}", run_id=fake_lc_run_id, inputs={"query": "x"})
+        logger.on_tool_error(RuntimeError("index missing"), run_id=fake_lc_run_id)
+
+        rows = db.get_recent_agent_tool_calls(limit=200)
+        matching = [r for r in rows if r["run_id"] == run_id]
+        self.assertEqual(matching[0]["status"], "error")
+        self.assertEqual(matching[0]["error_message"], "index missing")
+
+    @unittest.skipUnless(_HAS_LANGCHAIN, "langchain not installed")
+    def test_logging_failure_does_not_raise(self):
+        """A telemetry write failing must never be visible to the caller --
+        the whole point of catching broadly inside the logger."""
+        ToolCallLogger = coach_agent._tool_call_logger_class()
+        logger = ToolCallLogger(str(uuid.uuid4()), None, PERSONA)
+        with unittest.mock.patch.object(db, "log_agent_tool_call", side_effect=RuntimeError("db down")):
+            logger.on_tool_start({"name": "get_my_goals"}, "{}", run_id=uuid.uuid4(), inputs={})
+            logger.on_tool_end("ok", run_id=list(logger._pending.keys())[0])  # should not raise
+
+
+@unittest.skipUnless(_HAS_LANGCHAIN, "langchain not installed")
+class ToolDegradesOnDbFailureTests(unittest.TestCase):
+    """The other half of graceful degradation: if the underlying db call
+    itself raises, the tool must still return a plain string, not propagate
+    -- verified against a real, seeded, signed-in user (not user_id=None,
+    which already short-circuits before ever calling db.*)."""
+
+    def setUp(self):
+        from langchain_core.tools import tool
+
+        email = f"agent-degrade-{uuid.uuid4().hex[:12]}@example.com"
+        client = server.app.test_client()
+        signup = client.post("/api/auth/signup", json={"email": email, "password": "testpass123"})
+        self.assertEqual(signup.status_code, 200)
+        with client.session_transaction() as sess:
+            self.uid = sess["user_id"]
+        self.tools = {t.name: t for t in coach_agent._build_tools(self.uid, tool)}
+
+    def test_profile_tool_survives_a_db_exception(self):
+        with unittest.mock.patch.object(db, "get_user_profile", side_effect=RuntimeError("db unavailable")):
+            result = self.tools["get_my_profile"].invoke({})
+        self.assertIn("Couldn't look up their profile", result)
+
+    def test_decisions_tool_survives_a_db_exception(self):
+        with unittest.mock.patch.object(db, "get_wellbeing_history", side_effect=RuntimeError("db unavailable")):
+            result = self.tools["get_my_recent_decisions"].invoke({})
+        self.assertIn("Couldn't look up their decision history", result)
+
+    def test_goals_tool_survives_a_db_exception(self):
+        with unittest.mock.patch.object(db, "get_user_goals", side_effect=RuntimeError("db unavailable")):
+            result = self.tools["get_my_goals"].invoke({})
+        self.assertIn("Couldn't look up their goals", result)
+
+
+class AdminToolCallEndpointTests(unittest.TestCase):
+    def setUp(self):
+        self.client = server.app.test_client()
+        email = f"admin-toolcalls-{uuid.uuid4().hex[:12]}@example.com"
+        signup = self.client.post("/api/auth/signup", json={"email": email, "password": "testpass123"})
+        self.assertEqual(signup.status_code, 200)
+        with self.client.session_transaction() as sess:
+            self.uid = sess["user_id"]
+
+    def test_forbidden_for_non_admin(self):
+        response = self.client.get("/api/admin/agent-tool-calls")
+        self.assertEqual(response.status_code, 403)
+
+    def test_forbidden_when_anonymous(self):
+        anon = server.app.test_client()
+        response = anon.get("/api/admin/agent-tool-calls")
+        self.assertEqual(response.status_code, 403)
+
+    def test_returns_recent_calls_for_admin(self):
+        with db._conn() as conn:
+            conn.cursor().execute(f"UPDATE users SET is_admin = 1 WHERE id = {db._ph(1)}", (self.uid,))
+        run_id = str(uuid.uuid4())
+        db.log_agent_tool_call(run_id, self.uid, PERSONA, "get_my_goals", None, "No goals saved yet.", "ok")
+
+        response = self.client.get("/api/admin/agent-tool-calls")
+        self.assertEqual(response.status_code, 200)
+        calls = response.get_json()["calls"]
+        self.assertTrue(any(c["run_id"] == run_id for c in calls))
+
+
 if __name__ == "__main__":
     unittest.main()

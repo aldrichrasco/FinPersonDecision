@@ -28,6 +28,21 @@ answer in the app's actual sources instead of the model's parametric
 knowledge alone (which, for citations specifically, is exactly where a
 model is most likely to confabulate a plausible-sounding reference).
 
+Every tool call is logged to the agent_tool_calls table (db.py) via a
+LangChain callback handler (ToolCallLogger below) — not by editing each
+tool body, so logging can't drift out of sync as tools are added or
+changed. This is the queryable trace that makes "the model decided to
+check X before answering" a demonstrable fact rather than a claim: see
+get_recent_agent_tool_calls() / GET /api/admin/agent-tool-calls.
+
+Each tool also wraps its own body in try/except, independent of the
+logger — a tool raising must degrade to a returned string the model can
+still respond around, not an exception that aborts the whole turn. This
+is deliberately not left to the framework's default error handling: a
+direct test confirmed a tool exception still propagates out of
+agent.invoke() and would end the conversation with a 503 unless each
+tool catches its own failures explicitly.
+
 Setup:
     pip install -r requirements-agent.txt
     python -m rag.build_index   # builds rag/chroma_db/ — one-time, or after
@@ -68,6 +83,61 @@ def _require_langchain():
     return create_agent, ChatAnthropic, tool
 
 
+def _tool_call_logger_class():
+    """LangChain's BaseCallbackHandler is itself behind the lazy import
+    (langchain_core), so this is built the same way _require_langchain()
+    builds everything else — a factory, not a module-level class, so
+    importing coach_agent.py never requires langchain to be installed."""
+    from langchain_core.callbacks import BaseCallbackHandler
+
+    class ToolCallLogger(BaseCallbackHandler):
+        """Writes every tool call this run makes to agent_tool_calls
+        (db.py) — start, end, and error are three separate LangChain
+        callback events, so on_tool_start stashes the input and the actual
+        row is written on whichever of on_tool_end / on_tool_error fires.
+        A logging failure must never break the conversation either, so
+        every write is its own try/except, silently dropped on failure —
+        losing one trace row is fine; crashing the chat over telemetry is
+        not."""
+
+        def __init__(self, run_id, user_id, persona):
+            self.run_id = run_id
+            self.user_id = user_id
+            self.persona = persona
+            self._pending = {}  # run_id (LangChain's, per-tool-call) -> (tool_name, input)
+
+        def on_tool_start(self, serialized, input_str, *, run_id, **kwargs):
+            name = (serialized or {}).get("name", "unknown_tool")
+            self._pending[run_id] = (name, kwargs.get("inputs", input_str))
+
+        def on_tool_end(self, output, *, run_id, **kwargs):
+            name, tool_input = self._pending.pop(run_id, ("unknown_tool", None))
+            # Inside the full agent graph (as opposed to invoking a bare
+            # tool directly), `output` is the ToolMessage the graph wraps
+            # the return value in, not the plain string the tool returned —
+            # unwrap it so the log stores what the tool actually said.
+            content = getattr(output, "content", output)
+            try:
+                db.log_agent_tool_call(
+                    self.run_id, self.user_id, self.persona, name,
+                    tool_input, content, status="ok",
+                )
+            except Exception:  # noqa: BLE001 — telemetry must never break the chat
+                pass
+
+        def on_tool_error(self, error, *, run_id, **kwargs):
+            name, tool_input = self._pending.pop(run_id, ("unknown_tool", None))
+            try:
+                db.log_agent_tool_call(
+                    self.run_id, self.user_id, self.persona, name,
+                    tool_input, None, status="error", error_message=str(error),
+                )
+            except Exception:  # noqa: BLE001
+                pass
+
+    return ToolCallLogger
+
+
 def _build_tools(user_id, tool_decorator):
     """Tools closed over this request's authenticated user_id, so the model
     can only ever look up the person it's actually talking to — there is no
@@ -80,15 +150,18 @@ def _build_tools(user_id, tool_decorator):
         archetype from their most recent quiz/assessment. Call this if you
         need to know their archetype or a specific axis score to answer
         what they're asking — not for generic small talk."""
-        profile = db.get_user_profile(user_id) if user_id else None
-        if not profile or not isinstance(profile.get("profile"), dict):
-            return "No saved profile yet — they haven't taken the quiz, or aren't signed in."
-        axes = profile["profile"]
-        lines = [f"archetype: {profile.get('archetype') or 'not yet matched'}"]
-        lines += [f"{axis}: {round(v)}/100" for axis, v in axes.items()]
-        if profile.get("capability") is not None:
-            lines.append(f"capability index: {round(profile['capability'])}/100")
-        return "; ".join(lines)
+        try:
+            profile = db.get_user_profile(user_id) if user_id else None
+            if not profile or not isinstance(profile.get("profile"), dict):
+                return "No saved profile yet — they haven't taken the quiz, or aren't signed in."
+            axes = profile["profile"]
+            lines = [f"archetype: {profile.get('archetype') or 'not yet matched'}"]
+            lines += [f"{axis}: {round(v)}/100" for axis, v in axes.items()]
+            if profile.get("capability") is not None:
+                lines.append(f"capability index: {round(profile['capability'])}/100")
+            return "; ".join(lines)
+        except Exception:  # noqa: BLE001 — a tool failure must degrade, not abort the turn
+            return "Couldn't look up their profile right now."
 
     @tool_decorator
     def get_my_recent_decisions(count: int = 5) -> str:
@@ -96,16 +169,19 @@ def _build_tools(user_id, tool_decorator):
         wellbeing score and zone (breakdown / homeostasis / distortion)
         after each one. Call this if they ask about a recent decision, a
         pattern in their choices, or how their numbers have been moving."""
-        if not user_id:
-            return "Not signed in — no server-side decision history available."
-        history = db.get_wellbeing_history(user_id)
-        if not history:
-            return "No recorded decisions yet."
-        recent = history[-max(1, min(count, 20)):]
-        return "; ".join(
-            f"wellbeing {round(h['wellbeing'])}, {h['zone'] or 'unknown zone'}"
-            for h in recent
-        )
+        try:
+            if not user_id:
+                return "Not signed in — no server-side decision history available."
+            history = db.get_wellbeing_history(user_id)
+            if not history:
+                return "No recorded decisions yet."
+            recent = history[-max(1, min(count, 20)):]
+            return "; ".join(
+                f"wellbeing {round(h['wellbeing'])}, {h['zone'] or 'unknown zone'}"
+                for h in recent
+            )
+        except Exception:  # noqa: BLE001
+            return "Couldn't look up their decision history right now."
 
     @tool_decorator
     def get_my_axis_consistency() -> str:
@@ -113,30 +189,36 @@ def _build_tools(user_id, tool_decorator):
         behavioural axis — low variance means they behave the same way each
         time on that axis, high variance means erratic. Call this if they
         ask whether they're being consistent, or which area is shakiest."""
-        if not user_id:
-            return "Not signed in — no server-side consistency data available."
-        consistency = db.get_axis_consistency(user_id)
-        if not consistency:
-            return "Not enough axis-tagged decisions yet to compute this."
-        return "; ".join(
-            f"{axis}: {v['count']} decisions, avg wellbeing {v['avg_wellbeing']}, variance {v['variance']}"
-            for axis, v in consistency.items()
-        )
+        try:
+            if not user_id:
+                return "Not signed in — no server-side consistency data available."
+            consistency = db.get_axis_consistency(user_id)
+            if not consistency:
+                return "Not enough axis-tagged decisions yet to compute this."
+            return "; ".join(
+                f"{axis}: {v['count']} decisions, avg wellbeing {v['avg_wellbeing']}, variance {v['variance']}"
+                for axis, v in consistency.items()
+            )
+        except Exception:  # noqa: BLE001
+            return "Couldn't compute axis consistency right now."
 
     @tool_decorator
     def get_my_goals() -> str:
         """Look up the user's stated financial goals and whether each is
         marked done. Call this if they mention a goal or ask about progress
         toward one."""
-        if not user_id:
-            return "Not signed in — no saved goals available."
-        goals = db.get_user_goals(user_id)
-        if not goals:
-            return "No goals saved yet."
-        return "; ".join(
-            f"{g.get('title', 'untitled')}{' (done)' if g.get('done') else ''}"
-            for g in goals if isinstance(g, dict)
-        ) or "No goals saved yet."
+        try:
+            if not user_id:
+                return "Not signed in — no saved goals available."
+            goals = db.get_user_goals(user_id)
+            if not goals:
+                return "No goals saved yet."
+            return "; ".join(
+                f"{g.get('title', 'untitled')}{' (done)' if g.get('done') else ''}"
+                for g in goals if isinstance(g, dict)
+            ) or "No goals saved yet."
+        except Exception:  # noqa: BLE001
+            return "Couldn't look up their goals right now."
 
     @tool_decorator
     def search_research_notes(query: str) -> str:
@@ -155,6 +237,8 @@ def _build_tools(user_id, tool_decorator):
             results = rag_search(query, k=3)
         except IndexNotBuilt as err:
             return str(err)
+        except Exception:  # noqa: BLE001
+            return "Couldn't search research notes right now."
         if not results:
             return "No matching research notes found."
         return "\n".join(f"- ({r['source']}) {r['title']}: {r['text']}" for r in results)
@@ -213,7 +297,10 @@ def run(slug, user_id, messages, scenario=None, extra_system=None):
     AgentUnavailable for the caller to degrade on — same contract as
     llm.LLMError, so server.py's existing except block covers both engines.
     """
+    import uuid
+
     create_agent, ChatAnthropic, tool_decorator = _require_langchain()
+    ToolCallLogger = _tool_call_logger_class()
 
     system_prompt = _system_prompt(slug, scenario=scenario)
     if system_prompt is None:
@@ -229,8 +316,10 @@ def run(slug, user_id, messages, scenario=None, extra_system=None):
     model = ChatAnthropic(model=_AGENT_MODEL, api_key=key, max_tokens=_MAX_TOKENS)
     agent = create_agent(model, tools=tools, system_prompt=system_prompt)
 
+    run_id = str(uuid.uuid4())
+    logger = ToolCallLogger(run_id, user_id, slug)
     try:
-        result = agent.invoke({"messages": messages})
+        result = agent.invoke({"messages": messages}, config={"callbacks": [logger]})
     except Exception as err:  # noqa: BLE001 — any provider/network failure degrades the same way
         raise AgentUnavailable(f"agent run failed: {err}") from err
 

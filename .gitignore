@@ -4,6 +4,7 @@
 __pycache__/
 *.pyc
 finperson.db
+finperson_demo.db
 backups/
 .DS_Store
 .claude/settings.local.json

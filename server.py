@@ -329,6 +329,19 @@ def admin_stats():
     return jsonify(db.admin_stats())
 
 
+@app.route("/api/admin/agent-tool-calls")
+def admin_agent_tool_calls():
+    """Queryable trace of the coaching agent's (LLM_ENGINE=agent) tool use —
+    see coach_agent.py's ToolCallLogger. This is what turns "the model
+    decides which tool to call" into a demonstrable fact: every row here is
+    a real call, in order, grouped by run_id per conversation turn."""
+    uid = current_user_id()
+    if not uid or not db.is_admin(uid):
+        return jsonify({"error": "forbidden"}), 403
+    limit = min(200, max(1, request.args.get("limit", 50, type=int) or 50))
+    return jsonify({"calls": db.get_recent_agent_tool_calls(limit=limit)})
+
+
 # ---------------------------------------------------------------- GDPR
 
 @app.route("/api/me/export")
