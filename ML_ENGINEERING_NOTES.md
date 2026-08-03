@@ -44,8 +44,48 @@ org — see git history), but everything downstream of that decision is real
 and unmodified from the production code path. Swapping in a working key
 requires no code changes to this script.
 
-Tests: `tests/test_chat_agent.py` (27 tests — tool logic, logging, graceful
-degradation, admin endpoint), `tests/test_rag.py` (6 tests — retrieval).
+Tests: `tests/test_chat_agent.py` (28 tests — tool logic, logging, graceful
+degradation, admin endpoint, recursion limit), `tests/test_rag.py` (6 tests
+— retrieval).
+
+### Deploy-readiness — closed 3 of the 6 blockers identified when asked
+"what's preventing this from being production ready":
+
+1. ~~Dead `ANTHROPIC_API_KEY`~~ — **not fixable from here**, still open.
+   The org tied to the leaked key is disabled; needs manual resolution at
+   console.anthropic.com, then the new key set in Railway's env vars.
+2. ~~`requirements-agent.txt` never installed on Railway~~ — **fixed**.
+   `nixpacks.toml`'s install phase now installs both requirement files, so
+   `LLM_ENGINE=agent` can be turned on via a Railway env var alone, no
+   redeploy needed to add the dependency. Tradeoff: larger image / slower
+   build even while the agent engine stays off, documented inline.
+3. ~~RAG index has no production home~~ — **fixed**. Restructured the
+   build so it no longer needs Node at deploy time: `rag/build_corpus.js`
+   is now a dev-time step whose output (`rag/corpus_js.json`) is committed
+   to git, and `rag/build_index.py` reads that committed snapshot rather
+   than shelling out to Node. `nixpacks.toml`'s build phase runs
+   `python -m rag.build_index`, baking the index (and the embedding
+   model's one-time download) into the deployed image instead of a live
+   request's cold start.
+4. ~~Never tested against the real model~~ — **still open**, blocked on
+   (1). `demo_agent_trace.py` proves everything downstream of the model's
+   tool-call decision; the decision itself needs a real key to verify.
+5. ~~No bound on the tool-calling loop~~ — **fixed**. `agent.invoke()` now
+   sets an explicit `recursion_limit` (`AGENT_RECURSION_LIMIT` env var,
+   default 15 — roughly 5-7 tool calls' worth of headroom). Verified two
+   ways: a real `GraphRecursionError` from an intentionally-looping fake
+   model gets caught by the existing `AgentUnavailable` handling, and a
+   mocked `create_agent` confirms the configured limit is what actually
+   reaches `.invoke()`, not just a defined-but-unused constant.
+6. No monitoring beyond `app.logger.warning()` — **still open**, not
+   started. Lowest priority of the six; nothing to alert on until (1)/(4)
+   land and the agent engine is actually live for real traffic.
+
+None of 2/3/5 have been verified against a real Railway deploy — I don't
+have deploy access. They're correct as far as local testing can confirm
+(nixpacks.toml's syntax, `rag.build_index` running clean, the recursion
+limit actually reaching `.invoke()`); treat the next real Railway deploy as
+the first real verification of the build config specifically.
 
 ## 2. Predictive Models on Product Data — in progress
 

@@ -9,23 +9,38 @@ Sources (three, all real, none fabricated for this exercise):
   3. PAPER.md                   — the design-science paper behind this app,
                                    chunked by section
 
-(1) and (2) are pulled via rag/build_corpus.js — see that file's docstring
-for why this goes through Node rather than a hand-copied Python duplicate.
+(1) and (2) are pulled via rag/build_corpus.js into the CHECKED-IN snapshot
+rag/corpus_js.json — see that file's docstring for why Node stays a dev-time
+step rather than a hand-copied Python duplicate. This module deliberately
+does NOT shell out to Node itself: Railway's Python-only build container has
+no Node runtime, and this script runs as a build-time step there (see
+nixpacks.toml) to bake the index into the deployed image rather than
+building it — including a ~130MB model download — on a live request's cold
+start. If idm.js/learn.js content changes, run `node rag/build_corpus.js`
+and commit the updated corpus_js.json; this script will otherwise keep
+embedding whatever snapshot is already on disk, silently, which is the
+correct tradeoff for a deploy step (deterministic, no network call to
+Node-land) but means a content edit with no re-run + recommit is a real way
+for the index to go stale — there's no drift *detection* here, only a
+drift-proof build once you remember the two-step workflow.
 
 Run (from the repo root, as a module so the `rag.*` package imports resolve):
+    node rag/build_corpus.js      # only when idm.js/learn.js content changes
     pip install -r requirements-agent.txt
     python -m rag.build_index
 
 Rebuilds the index from scratch every run (cheap: ~50 short documents, a
 few seconds) rather than trying to diff/update in place — simpler and
 correct-by-construction, appropriate at this corpus size. Writes to
-rag/chroma_db/, which is gitignored (a build artifact, not source).
+rag/chroma_db/, which is gitignored (a build artifact, not source) but IS
+produced automatically during the Railway build (nixpacks.toml), so it's
+part of the deployed image rather than missing until someone remembers to
+build it.
 """
 
 import json
 import os
 import re
-import subprocess
 
 from rag.embeddings import FastEmbedEmbeddings
 
@@ -37,10 +52,13 @@ COLLECTION_NAME = "finperson_research_notes"
 
 
 def _load_js_documents():
-    """Regenerates corpus_js.json fresh every build (via Node) rather than
-    trusting a possibly-stale copy on disk — this is what guarantees the
-    index can never silently drift from idm.js/learn.js's actual content."""
-    subprocess.run(["node", os.path.join(RAG_DIR, "build_corpus.js")], check=True)
+    """Reads the committed corpus_js.json snapshot — see this module's
+    docstring for why this doesn't regenerate it via Node at build time."""
+    if not os.path.exists(CORPUS_JS_PATH):
+        raise FileNotFoundError(
+            f"{CORPUS_JS_PATH} not found — run `node rag/build_corpus.js` first "
+            "and commit the result."
+        )
     with open(CORPUS_JS_PATH, encoding="utf-8") as f:
         return json.load(f)
 

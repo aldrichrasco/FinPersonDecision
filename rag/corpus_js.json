@@ -1,0 +1,164 @@
+[
+  {
+    "id": "belief:catch_up_later",
+    "source": "idm.js",
+    "title": "Belief: I can catch up later",
+    "text": "Money belief: \"I can catch up later\". The stance: Shortfalls now can be recovered later without compounding cost. What contradicts it: Deferred costs recur or accrue, and the gap widens rather than closes. People don't just prefer rewards now over rewards later — they systematically prefer to bear a cost 'next period' rather than this one, no matter which period is actually current. That's why 'later' rarely arrives: once later becomes now, the same preference pushes the cost forward again. Source: O'Donoghue & Rabin (1999) on present-biased preferences and why 'later' keeps losing to 'now.'"
+  },
+  {
+    "id": "belief:credit_is_free",
+    "source": "idm.js",
+    "title": "Belief: Credit is free if I clear it",
+    "text": "Money belief: \"Credit is free if I clear it\". The stance: Borrowing is costless provided the balance is repaid. What contradicts it: Credit shifts fragility forward even when repaid, and repayment intentions frequently fail. Spending hurts less when the payment is decoupled from the purchase — the 'pain of paying' is a real, measurable psychological cost, and credit is specifically designed to defer and soften it. The bill still arrives; the discomfort that would normally make you hesitate just doesn't. Source: Prelec & Loewenstein (1998) on how payment method decouples the cost of spending from the pain of paying."
+  },
+  {
+    "id": "belief:more_saved_is_better",
+    "source": "idm.js",
+    "title": "Belief: More saved is always better",
+    "text": "Money belief: \"More saved is always better\". The stance: Accumulation is monotonically good; spending is always a loss. What contradicts it: Beyond a point, accumulation costs present life without adding security. There's a documented mirror image of overspending regret: 'hyperopia,' where people who denied themselves too consistently come to regret the missed present just as much as impulsive spenders regret their splurges. Saving isn't the failure mode this belief assumes has no ceiling. Source: Kivetz & Keinan (2006) on 'hyperopia' — regretting excessive self-denial as much as excessive indulgence."
+  },
+  {
+    "id": "belief:id_notice",
+    "source": "idm.js",
+    "title": "Belief: I'd notice if things got bad",
+    "text": "Money belief: \"I'd notice if things got bad\". The stance: Deterioration would be obvious enough to act on in time. What contradicts it: Decline is gradual and attention is what erodes first. Investors check their portfolios measurably less often specifically when markets are down — the exact moment 'I'd notice' is supposed to kick in. The belief fails precisely when it would matter most, because attention itself is what erodes under stress, not just resolve. Source: Karlsson, Loewenstein & Seppi (2009) on the 'ostrich effect' — selectively avoiding information when things may be bad."
+  },
+  {
+    "id": "belief:this_time_different",
+    "source": "idm.js",
+    "title": "Belief: This time is different",
+    "text": "Money belief: \"This time is different\". The stance: The usual pattern doesn't apply to this particular case. What contradicts it: The pattern recurs across surfaces that look unrelated. A review of eight centuries of financial crises found the same belief — that this instance is structurally exempt from the usual pattern — showing up right before nearly all of them. The belief isn't a sign of unique circumstances; it's one of the most reliable warning signs there is. Source: Reinhart & Rogoff (2009), \"This Time Is Different\" — eight centuries of the same belief preceding the same kind of trouble."
+  },
+  {
+    "id": "belief:others_first",
+    "source": "idm.js",
+    "title": "Belief: Others' needs come before my base",
+    "text": "Money belief: \"Others' needs come before my base\". The stance: Giving should not be constrained by one's own provisioning. What contradicts it: A depleted base reduces the capacity to help at all. Giving produces its own immediate, genuine good feeling — a 'warm glow' distinct from the actual outcome for the person you're helping. That feeling is real, but it isn't a signal about whether the giving is sustainable; it fires the same way whether or not your own base can absorb it. Source: Andreoni (1990) on warm-glow giving — the immediate good feeling of giving doesn't track whether it's sustainable."
+  },
+  {
+    "id": "belief:waiting_is_safe",
+    "source": "idm.js",
+    "title": "Belief: Not deciding is the safe option",
+    "text": "Money belief: \"Not deciding is the safe option\". The stance: Inaction avoids risk. What contradicts it: Inaction is a decision with its own compounding cost. Across many kinds of decisions, people disproportionately stick with whatever the current default is — even when it's demonstrably worse than the alternative — and experience that persistence as caution rather than as a choice. Not deciding is still a decision; it just doesn't feel like one. Source: Samuelson & Zeckhauser (1988) on status quo bias — a strong, general preference for inaction regardless of its actual cost."
+  },
+  {
+    "id": "axis-research:impulse_regulation",
+    "source": "learn.js",
+    "title": "Research grounding: impulse regulation",
+    "text": "impulse regulation. The theory page cites the same underlying research for this axis: Mischel & Ebbesen (1970); Thaler (1985)."
+  },
+  {
+    "id": "lesson:impulse_regulation:0",
+    "source": "learn.js",
+    "title": "Why a pause works",
+    "text": "Lesson on impulse regulation — \"Why a pause works\": A short, deliberate delay between wanting something and buying it — sometimes called a 'cooling-off' window — is one of the most studied tools for reducing regretted purchases. It works because the emotional pull behind an impulse buy fades measurably within a day or two, while a genuine need doesn't."
+  },
+  {
+    "id": "lesson:impulse_regulation:1",
+    "source": "learn.js",
+    "title": "Making the pause automatic",
+    "text": "Lesson on impulse regulation — \"Making the pause automatic\": Rather than relying on willpower in the moment, many people build the pause into their environment: a saved cart instead of an instant checkout, a shared account that needs a second look, or simply naming the rule ('anything over X waits 24 hours') in advance so there's no decision to make when tempted."
+  },
+  {
+    "id": "axis-research:risk_disposition",
+    "source": "learn.js",
+    "title": "Research grounding: risk disposition",
+    "text": "risk disposition. The theory page cites the same underlying research for this axis: Kahneman & Tversky (1979); Pinjisakikool (2018)."
+  },
+  {
+    "id": "lesson:risk_disposition:0",
+    "source": "learn.js",
+    "title": "Risk tolerance vs. risk capacity",
+    "text": "Lesson on risk disposition — \"Risk tolerance vs. risk capacity\": These are two different things that are easy to mix up. Risk tolerance is how uncertainty feels to you emotionally. Risk capacity is what your actual financial situation can withstand without real harm. A useful exercise is to think through both separately before any decision involving uncertainty."
+  },
+  {
+    "id": "lesson:risk_disposition:1",
+    "source": "learn.js",
+    "title": "Diversification, in plain terms",
+    "text": "Lesson on risk disposition — \"Diversification, in plain terms\": The general principle — not spreading money so thin it does nothing, but not concentrating it so much that one bad outcome is catastrophic — shows up across every area of personal finance, from savings to larger decisions. It's a pattern worth recognizing, not a specific instruction to act on."
+  },
+  {
+    "id": "lesson:risk_disposition:2",
+    "source": "learn.js",
+    "title": "Why losses hurt more than gains help",
+    "text": "Lesson on risk disposition — \"Why losses hurt more than gains help\": Losing $100 feels worse than gaining $100 feels good — reliably, and by a wide margin. That asymmetry (loss aversion) is a huge part of why risk feels so lopsided: it's not that people are bad at math, it's that a loss and an equivalent gain are processed on different emotional scales entirely."
+  },
+  {
+    "id": "axis-research:temporal_orientation",
+    "source": "learn.js",
+    "title": "Research grounding: temporal orientation",
+    "text": "temporal orientation. The theory page cites the same underlying research for this axis: Strathman et al. (1994)."
+  },
+  {
+    "id": "lesson:temporal_orientation:0",
+    "source": "learn.js",
+    "title": "Present bias, named",
+    "text": "Lesson on temporal orientation — \"Present bias, named\": Humans are wired to weight immediate outcomes more heavily than distant ones — economists call this present bias. Recognizing it by name makes it easier to notice in the moment, rather than experiencing it as a personal failing."
+  },
+  {
+    "id": "lesson:temporal_orientation:1",
+    "source": "learn.js",
+    "title": "Making the future concrete",
+    "text": "Lesson on temporal orientation — \"Making the future concrete\": Vague future goals ('save for later') are easy to deprioritize. Specific, named goals with a rough timeline ('three months of expenses set aside by next spring') give the future version of a goal something concrete to compete with today's priorities."
+  },
+  {
+    "id": "axis-research:financial_attentiveness",
+    "source": "learn.js",
+    "title": "Research grounding: financial attentiveness",
+    "text": "financial attentiveness. The theory page cites the same underlying research for this axis: Sicherman, Loewenstein, Seppi & Utkus (2016)."
+  },
+  {
+    "id": "lesson:financial_attentiveness:0",
+    "source": "learn.js",
+    "title": "Why avoidance backfires",
+    "text": "Lesson on financial attentiveness — \"Why avoidance backfires\": Financial avoidance is well-documented: not looking feels protective in the short term but tends to let small problems grow unnoticed. The discomfort of checking is usually much smaller than the discomfort people anticipate."
+  },
+  {
+    "id": "lesson:financial_attentiveness:1",
+    "source": "learn.js",
+    "title": "A five-minute check-in",
+    "text": "Lesson on financial attentiveness — \"A five-minute check-in\": Rather than a full review, many people start with a very small recurring habit — a fixed day, a few minutes, just glancing at balances and anything due soon. Consistency matters far more than depth, especially at the start."
+  },
+  {
+    "id": "axis-research:financial_self_efficacy",
+    "source": "learn.js",
+    "title": "Research grounding: financial self efficacy",
+    "text": "financial self efficacy. The theory page cites the same underlying research for this axis: Bandura (1977); Lown (2011)."
+  },
+  {
+    "id": "lesson:financial_self_efficacy:0",
+    "source": "learn.js",
+    "title": "Self-efficacy is learned, not fixed",
+    "text": "Lesson on financial self efficacy — \"Self-efficacy is learned, not fixed\": Financial confidence (sometimes called financial self-efficacy) reliably grows with small, successful experiences — not with reading more, and not with income. Each small decision handled well tends to build the next."
+  },
+  {
+    "id": "lesson:financial_self_efficacy:1",
+    "source": "learn.js",
+    "title": "Starting smaller than feels necessary",
+    "text": "Lesson on financial self efficacy — \"Starting smaller than feels necessary\": A common trap is trying to fix everything at once, which usually stalls. Picking one small, contained decision to get right first — and noticing that it went fine — tends to build more lasting confidence than a big overhaul."
+  },
+  {
+    "id": "lesson:financial_self_efficacy:2",
+    "source": "learn.js",
+    "title": "Where confidence actually comes from",
+    "text": "Lesson on financial self efficacy — \"Where confidence actually comes from\": The psychologist who coined 'self-efficacy' identified four real sources of it, in order of strength: doing the thing yourself and succeeding, watching someone similar to you do it, being told by someone credible that you can, and how calm (versus anxious) your body feels going in. Reading about money touches none of these directly — which is why it builds less confidence than one small handled decision does."
+  },
+  {
+    "id": "axis-research:prosocial_orientation",
+    "source": "learn.js",
+    "title": "Research grounding: prosocial orientation",
+    "text": "prosocial orientation. The theory page cites the same underlying research for this axis: Dunn, Aknin & Norton (2008); Andreoni (1990)."
+  },
+  {
+    "id": "lesson:prosocial_orientation:0",
+    "source": "learn.js",
+    "title": "Intentional vs. reactive giving",
+    "text": "Lesson on prosocial orientation — \"Intentional vs. reactive giving\": Giving or helping others financially tends to feel most sustainable when it's planned rather than reactive — a rough amount decided in advance, rather than decided in the moment under social pressure. Neither more nor less giving is inherently 'better'; the research point is about intentionality."
+  },
+  {
+    "id": "lesson:prosocial_orientation:1",
+    "source": "learn.js",
+    "title": "Protecting your own floor",
+    "text": "Lesson on prosocial orientation — \"Protecting your own floor\": A useful general principle: deciding on a personal minimum — a line that stays protected regardless of others' requests — tends to make generosity more sustainable over time, rather than less generous overall."
+  }
+]

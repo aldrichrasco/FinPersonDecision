@@ -67,6 +67,28 @@ class DegradeGracefullyTests(unittest.TestCase):
     def test_unknown_persona_system_prompt_is_none(self):
         self.assertIsNone(coach_agent._system_prompt("not-a-real-persona"))
 
+    @unittest.skipUnless(_HAS_LANGCHAIN, "langchain not installed")
+    def test_recursion_limit_is_actually_passed_to_invoke(self):
+        # Proves _RECURSION_LIMIT is wired into the real call, not just a
+        # defined-but-unused constant -- mocks create_agent itself (not the
+        # model) so this needs no network access or API validity, only a
+        # syntactically-present key to get past run()'s own presence check.
+        from langchain_core.messages import AIMessage
+
+        captured = {}
+
+        class FakeCompiledGraph:
+            def invoke(self, input_, config=None):
+                captured["config"] = config
+                return {"messages": [AIMessage(content="ok")]}
+
+        with unittest.mock.patch.dict(os.environ, {"ANTHROPIC_API_KEY": "sk-ant-test-not-real"}):
+            with unittest.mock.patch("langchain.agents.create_agent", return_value=FakeCompiledGraph()):
+                reply = coach_agent.run(PERSONA, None, [{"role": "user", "content": "hi"}])
+
+        self.assertEqual(reply, "ok")
+        self.assertEqual(captured["config"]["recursion_limit"], coach_agent._RECURSION_LIMIT)
+
 
 class SystemPromptTests(unittest.TestCase):
     """Doesn't need langchain -- _system_prompt() is plain string building."""

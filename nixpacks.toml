@@ -11,3 +11,23 @@
 # never came up and the healthcheck timed out on every deploy — Railway
 # just kept serving the last build from before package.json existed.
 providers = ["python"]
+
+# Installs both requirement files so LLM_ENGINE=agent (coach_agent.py) can be
+# turned on via a Railway env var with no redeploy needed to add the
+# dependency — the tradeoff is a larger image and slower build even while
+# LLM_ENGINE stays "direct" (chromadb/langchain pull in a fair amount:
+# onnxruntime, a vendored Kubernetes client from chromadb's server-mode
+# extras that this app never uses, etc.). Worth it for now so the toggle
+# actually works the moment ANTHROPIC_API_KEY is fixed; revisit if build
+# time becomes a real problem — the leaner alternative is a lighter local
+# vector store than Chroma, not dropping requirements-agent.txt entirely.
+[phases.install]
+cmds = ["pip install -r requirements.txt -r requirements-agent.txt"]
+
+# Bakes the RAG index into the deployed image at build time rather than
+# building it (including fastembed's ~130MB model download) on a live
+# request's cold start, or worse, needing a persistent volume Railway isn't
+# currently configured with. See rag/build_index.py's docstring for the
+# corpus_js.json workflow this depends on.
+[phases.build]
+cmds = ["python -m rag.build_index"]

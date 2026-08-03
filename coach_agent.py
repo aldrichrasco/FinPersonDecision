@@ -62,6 +62,17 @@ import db
 _AGENT_MODEL = os.environ.get("LLM_MODEL", "claude-haiku-4-5-20251001")
 _MAX_TOKENS = int(os.environ.get("LLM_MAX_TOKENS", "400"))
 
+# LangGraph's create_agent has no product-chosen bound on this by default —
+# it runs on the library's own implicit recursion_limit, not a number picked
+# for this app. Each model turn and each tool execution is one graph step,
+# so 15 gives headroom for roughly 5-7 tool calls in a single reply before
+# the run is cut off — generous for a coach that's meant to call 0-2 tools
+# per turn (see _system_prompt's "not on every turn" instruction), but a
+# real ceiling on the worst case: a conversation that somehow induces
+# excessive back-and-forth tool calling has a bounded cost and latency
+# instead of an open-ended one.
+_RECURSION_LIMIT = int(os.environ.get("AGENT_RECURSION_LIMIT", "15"))
+
 
 class AgentUnavailable(Exception):
     """Raised when the agent can't run for any reason — package not
@@ -319,7 +330,10 @@ def run(slug, user_id, messages, scenario=None, extra_system=None):
     run_id = str(uuid.uuid4())
     logger = ToolCallLogger(run_id, user_id, slug)
     try:
-        result = agent.invoke({"messages": messages}, config={"callbacks": [logger]})
+        result = agent.invoke(
+            {"messages": messages},
+            config={"callbacks": [logger], "recursion_limit": _RECURSION_LIMIT},
+        )
     except Exception as err:  # noqa: BLE001 — any provider/network failure degrades the same way
         raise AgentUnavailable(f"agent run failed: {err}") from err
 
