@@ -150,3 +150,11 @@ function learnStatusForAxis(key, value) {
   if (value <= 33) return "growth";
   return "balanced";
 }
+
+// Node-only export (no-op in the browser) — lets rag/build_index.py pull the
+// real lesson/citation content straight from its one source of truth instead
+// of a hand-copied, driftable duplicate. learn.html never has `module`, so
+// this never runs client-side.
+if (typeof module !== "undefined" && module.exports) {
+  module.exports = { LEARN_CONTENT };
+}

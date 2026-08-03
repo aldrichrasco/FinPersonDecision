@@ -20,8 +20,18 @@ same deterministic Python check in server.py that always runs before either
 engine, direct or agent, and its result is threaded into the reply the same
 way for both.
 
+A fifth tool, search_research_notes, is retrieval-augmented generation: it
+searches a local vector index (rag/) built from this app's own curated
+behavioral-finance content — idm.js's belief citations, learn.js's lesson
+research, and PAPER.md's literature review — so the coach can ground an
+answer in the app's actual sources instead of the model's parametric
+knowledge alone (which, for citations specifically, is exactly where a
+model is most likely to confabulate a plausible-sounding reference).
+
 Setup:
     pip install -r requirements-agent.txt
+    python -m rag.build_index   # builds rag/chroma_db/ — one-time, or after
+                                # editing idm.js/learn.js/PAPER.md content
 
 Enable:
     LLM_ENGINE=agent  (server.py falls back to the direct llm.py path if
@@ -128,7 +138,31 @@ def _build_tools(user_id, tool_decorator):
             for g in goals if isinstance(g, dict)
         ) or "No goals saved yet."
 
-    return [get_my_profile, get_my_recent_decisions, get_my_axis_consistency, get_my_goals]
+    @tool_decorator
+    def search_research_notes(query: str) -> str:
+        """Search this app's own curated behavioral-finance research notes —
+        the citations behind the "beliefs being tested" and the Learn
+        module's lesson content — for passages relevant to the user's
+        question. Call this when they ask why something works the way it
+        does, or reference research or psychology, so the answer can be
+        grounded in a real source from this app rather than a citation the
+        model recalls (and could get wrong) from its own training."""
+        try:
+            from rag.retriever import IndexNotBuilt, search as rag_search
+        except ImportError:
+            return "Research notes search isn't set up (pip install -r requirements-agent.txt)."
+        try:
+            results = rag_search(query, k=3)
+        except IndexNotBuilt as err:
+            return str(err)
+        if not results:
+            return "No matching research notes found."
+        return "\n".join(f"- ({r['source']}) {r['title']}: {r['text']}" for r in results)
+
+    return [
+        get_my_profile, get_my_recent_decisions, get_my_axis_consistency,
+        get_my_goals, search_research_notes,
+    ]
 
 
 def _system_prompt(slug, scenario=None):
@@ -144,10 +178,14 @@ def _system_prompt(slug, scenario=None):
         f"{coach.HOMEOSTASIS_BRIEFING}"
         f"\nYOUR PERSONA: You are '{name}' — {trait}.\n{voice}\n"
         "\nYou have tools to look up this person's own saved data (profile, recent "
-        "decisions, axis consistency, goals). Use a tool when it would genuinely help "
-        "answer what they're asking — not on every turn, and never announce that you're "
-        "'checking' or 'looking something up'; just use what you find naturally, the way "
-        "a coach who already knows the person would.\n"
+        "decisions, axis consistency, goals), and a separate tool to search this app's "
+        "own research notes for the psychology behind a pattern. Use a tool when it would "
+        "genuinely help answer what they're asking — not on every turn, and never announce "
+        "that you're 'checking' or 'looking something up'; just use what you find "
+        "naturally, the way a coach who already knows the person and the material would. "
+        "If you reference a study or finding, prefer what search_research_notes returns "
+        "over your own recollection — if the tool has nothing relevant, speak generally "
+        "and do not invent a citation.\n"
         f"\nSpeak in character as {name} throughout, but never let the persona override "
         "the strict rules above."
     )

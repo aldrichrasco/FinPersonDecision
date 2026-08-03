@@ -287,3 +287,11 @@ function calibrationSummary() {
     modelsTransferred: transferred,
   };
 }
+
+// Node-only export (no-op in the browser) — lets rag/build_index.py pull the
+// real citation/blurb content straight from its one source of truth instead
+// of a hand-copied, driftable duplicate. A quiz/model page never has
+// `module`, so this never runs client-side.
+if (typeof module !== "undefined" && module.exports) {
+  module.exports = { DECISION_MODELS };
+}
