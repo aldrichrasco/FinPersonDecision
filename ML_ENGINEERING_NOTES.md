@@ -44,6 +44,18 @@ org — see git history), but everything downstream of that decision is real
 and unmodified from the production code path. Swapping in a working key
 requires no code changes to this script.
 
+**LangSmith tracing** (`coach_agent.tracing_enabled()`, opt-in via
+`LANGSMITH_TRACING=true` + `LANGSMITH_API_KEY`) — every `agent.invoke()`
+call is tagged with a run name (`coach-{persona}`), tags (persona,
+chat-mode vs. decision-mode), and metadata (signed-in, has-scenario)
+unconditionally, whether or not tracing is actually on, so there's no
+separate "remember to add tracing metadata" step once a real LangSmith key
+exists. `GET /api/chat-info` reports whether it's currently active.
+Verified directly that a bad/expired key degrades safely: LangSmith logs a
+background "Failed to multipart ingest runs" warning to stderr and the
+actual coaching reply comes through unaffected — tracing failures can't
+break the product, so this needed no `AgentUnavailable`-style gating.
+
 Tests: `tests/test_chat_agent.py` (28 tests — tool logic, logging, graceful
 degradation, admin endpoint, recursion limit), `tests/test_rag.py` (6 tests
 — retrieval).

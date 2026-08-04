@@ -15,6 +15,13 @@
 langchain==1.3.14
 langchain-anthropic==1.5.3
 
+# Pinned explicitly even though langchain-anthropic already pulls it in
+# transitively — coach_agent.py's tracing_enabled() and the LangSmith setup
+# in its module docstring depend on this being present, so it's worth
+# naming rather than leaving implicit. No account/API key ships with this;
+# see coach_agent.py's docstring for the (optional) LANGSMITH_* env vars.
+langsmith==0.10.15
+
 # RAG (search_research_notes tool, rag/): fastembed is a local, ONNX-runtime
 # embedding model (no torch, no API key — see rag/embeddings.py's docstring
 # for why local embeddings were the deliberate choice, not just a convenient

@@ -1443,7 +1443,10 @@ def chat_info():
         or _os.environ.get("OPENAI_API_KEY")
         or _os.environ.get("GOOGLE_API_KEY")
     )
-    return jsonify({"enabled": key_present, "provider": provider, "engine": LLM_ENGINE})
+    return jsonify({
+        "enabled": key_present, "provider": provider, "engine": LLM_ENGINE,
+        "tracing": coach_agent.tracing_enabled(),
+    })
 
 
 # ---------------------------------------------------------------- errors

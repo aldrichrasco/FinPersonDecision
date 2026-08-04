@@ -108,6 +108,11 @@ def main():
 
     print("Setting up a demo user with real saved goals...")
     uid = _build_demo_user()
+    print(
+        "LangSmith tracing: "
+        + ("ON — check smith.langchain.com for this run's trace" if coach_agent.tracing_enabled()
+           else "off (set LANGSMITH_TRACING=true + LANGSMITH_API_KEY to enable)")
+    )
 
     ToolCallLogger = coach_agent._tool_call_logger_class()
     tools = coach_agent._build_tools(uid, tool)

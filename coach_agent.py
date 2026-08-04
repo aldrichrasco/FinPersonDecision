@@ -43,6 +43,18 @@ direct test confirmed a tool exception still propagates out of
 agent.invoke() and would end the conversation with a 503 unless each
 tool catches its own failures explicitly.
 
+Observability: every agent.invoke() call is tagged with a run name, the
+persona, and whether a scenario is attached (see run()'s config dict
+below), and traced to LangSmith whenever LANGSMITH_TRACING=true and a
+valid LANGSMITH_API_KEY are set — the actual tool-call sequence, timing,
+and token usage per turn, viewable at smith.langchain.com, not just what
+agent_tool_calls' summary rows capture. Deliberately NOT required: with
+tracing env vars unset (the default), langsmith no-ops silently, and even
+a bad/expired key only logs a background "Failed to multipart ingest
+runs" warning to stderr — verified directly, this never blocks or breaks
+the actual reply, so there's no reason this needs to be gated behind
+AgentUnavailable the way a broken model call does.
+
 Setup:
     pip install -r requirements-agent.txt
     python -m rag.build_index   # builds rag/chroma_db/ — one-time, or after
@@ -52,6 +64,12 @@ Enable:
     LLM_ENGINE=agent  (server.py falls back to the direct llm.py path if
     this isn't set, or if langchain/langchain-anthropic aren't installed —
     see AgentUnavailable below.)
+
+Enable tracing (optional, separate from the above):
+    LANGSMITH_TRACING=true
+    LANGSMITH_API_KEY=...       # from smith.langchain.com — a real account,
+                                 # not something this code can create for you
+    LANGSMITH_PROJECT=finperson # optional, groups traces in the LangSmith UI
 """
 
 import os
@@ -61,6 +79,17 @@ import db
 
 _AGENT_MODEL = os.environ.get("LLM_MODEL", "claude-haiku-4-5-20251001")
 _MAX_TOKENS = int(os.environ.get("LLM_MAX_TOKENS", "400"))
+
+
+def tracing_enabled():
+    """Whether this run will actually be traced to LangSmith — both the
+    opt-in flag and a key have to be present; a flag with no key would
+    just produce the background-warning behavior described above, not a
+    real trace, so callers reporting status (chat_info()) should check
+    this rather than the flag alone."""
+    flag = os.environ.get("LANGSMITH_TRACING") or os.environ.get("LANGCHAIN_TRACING_V2")
+    key = os.environ.get("LANGSMITH_API_KEY") or os.environ.get("LANGCHAIN_API_KEY")
+    return bool(flag and flag.lower() == "true" and key)
 
 # LangGraph's create_agent has no product-chosen bound on this by default —
 # it runs on the library's own implicit recursion_limit, not a number picked
@@ -332,7 +361,17 @@ def run(slug, user_id, messages, scenario=None, extra_system=None):
     try:
         result = agent.invoke(
             {"messages": messages},
-            config={"callbacks": [logger], "recursion_limit": _RECURSION_LIMIT},
+            config={
+                "callbacks": [logger],
+                "recursion_limit": _RECURSION_LIMIT,
+                # Meaningless when tracing is off (LangSmith no-ops on
+                # these), but this is what makes a LangSmith trace
+                # filterable/searchable by persona or scenario-vs-plain-chat
+                # instead of an undifferentiated list of anonymous runs.
+                "run_name": f"coach-{slug}",
+                "tags": ["finperson", "coach-agent", slug, "decision-mode" if scenario else "chat-mode"],
+                "metadata": {"persona": slug, "signed_in": bool(user_id), "has_scenario": bool(scenario)},
+            },
         )
     except Exception as err:  # noqa: BLE001 — any provider/network failure degrades the same way
         raise AgentUnavailable(f"agent run failed: {err}") from err

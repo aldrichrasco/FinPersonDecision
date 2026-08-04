@@ -37,6 +37,51 @@ class ChatInfoReportsEngineTests(unittest.TestCase):
         response = self.client.get("/api/chat-info")
         self.assertEqual(response.get_json()["engine"], "direct")
 
+    def test_tracing_reported_as_disabled_by_default(self):
+        response = self.client.get("/api/chat-info")
+        self.assertFalse(response.get_json()["tracing"])
+
+
+class TracingEnabledTests(unittest.TestCase):
+    """coach_agent.tracing_enabled() -- pure env-var logic, no langchain
+    import needed, so these always run regardless of requirements-agent.txt."""
+
+    def test_false_with_no_env_vars_set(self):
+        with unittest.mock.patch.dict(os.environ):
+            for k in ("LANGSMITH_TRACING", "LANGCHAIN_TRACING_V2", "LANGSMITH_API_KEY", "LANGCHAIN_API_KEY"):
+                os.environ.pop(k, None)
+            self.assertFalse(coach_agent.tracing_enabled())
+
+    def test_false_with_flag_but_no_key(self):
+        with unittest.mock.patch.dict(os.environ, {"LANGSMITH_TRACING": "true"}):
+            os.environ.pop("LANGSMITH_API_KEY", None)
+            os.environ.pop("LANGCHAIN_API_KEY", None)
+            self.assertFalse(coach_agent.tracing_enabled())
+
+    def test_false_with_key_but_no_flag(self):
+        with unittest.mock.patch.dict(os.environ, {"LANGSMITH_API_KEY": "lsv2_fake"}):
+            os.environ.pop("LANGSMITH_TRACING", None)
+            os.environ.pop("LANGCHAIN_TRACING_V2", None)
+            self.assertFalse(coach_agent.tracing_enabled())
+
+    def test_true_with_both_flag_and_key(self):
+        with unittest.mock.patch.dict(
+            os.environ, {"LANGSMITH_TRACING": "true", "LANGSMITH_API_KEY": "lsv2_fake"}
+        ):
+            self.assertTrue(coach_agent.tracing_enabled())
+
+    def test_accepts_the_legacy_langchain_prefixed_var_names(self):
+        with unittest.mock.patch.dict(
+            os.environ, {"LANGCHAIN_TRACING_V2": "true", "LANGCHAIN_API_KEY": "lsv2_fake"}
+        ):
+            self.assertTrue(coach_agent.tracing_enabled())
+
+    def test_flag_value_is_case_insensitive(self):
+        with unittest.mock.patch.dict(
+            os.environ, {"LANGSMITH_TRACING": "True", "LANGSMITH_API_KEY": "lsv2_fake"}
+        ):
+            self.assertTrue(coach_agent.tracing_enabled())
+
 
 class DegradeGracefullyTests(unittest.TestCase):
     """The contract server.py depends on: coach_agent.run() either returns a
@@ -88,6 +133,38 @@ class DegradeGracefullyTests(unittest.TestCase):
 
         self.assertEqual(reply, "ok")
         self.assertEqual(captured["config"]["recursion_limit"], coach_agent._RECURSION_LIMIT)
+
+    @unittest.skipUnless(_HAS_LANGCHAIN, "langchain not installed")
+    def test_tracing_metadata_is_actually_passed_to_invoke(self):
+        # Same technique as the recursion-limit test above -- these fields
+        # are meaningless unless LangSmith tracing is actually on, but
+        # that's exactly why it matters that they reach .invoke() even
+        # when it's off: there's no separate code path that only adds them
+        # when tracing is enabled, so there's nothing to forget to wire up
+        # later when someone finally sets LANGSMITH_TRACING=true.
+        from langchain_core.messages import AIMessage
+
+        captured = {}
+
+        class FakeCompiledGraph:
+            def invoke(self, input_, config=None):
+                captured["config"] = config
+                return {"messages": [AIMessage(content="ok")]}
+
+        with unittest.mock.patch.dict(os.environ, {"ANTHROPIC_API_KEY": "sk-ant-test-not-real"}):
+            with unittest.mock.patch("langchain.agents.create_agent", return_value=FakeCompiledGraph()):
+                coach_agent.run(
+                    PERSONA, 42, [{"role": "user", "content": "hi"}],
+                    scenario={"text": "x", "options": ["a", "b"]},
+                )
+
+        config = captured["config"]
+        self.assertEqual(config["run_name"], f"coach-{PERSONA}")
+        self.assertIn(PERSONA, config["tags"])
+        self.assertIn("decision-mode", config["tags"])
+        self.assertEqual(config["metadata"]["persona"], PERSONA)
+        self.assertTrue(config["metadata"]["signed_in"])
+        self.assertTrue(config["metadata"]["has_scenario"])
 
 
 class SystemPromptTests(unittest.TestCase):
