@@ -322,6 +322,7 @@ pointers.
 - `styles.css` — shared design system for both pages (dark mode, motion, all of it)
 - `analysis/research_analysis.py` — pandas/statsmodels analysis pipeline for the Phase 3 study data described in `PAPER.md` §8 (`pip install -r analysis/requirements-analysis.txt` first; kept out of the app's own `requirements.txt` since the deployed server never needs it)
 - `coach_agent.py` / `rag/` — LangChain tool-using agent variant of the coaching chat (`LLM_ENGINE=agent`), with a RAG tool (`search_research_notes`) that retrieves from a local vector index built from `idm.js`/`learn.js`/`PAPER.md`'s own citations. See `coach_agent.py`'s module docstring and `pip install -r requirements-agent.txt` + `python -m rag.build_index` to run it
+- `ml/` — predictive models on product data (Pro conversion likelihood, streak drop-off): real feature engineering against the DB schema, a logistic-regression/XGBoost pipeline evaluated on precision/recall/PR-AUC, and an honest data-quality gate that currently falls back to a synthetic, documented-relationship dataset since real product volume doesn't exist yet — see `ML_ENGINEERING_NOTES.md` §2 for the full write-up. `pip install -r requirements-ml.txt` first
 
 ## What's real vs. what's a stub
 - **Real**: quiz scoring, the scenario engine (including persona-themed scenarios and

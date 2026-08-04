@@ -87,9 +87,103 @@ have deploy access. They're correct as far as local testing can confirm
 limit actually reaching `.invoke()`); treat the next real Railway deploy as
 the first real verification of the build config specifically.
 
-## 2. Predictive Models on Product Data — in progress
+## 2. Predictive Models on Product Data — done
 
-Not started as of this note. Next up.
+### Targets, defined precisely
+
+- **Pro conversion likelihood** — binary (`converted`). 1 if the user has
+  ever had a `subscriptions` row at all (not filtered to `status=active`
+  — the question is "did early behaviour predict them subscribing," not
+  "are they still paying today," which is a different question). Features
+  computed from their first 7 days after signup.
+- **Streak drop-off** — binary (`dropped_off`), **not** the PRD's
+  time-to-event option. 1 if it's been >5 days since `lastActivityDate`,
+  among users who ever reached a 2-day streak (someone who never started
+  doesn't have a "drop-off" to predict). See "what's available vs. missing"
+  below for why time-to-event isn't honestly derivable from what's stored.
+
+### What's available vs. what needs new instrumentation (`ml/features.py`)
+
+The only table with real per-event, per-user **timestamps** is
+`scenario_choices` — that's the entire basis for "early-window behavioral
+signals." `learning_progress`, `achievements`, and `user_profile` are each
+a single overwrite-in-place row per user (`user_id PRIMARY KEY`, one JSON
+blob, `updated_at` = last write, not first) — there is no way to
+reconstruct "state as of day 7" from them, only "state right now." This is
+exactly why streak drop-off is a snapshot-based proxy, not a true
+time-to-event model: there's no streak *history* stored, only the current
+value. `classroom_plays` has no `user_id` column at all (anonymous by
+design), so it can't be joined to an outcome under the current schema.
+Fixing this for real would mean either periodic snapshotting of the
+snapshot tables or turning them into append-only event logs the way
+`scenario_choices` already is.
+
+### Data quality check — real data isn't trainable yet, and the code says so
+
+Pulling the real features and checking them (`ml.features.data_quality_report`,
+which checks class balance **and** what fraction of the underlying accounts
+are `@example.com` pytest-fixture users, not just row count):
+
+- Conversion: n=2,369, class counts `{0: 2157, 1: 212}` — passes on row
+  count alone, but **99.96% of those users are test-fixture accounts**
+  accumulated across pytest runs, not real signups. Flagged unusable.
+- Streak drop-off: only **1** user in the whole database has ever reached
+  a 2-day learning streak. Flagged unusable on row count alone.
+
+Training "the" model on either would produce a number that looks like a
+real result but isn't one. Both training scripts print this check and the
+reason, every run — it's never silently skipped.
+
+### Pipeline validated against synthetic data with a known ground truth instead
+
+`ml/synthetic.py` generates a dataset per target with a **designed,
+documented** feature→target relationship (exact coefficients in the
+module, not hidden), so `ml/pipeline.py` (stratified split, logistic-
+regression baseline, XGBoost, evaluated on precision/recall/PR-AUC/ROC-AUC
+— not raw accuracy, since both targets are imbalanced by construction:
+15% / 7% positive rates) can be built and proven correct independent of
+whether real volume exists yet. `python -m ml.train_conversion_model` /
+`python -m ml.train_streak_dropoff_model` (after `pip install -r
+requirements-ml.txt`) run the real-data check, print why it failed, and
+run the full pipeline on synthetic data instead — same code path that
+would run on real data unmodified, the moment there's enough of it.
+
+**Results** (synthetic, n=4000 each — see the modules for exact numbers):
+- Conversion: LR PR-AUC 0.356 vs. XGBoost 0.283 — **LR wins**, which is
+  the expected, correct outcome here, not a fluke: the synthetic
+  relationship was built as a clean logistic function, exactly what
+  logistic regression is suited for, so XGBoost's extra flexibility buys
+  nothing and adds variance. A real dataset with genuine nonlinearity
+  could easily flip this — the point of running both is finding out, not
+  assuming the fancier model wins.
+- Both models correctly ranked `early_decision_count` and
+  `first_decision_day` among the top features — the two largest-magnitude
+  terms in the designed relationship. Same story for streak drop-off:
+  `days_inactive` and `xp_at_snapshot` came out dominant, matching how the
+  data was constructed. This is what "the pipeline recovers a signal
+  that's genuinely there" looks like as evidence, not an assertion.
+- Feature importance methodologies genuinely disagree in one place worth
+  noting: XGBoost ranked `streak_at_snapshot` above `days_inactive` for
+  drop-off, where LR ranked the opposite. Not a bug — `xp_at_snapshot` is
+  correlated with `streak_at_snapshot` by construction (`xp = streak *
+  factor + noise`), and split-based importance and standardized-
+  coefficient importance handle correlated features differently. A real
+  stakeholder write-up would need to call this out rather than pick
+  whichever ranking sounds better.
+
+### Product wiring decision: offline analysis only, not wired into the product
+
+Explicit, not a default. Wiring an operator-facing churn-risk flag off a
+model trained on synthetic data would be actively misleading — it would
+look like a real signal and wouldn't be one. Revisit once real product
+volume exists and the real-data check in `ml.features.data_quality_report`
+actually passes.
+
+Tests: `tests/test_ml_pipeline.py` (12 tests — synthetic dataset shape/
+determinism, pipeline metric validity, PR-AUC clears the no-skill baseline,
+feature importance recovers the designed dominant features, the real
+feature-engineering queries run correctly, and the quality gate correctly
+flags the current database as unusable).
 
 ## 3. Archetype Matcher Rebuild — not started
 

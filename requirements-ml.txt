@@ -1,0 +1,12 @@
+# Only needed for ml/ (predictive models on product data — Pro conversion
+# likelihood, streak drop-off) and the training scripts under it. Not
+# imported anywhere the deployed Flask app touches, so it stays out of the
+# base requirements.txt the same way requirements-agent.txt does.
+#
+#   pip install -r requirements-ml.txt
+#   python -m ml.train_conversion_model
+#   python -m ml.train_streak_dropoff_model
+scikit-learn==1.9.0
+xgboost==3.3.0
+pandas==3.0.5
+numpy==2.5.1
