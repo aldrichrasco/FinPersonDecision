@@ -22,6 +22,7 @@ const NAV_ITEMS = [
 const MENU_ITEMS = [
   { href: "learn.html", label: "Learn" },
   { href: "classroom.html", label: "Games" },
+  { href: "crypto-impulse.html", label: "Crypto Impulse Check" },
   { href: "shop.html", label: "Resources" },
   { href: "pro.html", label: "FinPerson Pro" },
   { href: "donate.html", label: "Donate" },

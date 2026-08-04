@@ -51,6 +51,7 @@ import db
 import ratelimit
 import coach
 import coach_agent
+import crypto
 import llm
 import billing
 import mailer
@@ -1106,6 +1107,101 @@ def chat(slug):
     if signal:
         out["safeguarding"] = safeguarding.response_for(signal)
     return jsonify(out)
+
+
+# ---------------------------------------------------------------- crypto impulse check
+
+CRYPTO_VOLATILITY_THRESHOLD_PCT = 8
+
+
+@app.route("/api/crypto/price")
+@rate_limit(limit=30, window=60, scope="crypto")
+def crypto_price():
+    coin = request.args.get("coin", "bitcoin")
+    try:
+        price = crypto.get_current_price(coin)
+    except ValueError:
+        return jsonify({"error": "unsupported coin"}), 400
+    except crypto.CryptoAPIError as err:
+        app.logger.warning("crypto price fetch failed: %s", err)
+        return jsonify({"error": "price data unavailable right now"}), 503
+    return jsonify({"coin": coin, "usd": price})
+
+
+@app.route("/api/crypto/scenario")
+@rate_limit(limit=20, window=60, scope="crypto")
+def crypto_scenario():
+    """A real historical BTC/ETH volatility event, WITHOUT its outcome —
+    only the lead-in price path up to and including the event day. The
+    outcome is revealed by POST /api/crypto/decision, keyed by
+    event_timestamp so the same real event is looked up again rather than
+    trusting anything the client could have seen."""
+    coin = request.args.get("coin", "bitcoin")
+    try:
+        scenario = crypto.pick_scenario(coin, threshold_pct=CRYPTO_VOLATILITY_THRESHOLD_PCT)
+    except ValueError:
+        return jsonify({"error": "unsupported coin"}), 400
+    except crypto.CryptoAPIError as err:
+        app.logger.warning("crypto scenario fetch failed: %s", err)
+        return jsonify({"error": "price data unavailable right now"}), 503
+    if not scenario:
+        return jsonify({"error": "no volatility event found in the available window"}), 404
+    return jsonify({
+        "coin": coin,
+        "event_timestamp": scenario["event_timestamp"],
+        "direction": scenario["direction"],
+        "pct_change": scenario["pct_change"],
+        "price_at_event": scenario["price_at_event"],
+        "lead_in": scenario["lead_in"],
+    })
+
+
+@app.route("/api/crypto/decision", methods=["POST"])
+@rate_limit(limit=20, window=60, scope="crypto")
+def crypto_decision():
+    payload = request.get_json(silent=True)
+    if not isinstance(payload, dict):
+        return jsonify({"error": "invalid JSON body"}), 400
+
+    coin = payload.get("coin", "bitcoin")
+    choice = payload.get("choice")
+    event_timestamp = payload.get("event_timestamp")
+    if choice not in ("buy", "hold", "sell"):
+        return jsonify({"error": "choice must be buy, hold, or sell"}), 400
+    if not isinstance(event_timestamp, (int, float)):
+        return jsonify({"error": "event_timestamp required"}), 400
+
+    try:
+        event = crypto.find_event_by_timestamp(coin, event_timestamp, threshold_pct=CRYPTO_VOLATILITY_THRESHOLD_PCT)
+    except ValueError:
+        return jsonify({"error": "unsupported coin"}), 400
+    except crypto.CryptoAPIError as err:
+        app.logger.warning("crypto decision fetch failed: %s", err)
+        return jsonify({"error": "price data unavailable right now"}), 503
+    if not event or not event["outcome"]:
+        return jsonify({"error": "event not found — it may have aged out of the data window"}), 404
+
+    price_after = event["price_after_outcome"]
+    outcome_pct_change = round((price_after - event["price_at_event"]) / event["price_at_event"] * 100, 2)
+
+    db.record_crypto_impulse_decision(
+        user_id=current_user_id(),
+        coin_id=coin,
+        event_timestamp=event["event_timestamp"],
+        direction=event["direction"],
+        pct_change=event["pct_change"],
+        choice=choice,
+        outcome_pct_change=outcome_pct_change,
+    )
+
+    return jsonify({
+        "coin": coin,
+        "choice": choice,
+        "direction": event["direction"],
+        "pct_change": event["pct_change"],
+        "outcome": event["outcome"],
+        "outcome_pct_change": outcome_pct_change,
+    })
 
 
 # ---------------------------------------------------------------- study
