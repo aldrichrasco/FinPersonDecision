@@ -16,3 +16,8 @@ backups/
 # build time, so Railway's Python-only container never needs Node installed
 # just to extract content from idm.js/learn.js.
 rag/chroma_db/
+
+# Trained model artifacts — timestamped binaries produced by
+# ml.train_archetype_model, not source. ml/archetype_profiles.json IS
+# committed (same reasoning as rag/corpus_js.json above).
+ml/artifacts/

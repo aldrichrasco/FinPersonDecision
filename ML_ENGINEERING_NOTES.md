@@ -185,7 +185,115 @@ feature importance recovers the designed dominant features, the real
 feature-engineering queries run correctly, and the quality gate correctly
 flags the current database as unusable).
 
-## 3. Archetype Matcher Rebuild — not started
+## 3. Archetype Matcher Rebuild — done
+
+### Data source
+
+The PRD names `db.export_research_dataset()` (the Prolific study export) as
+the source — checked it: that function only exports participant consent
+status, not response content (see `db.py`). The real analogue for "quiz
+response data" is `user_profile` (`ml/archetype_data.py`): the six-axis
+profile + matched archetype every signed-in user's quiz/assessment result
+is saved to.
+
+### Real data check — same story as item 2, worse on class coverage
+
+101 signed-in users have a saved profile, covering only **4 of the 11**
+archetypes, and one of those four has exactly 1 example
+(`data_quality_report`, reused from item 2 — same fixture-fraction +
+minority-class-size gate). Not trainable, and not usefully clusterable
+(most classes entirely absent).
+
+### Synthetic validation — a real methodological question, not just a stand-in
+
+`ml/archetype_synthetic.py` samples a population from a Gaussian around
+**each of fbm.js's 11 real, currently-shipping `ARCHETYPE_PROFILES`
+target vectors** (`ml/archetype_profiles.json`, dumped straight from
+`fbm.js` via Node — not retyped by hand), not an arbitrary designed
+relationship. That makes the synthetic experiment ask a genuine question:
+*if real users clustered around these hand-designed centroids the way the
+archetype system assumes, would empirical clustering actually recover 11
+separate groups?*
+
+**Answer: no, not at the noise level tested.** k-means silhouette peaks at
+**k=8**, not 11 (swept k=2..15, `ml/archetype_clustering.py`). Matching
+each empirical cluster to its nearest hand-defined archetype
+(`match_clusters_to_archetypes`) at k=8 leaves three archetypes with **no
+matching cluster at all**: `ambitious_builder`, `conscious_spender`,
+`passive_drifter`. Hierarchical clustering forced to k=11 scores lower
+(silhouette 0.216 vs. k-means@8's 0.282) — consistent with the same
+finding from a different clustering method, not an artifact of one
+algorithm's quirks.
+
+**This is a different finding from PAPER.md §7.3's reachability issue**,
+worth being explicit about since they sound similar: the paper's finding
+was that `overconfident_navigator` and `status_seeker` are unreachable via
+**self-report entry** (a person doesn't recognize "I ignore warnings" in
+themselves) — an insight-into-self problem, fixed by adding behavioral-
+inference as an entry route. This finding is about whether the **axis
+coordinates themselves** form statistically separable groups at the
+population level assumed by the design — a geometry problem, not a
+self-insight one, and it flags different archetypes
+(`ambitious_builder`/`conscious_spender`/`passive_drifter`, not
+`overconfident_navigator`/`status_seeker`). Both are real, both matter,
+neither substitutes for the other.
+
+**Reading this honestly**: this doesn't mean those 3 archetypes are
+wrong — it means that at `axis_noise_std=13` (the value used, roughly
+matched to how far apart fbm.js's own coordinates typically sit — see
+`ml/archetype_synthetic.py`), samples generated around those particular 3
+centroids land close enough to a neighboring archetype's cloud that
+unsupervised clustering can't tell them apart as separate groups. Two
+honest next steps, not decided here: (a) re-run at a few different noise
+levels to see how sensitive k=8 actually is, since this run used one fixed
+value: (b) once real quiz data exists, the real question is whether real
+users actually cluster this way, which synthetic data sampled around the
+existing centroids can suggest but can't answer.
+
+### Supervised classifier — logistic regression baseline, then random forest
+
+On the same synthetic population (1,650 rows, 11 balanced classes, 25%
+held-out test set): **LogisticRegression 88.9% accuracy, RandomForest
+86.2%** (`ml/archetype_classifier.py`, full 11×11 confusion matrices in
+the module's output). The real confusions in both matrices are the
+sensible ones: `ambitious_builder` misclassified as `strategic_risk_taker`
+in both directions (5-8 rows each), `conscious_spender` scattered across
+several neighbors — the same archetypes flagged as poorly separated by
+the clustering analysis above show up as the classifier's actual mistakes
+too. Two independent methods (unsupervised distance-based clustering,
+supervised class-boundary learning) agreeing on which archetypes are hard
+to tell apart is stronger evidence than either alone.
+
+Feature importance: `risk_disposition` ranks first in both models — the
+axis with the widest spread across `ARCHETYPE_PROFILES`'s 11 target
+vectors, so this is expected, not a discovery, and is reported as a
+pipeline-sanity check rather than a business insight (unlike item 2's
+targets, there's no "stakeholder value" story for feature importance on a
+matcher — the six axes are already the whole input by design).
+
+### Serving: exported model artifact, not a live endpoint
+
+`ml.train_archetype_model` saves the trained random-forest classifier +
+metadata (timestamp, data source, accuracy, silhouette results) to
+`ml/artifacts/` — versioned by timestamp, which is exactly what item 4
+(MLOps) builds on next. `ml/serve_archetype.py` loads the latest artifact
+and exposes `predict(profile) -> {archetype, probabilities}` — round-
+tripped and tested (`tests/test_ml_archetype.py`).
+
+**Deliberately not wired into a Flask route.** The PRD offered "API
+endpoint or exported model artifact" as options; adding a live endpoint
+that serves predictions from a model trained on synthetic data would be
+adding real production surface area for something not ready to be live.
+`fbm.js`'s hand-written nearest-neighbor `matchArchetype()` remains the
+actual production matcher. Wiring `ml.serve_archetype.predict()` into a
+route is a small, ready-to-do change once `ml.train_archetype_model` has
+real quiz data to train on and `data_quality_report` actually passes.
+
+Tests: `tests/test_ml_archetype.py` (16 tests — synthetic population
+coverage/range/determinism, clustering silhouette sanity and cluster-to-
+archetype matching, classifier accuracy/confusion-matrix/feature-
+importance shape, artifact save/load round-trip, and the real-data
+pull + quality gate against the current database).
 
 ## 4. MLOps Extension — not started
 

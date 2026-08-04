@@ -1,0 +1,100 @@
+{
+  "axis_keys": [
+    "impulse_regulation",
+    "risk_disposition",
+    "temporal_orientation",
+    "financial_attentiveness",
+    "financial_self_efficacy",
+    "prosocial_orientation"
+  ],
+  "archetype_profiles": {
+    "steady_saver": {
+      "impulse_regulation": 85,
+      "risk_disposition": 25,
+      "temporal_orientation": 80,
+      "financial_attentiveness": 60,
+      "financial_self_efficacy": 70,
+      "prosocial_orientation": 50
+    },
+    "cautious_guardian": {
+      "impulse_regulation": 70,
+      "risk_disposition": 0,
+      "temporal_orientation": 60,
+      "financial_attentiveness": 85,
+      "financial_self_efficacy": 45,
+      "prosocial_orientation": 35
+    },
+    "conscious_spender": {
+      "impulse_regulation": 65,
+      "risk_disposition": 45,
+      "temporal_orientation": 55,
+      "financial_attentiveness": 70,
+      "financial_self_efficacy": 65,
+      "prosocial_orientation": 60
+    },
+    "ambitious_builder": {
+      "impulse_regulation": 60,
+      "risk_disposition": 65,
+      "temporal_orientation": 90,
+      "financial_attentiveness": 75,
+      "financial_self_efficacy": 75,
+      "prosocial_orientation": 40
+    },
+    "strategic_risk_taker": {
+      "impulse_regulation": 55,
+      "risk_disposition": 90,
+      "temporal_orientation": 65,
+      "financial_attentiveness": 85,
+      "financial_self_efficacy": 70,
+      "prosocial_orientation": 40
+    },
+    "overconfident_navigator": {
+      "impulse_regulation": 35,
+      "risk_disposition": 75,
+      "temporal_orientation": 50,
+      "financial_attentiveness": 25,
+      "financial_self_efficacy": 92,
+      "prosocial_orientation": 40
+    },
+    "status_seeker": {
+      "impulse_regulation": 35,
+      "risk_disposition": 55,
+      "temporal_orientation": 35,
+      "financial_attentiveness": 50,
+      "financial_self_efficacy": 65,
+      "prosocial_orientation": 20
+    },
+    "impulsive_spender": {
+      "impulse_regulation": 8,
+      "risk_disposition": 50,
+      "temporal_orientation": 15,
+      "financial_attentiveness": 35,
+      "financial_self_efficacy": 45,
+      "prosocial_orientation": 55
+    },
+    "anxious_avoider": {
+      "impulse_regulation": 50,
+      "risk_disposition": 20,
+      "temporal_orientation": 40,
+      "financial_attentiveness": 8,
+      "financial_self_efficacy": 12,
+      "prosocial_orientation": 45
+    },
+    "passive_drifter": {
+      "impulse_regulation": 45,
+      "risk_disposition": 45,
+      "temporal_orientation": 12,
+      "financial_attentiveness": 30,
+      "financial_self_efficacy": 35,
+      "prosocial_orientation": 45
+    },
+    "purposeful_giver": {
+      "impulse_regulation": 60,
+      "risk_disposition": 35,
+      "temporal_orientation": 55,
+      "financial_attentiveness": 60,
+      "financial_self_efficacy": 55,
+      "prosocial_orientation": 92
+    }
+  }
+}
