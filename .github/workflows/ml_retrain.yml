@@ -1,0 +1,66 @@
+name: ML retrain
+
+# Triggered — not manually retrained and copy-pasted into the app (the
+# PRD's own acceptance criterion for this item):
+#   - on a schedule (weekly), so a model gets refreshed even with no code
+#     change, the moment real product/quiz data grows into something
+#     ml/features.py's data_quality_report() would actually accept
+#   - on any push that touches ml/ itself, as the practical proxy for "on
+#     data update" available here — there's no live production database
+#     this repo's CI can poll, so a change to the feature-engineering or
+#     synthetic-data code is the closest real trigger to "the data
+#     pipeline changed, retrain against it"
+#   - workflow_dispatch, for an on-demand run
+#
+# Each script prints its own real-vs-synthetic data source, its own
+# precision/recall/PR-AUC (or accuracy/confusion-matrix for the archetype
+# model), its own drift check against a stored baseline, and exits
+# non-zero (ml.train_*.ValidationFailed) if the freshly trained model
+# fails its validation gate — that non-zero exit is what fails this job,
+# which is what makes this "validated," not just "ran." See
+# ML_ENGINEERING_NOTES.md §4 for the full data-in -> deployment pipeline
+# this automates the middle of.
+
+on:
+  schedule:
+    - cron: "0 6 * * 1" # Mondays 06:00 UTC
+  push:
+    branches: [main]
+    paths:
+      - "ml/**"
+      - ".github/workflows/ml_retrain.yml"
+  workflow_dispatch: {}
+
+jobs:
+  retrain:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: "pip"
+      - run: pip install -r requirements.txt -r requirements-ml.txt
+
+      - name: Train + validate conversion model
+        run: python -m ml.train_conversion_model
+
+      - name: Train + validate streak drop-off model
+        run: python -m ml.train_streak_dropoff_model
+
+      - name: Train + validate archetype model (clustering + classifier)
+        run: python -m ml.train_archetype_model
+
+      # Versioned artifact storage: GitHub Actions' own artifact store
+      # rather than a dedicated model registry — the PRD explicitly says a
+      # metadata log alongside the stored files is enough at this scale,
+      # and this repo has no cloud infra of its own to host one. Each run
+      # is retrievable from the Actions run history, timestamped, with
+      # its metrics in the accompanying .json.
+      - name: Upload versioned model artifacts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: ml-artifacts-${{ github.run_id }}
+          path: ml/artifacts/
+          retention-days: 90

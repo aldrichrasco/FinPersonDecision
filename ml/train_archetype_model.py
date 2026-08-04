@@ -16,6 +16,17 @@ wiring" note this script prints). That stays fbm.js's real nearest-
 neighbor matcher until this is trained on real quiz responses instead of
 a synthetic population sampled around fbm.js's own hand-tuned centroids.
 
+Also runs a drift check (ml/drift.py) comparing this run's predicted-
+archetype distribution on the test set against a stored baseline
+(ml/baselines/archetype_baseline_distribution.json — git-tracked, unlike
+ml/artifacts/, precisely so a CI run has a stable reference to compare
+against instead of bootstrapping a fresh one on every checkout) — the
+first run ever creates the baseline; every run after that reports PSI
+against it. On synthetic data with a fixed seed this should stay
+near-zero; the value of having it wired now is that it's already running
+the day real retraining starts producing distributions that can actually
+drift.
+
 Run: python -m ml.train_archetype_model
 """
 
@@ -27,9 +38,25 @@ from ml.archetype_classifier import print_classifier_report, train_and_evaluate
 from ml.archetype_clustering import best_k, match_clusters_to_archetypes, run_hierarchical, run_kmeans, sweep_kmeans
 from ml.archetype_data import build_archetype_dataset
 from ml.archetype_synthetic import load_archetype_profiles, synthetic_archetype_dataset
+from ml.drift import check_against_baseline, predicted_counts_from_confusion
 from ml.features import data_quality_report
 
 ARTIFACT_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), "artifacts")
+BASELINE_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), "baselines")
+BASELINE_PATH = os.path.join(BASELINE_DIR, "archetype_baseline_distribution.json")
+
+# The validation gate a scheduled/CI retrain actually enforces (see
+# .github/workflows/ml_retrain.yml) — a real floor, not a rubber stamp.
+# 0.5 is generous against an 11-class random-guess baseline (~9%) but would
+# still catch a genuinely broken run (a bad merge, a corrupted feature
+# column) without false-alarming on ordinary seed-to-seed variance.
+MIN_ACCEPTABLE_ACCURACY = 0.5
+MAX_ACCEPTABLE_PSI = 0.25  # the conventional "significant shift" threshold, see ml/drift.py
+
+
+class ValidationFailed(Exception):
+    """Raised when a freshly trained model fails its own validation gate —
+    what makes a CI retrain "validated," not just "ran."""
 
 
 def main():
@@ -92,8 +119,14 @@ def main():
     print()
     print_classifier_report(rf_report)
 
-    # --- 3. Save artifact (sets up ML_ENGINEERING_NOTES.md item 4: MLOps) --
+    # --- 3. Drift check against the stored baseline distribution -----------
     os.makedirs(ARTIFACT_DIR, exist_ok=True)
+    predicted_counts = predicted_counts_from_confusion(rf_report.confusion, rf_report.labels)
+    psi, verdict, is_first_run = check_against_baseline(BASELINE_PATH, predicted_counts, label="predicted archetype distribution")
+    if is_first_run:
+        print(f"\nDrift check: {verdict}")
+
+    # --- 4. Save artifact (sets up ML_ENGINEERING_NOTES.md item 4: MLOps) --
     import joblib
 
     timestamp = int(time.time())
@@ -110,6 +143,8 @@ def main():
         "silhouette_best_k": k_star,
         "silhouette_best_score": float(sweep["silhouette"].max()),
         "model_path": os.path.basename(model_path),
+        "drift_psi": psi,
+        "drift_verdict": verdict,
     }
     metadata_path = os.path.join(ARTIFACT_DIR, f"archetype_rf_{timestamp}.json")
     with open(metadata_path, "w", encoding="utf-8") as f:
@@ -123,6 +158,22 @@ def main():
         "wiring it into production would present a synthetic-data model as a real one. See "
         "ML_ENGINEERING_NOTES.md §3."
     )
+
+    # --- 5. Validation gate — this is what makes a scheduled retrain (see
+    # .github/workflows/ml_retrain.yml) "validated," not just "ran." -------
+    if rf_report.accuracy < MIN_ACCEPTABLE_ACCURACY:
+        raise ValidationFailed(
+            f"random-forest accuracy {rf_report.accuracy:.3f} is below the "
+            f"{MIN_ACCEPTABLE_ACCURACY} floor — failing validation."
+        )
+    if psi is not None and psi > MAX_ACCEPTABLE_PSI:
+        raise ValidationFailed(
+            f"predicted-archetype-distribution PSI {psi:.3f} exceeds the "
+            f"{MAX_ACCEPTABLE_PSI} significant-shift threshold — failing validation."
+        )
+    print(f"\nValidation gate: PASSED (accuracy={rf_report.accuracy:.3f} >= {MIN_ACCEPTABLE_ACCURACY}, "
+          f"PSI={'n/a (first run)' if psi is None else f'{psi:.3f} <= {MAX_ACCEPTABLE_PSI}'})")
+
     return lr_report, rf_report, metadata
 
 

@@ -1,0 +1,28 @@
+{
+  "distribution": {
+    "ambitious_builder": 0.1016949152542373,
+    "anxious_avoider": 0.08958837772397095,
+    "cautious_guardian": 0.09200968523002422,
+    "conscious_spender": 0.09685230024213075,
+    "impulsive_spender": 0.09200968523002422,
+    "overconfident_navigator": 0.0847457627118644,
+    "passive_drifter": 0.1016949152542373,
+    "purposeful_giver": 0.0847457627118644,
+    "status_seeker": 0.09200968523002422,
+    "steady_saver": 0.0847457627118644,
+    "strategic_risk_taker": 0.07990314769975787
+  },
+  "counts": {
+    "ambitious_builder": 42,
+    "anxious_avoider": 37,
+    "cautious_guardian": 38,
+    "conscious_spender": 40,
+    "impulsive_spender": 38,
+    "overconfident_navigator": 35,
+    "passive_drifter": 42,
+    "purposeful_giver": 35,
+    "status_seeker": 38,
+    "steady_saver": 35,
+    "strategic_risk_taker": 33
+  }
+}

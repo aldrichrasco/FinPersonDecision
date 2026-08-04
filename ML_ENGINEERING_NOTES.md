@@ -295,7 +295,87 @@ archetype matching, classifier accuracy/confusion-matrix/feature-
 importance shape, artifact save/load round-trip, and the real-data
 pull + quality gate against the current database).
 
-## 4. MLOps Extension — not started
+## 4. MLOps Extension — done
+
+### Pipeline: data in → training → validation → versioned artifact → deployment
+
+```mermaid
+flowchart LR
+    A["Data source\n(user_profile / scenario_choices / \nlearning_progress, OR synthetic\nfallback — data_quality_report\ndecides which, every run)"] --> B["Feature engineering\n(ml/features.py, ml/archetype_data.py)"]
+    B --> C["Train\nLR baseline -> XGBoost/RandomForest\n(ml/pipeline.py, ml/archetype_classifier.py)"]
+    C --> D{"Validation gate\naccuracy/PR-AUC floor\n+ drift PSI <= 0.25"}
+    D -- fail --> E["ValidationFailed\nCI job fails, nothing published"]
+    D -- pass --> F["Versioned artifact\ntimestamped .joblib + metrics .json\n(ml/artifacts/, gitignored)"]
+    F --> G["Uploaded as a GitHub Actions\nartifact (90-day retention)"]
+    G -.->|"not automatic — a deliberate,\nseparate decision, see below"| H["server.py / ml/serve_archetype.py\n(NOT wired in yet — offline\nanalysis only, see §§2-3)"]
+    I["ml/baselines/*.json\n(git-tracked, stable reference)"] -.compared against.-> D
+```
+
+Triggered automatically three ways (`.github/workflows/ml_retrain.yml`),
+not manually retrained and copy-pasted in: a weekly schedule, any push
+that touches `ml/**` (the practical proxy for "on data update" available
+to a repo with no live database CI can poll), and `workflow_dispatch` for
+an on-demand run.
+
+### Versioning
+
+Every `ml.train_*.py` script saves `{name}_{unix_timestamp}.joblib` +
+`{name}_{unix_timestamp}.json` to `ml/artifacts/` — the metadata file
+carries the timestamp, data source (real vs. synthetic — always explicit),
+row count, and every metric the model was validated against (accuracy /
+PR-AUC / silhouette / drift PSI, whichever apply). Exactly the "simple
+metadata log alongside stored files" the PRD says is enough at this scale
+— no model registry. `ml/artifacts/` itself is gitignored (generated
+binaries, not source) and instead uploaded as a GitHub Actions artifact
+per run, retained 90 days.
+
+### Drift check
+
+`ml/drift.py` — Population Stability Index between a stored baseline
+distribution and each run's predicted-class distribution (derived from
+the confusion matrix, so no extra prediction-logging plumbing needed).
+Conventional PSI thresholds, not invented for this project: <0.1 no
+shift, 0.1-0.25 moderate, >0.25 significant. Wired into all three
+`ml.train_*.py` scripts and into the validation gate — a run that drifts
+past 0.25 fails the same way a run with bad accuracy does.
+
+**A real bug this surfaced immediately**: the first working version
+reported PSI≈17 (a "massive shift") between two back-to-back runs with
+byte-for-byte identical predictions. Cause: JSON object keys are always
+strings, so the binary targets' integer-keyed distribution (`{0: ...,
+1: ...}`) silently became `{"0": ..., "1": ...}` on save, and compared as
+four unrelated categories against the next run's int-keyed dict instead
+of two matching ones. Fixed by normalizing every key to a string before
+any comparison, with a regression test (`test_ml_drift.py`) covering
+exactly this case so it can't come back silently. Leaving this in the
+write-up because it's a real, findable-only-by-actually-running-it class
+of bug, and pretending the first version was correct would be exactly the
+kind of thing the PRD's guardrail warns against.
+
+**Baselines are git-tracked** (`ml/baselines/*.json`), unlike the model
+artifacts themselves — a drift check is meaningless if its reference
+point resets on every fresh CI checkout, so the small, stable,
+human-readable baseline files live in version control while the large,
+timestamped, generated binaries don't. On synthetic data with fixed seeds
+this currently reports PSI≈0 every run (expected — nothing about the
+input is actually changing yet); the real test of this mechanism is the
+day retraining starts running against data that can genuinely shift.
+
+### Validation gate
+
+Each `ml.train_*.py` raises `ValidationFailed` (non-zero exit, failing the
+CI job) if: accuracy/PR-AUC falls below a floor set per-model (generous
+against the relevant no-skill baseline — an 11-class random guess for
+archetypes, the positive rate for the binary targets — so it catches a
+genuinely broken run, not ordinary variance), or drift PSI exceeds 0.25
+on a non-first run. This is what makes "triggered, validated, and
+versioned automatically" (the PRD's acceptance criterion) actually true
+rather than "triggered and versioned, silently, whether or not the result
+is any good."
+
+Tests: `tests/test_ml_drift.py` (14 tests — PSI math including the
+key-type regression above, baseline bootstrap/comparison, validation-gate
+constants sane in all three training scripts).
 
 Deliberately sequenced last per the PRD: nothing to version or monitor
 until at least one real trained model exists (item 2 or 3).

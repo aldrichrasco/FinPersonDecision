@@ -18,6 +18,9 @@ backups/
 rag/chroma_db/
 
 # Trained model artifacts — timestamped binaries produced by
-# ml.train_archetype_model, not source. ml/archetype_profiles.json IS
-# committed (same reasoning as rag/corpus_js.json above).
+# ml.train_*.py, not source. ml/archetype_profiles.json IS committed (same
+# reasoning as rag/corpus_js.json above). ml/baselines/*.json is ALSO
+# committed, deliberately NOT ignored here — a drift check is meaningless
+# if its reference point resets on every CI checkout; see ml/drift.py and
+# .github/workflows/ml_retrain.yml.
 ml/artifacts/
