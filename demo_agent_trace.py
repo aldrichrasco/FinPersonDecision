@@ -34,6 +34,28 @@ if hasattr(sys.stdout, "reconfigure"):
     sys.stdout.reconfigure(encoding="utf-8")
 
 
+def _load_dotenv(path=".env"):
+    """Mirrors server.py's own loader so this script sees the same
+    ANTHROPIC_API_KEY / LANGSMITH_* config a real `python server.py` run
+    would, without importing server.py itself (which would also build the
+    Flask app)."""
+    try:
+        with open(path) as fh:
+            for line in fh:
+                line = line.strip()
+                if not line or line.startswith("#") or "=" not in line:
+                    continue
+                key, _, val = line.partition("=")
+                key, val = key.strip(), val.strip().strip('"').strip("'")
+                if key and key not in os.environ:
+                    os.environ[key] = val
+    except FileNotFoundError:
+        pass
+
+
+_load_dotenv()
+
+
 def _build_demo_user():
     import db
     from werkzeug.security import generate_password_hash
