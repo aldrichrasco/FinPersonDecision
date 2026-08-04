@@ -20,6 +20,8 @@ const NAV_ITEMS = [
 // same way from every page, not just ones where you've scrolled to the
 // bottom — inconsistent reachability was flagged directly.
 const MENU_ITEMS = [
+  { href: "roadmap.html", label: "Roadmap" },
+  { href: "training.html", label: "Training" },
   { href: "learn.html", label: "Learn" },
   { href: "classroom.html", label: "Games" },
   { href: "crypto-impulse.html", label: "Crypto Impulse Check" },

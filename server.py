@@ -497,6 +497,59 @@ def learn_progress():
     return jsonify({"ok": True})
 
 
+@app.route("/api/roadmap/progress", methods=["GET", "POST"])
+@rate_limit(limit=120, window=60, scope="state")
+def roadmap_progress():
+    """Persist the app-wide roadmap's XP/streak/completed levels (roadmap.js)
+    for signed-in users; anonymous users get a no-op empty state (client
+    falls back to localStorage). Same shape and pattern as /api/learn/
+    progress above, kept as a separate store — see db.py's ddl_roadmap_progress
+    comment for why."""
+    uid = current_user_id()
+    if not uid:
+        if request.method == "GET":
+            return jsonify({"progress": {}})
+        payload = request.get_json(silent=True)
+        if not isinstance(payload, dict) or not isinstance(payload.get("progress"), dict):
+            return jsonify({"error": "invalid JSON body"}), 400
+        return jsonify({"ok": True})
+
+    if request.method == "GET":
+        progress = db.get_roadmap_progress(uid)
+        return jsonify({"progress": progress or {}})
+    payload = request.get_json(silent=True)
+    if not isinstance(payload, dict) or not isinstance(payload.get("progress"), dict):
+        return jsonify({"error": "invalid JSON body"}), 400
+    db.save_roadmap_progress(uid, payload["progress"])
+    return jsonify({"ok": True})
+
+
+@app.route("/api/training/progress", methods=["GET", "POST"])
+@rate_limit(limit=120, window=60, scope="state")
+def training_progress():
+    """Persist Behavioral Training's per-level spaced-repetition state
+    (training.js) for signed-in users; anonymous users get a no-op empty
+    state (client falls back to localStorage). Same pattern as /api/learn/
+    progress and /api/roadmap/progress above."""
+    uid = current_user_id()
+    if not uid:
+        if request.method == "GET":
+            return jsonify({"progress": {}})
+        payload = request.get_json(silent=True)
+        if not isinstance(payload, dict) or not isinstance(payload.get("progress"), dict):
+            return jsonify({"error": "invalid JSON body"}), 400
+        return jsonify({"ok": True})
+
+    if request.method == "GET":
+        progress = db.get_training_progress(uid)
+        return jsonify({"progress": progress or {}})
+    payload = request.get_json(silent=True)
+    if not isinstance(payload, dict) or not isinstance(payload.get("progress"), dict):
+        return jsonify({"error": "invalid JSON body"}), 400
+    db.save_training_progress(uid, payload["progress"])
+    return jsonify({"ok": True})
+
+
 @app.route("/api/idm-state", methods=["GET", "POST"])
 @rate_limit(limit=120, window=60, scope="state")
 def idm_state():

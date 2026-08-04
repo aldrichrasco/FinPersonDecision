@@ -712,6 +712,8 @@ function rollScenario() {
 function applyChoice(choice, chosenIndex) {
   if (decisionResolving || !state || !currentScenario) return;
   decisionResolving = true;
+  if (typeof markRoadmapLevelComplete === "function") markRoadmapLevelComplete("decision-scenario");
+  if (typeof markTrainingRep === "function") markTrainingRep("decision-scenario");
   const previousState = { ...state };
   const mult = DIFFICULTY_MULTIPLIER[difficulty];
   const applied = {};

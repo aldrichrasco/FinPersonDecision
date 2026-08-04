@@ -122,6 +122,44 @@ function saveLearnProgress(progress) {
   }).catch(() => {});
 }
 
+async function fetchRoadmapProgress() {
+  try {
+    const res = await fetchWithTimeout(`${API_BASE_URL}/api/roadmap/progress`, { credentials: "include" });
+    if (!res.ok) return null;
+    return (await res.json()).progress;
+  } catch (e) {
+    return null;
+  }
+}
+
+function saveRoadmapProgress(progress) {
+  fetch(`${API_BASE_URL}/api/roadmap/progress`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    credentials: "include",
+    body: JSON.stringify({ progress }),
+  }).catch(() => {});
+}
+
+async function fetchTrainingProgress() {
+  try {
+    const res = await fetchWithTimeout(`${API_BASE_URL}/api/training/progress`, { credentials: "include" });
+    if (!res.ok) return null;
+    return (await res.json()).progress;
+  } catch (e) {
+    return null;
+  }
+}
+
+function saveTrainingProgress(progress) {
+  fetch(`${API_BASE_URL}/api/training/progress`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    credentials: "include",
+    body: JSON.stringify({ progress }),
+  }).catch(() => {});
+}
+
 // Fire-and-forget, same style as logScenarioChoice. No-ops for anonymous
 // users (server 401s, which we ignore) — this is supplementary research
 // telemetry, not something the quiz flow depends on.

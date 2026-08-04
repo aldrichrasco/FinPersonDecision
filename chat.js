@@ -76,6 +76,7 @@ async function sendMessage(text) {
     if (data.reply) {
       addMessage("assistant", data.reply);
       history.push({ role: "assistant", content: data.reply });
+      if (typeof markRoadmapLevelComplete === "function") markRoadmapLevelComplete("coach-chat");
     }
     // Safeguarding is rendered after the reply and is never suppressed,
     // even when the model itself failed to respond.

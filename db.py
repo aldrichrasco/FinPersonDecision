@@ -221,6 +221,30 @@ def init_db():
             updated_at REAL
         )
     """
+    # Same shape/purpose as learning_progress (roadmap.js), but for levels
+    # spanning the whole app (calculators, crypto impulse, coach chat,
+    # sandbox decisions, ...) rather than just Learn topics. Kept as its
+    # own table instead of folding into learning_progress so the existing,
+    # already-working Learn XP/streak code never has to change — the
+    # roadmap page combines both totals for one displayed level, additively.
+    ddl_roadmap_progress = """
+        CREATE TABLE IF NOT EXISTS roadmap_progress (
+            user_id INTEGER PRIMARY KEY,
+            progress_json TEXT NOT NULL,
+            updated_at REAL
+        )
+    """
+    # Behavioral Training's (training.js) spaced-repetition state: per
+    # level, how many times it's been redone and when the next review is
+    # due. A different shape than roadmap_progress's flat "done once"
+    # list, so it's its own table rather than reusing that one.
+    ddl_training_progress = """
+        CREATE TABLE IF NOT EXISTS training_progress (
+            user_id INTEGER PRIMARY KEY,
+            progress_json TEXT NOT NULL,
+            updated_at REAL
+        )
+    """
     ddl_idm_state = """
         CREATE TABLE IF NOT EXISTS idm_state (
             user_id INTEGER PRIMARY KEY,
@@ -405,6 +429,8 @@ def init_db():
         cur.execute(ddl_journal_entries)
         cur.execute(ddl_report_entitlements)
         cur.execute(ddl_learning_progress)
+        cur.execute(ddl_roadmap_progress)
+        cur.execute(ddl_training_progress)
         cur.execute(ddl_idm_state)
         cur.execute(ddl_achievements)
         cur.execute(ddl_research_exports)
@@ -973,6 +999,76 @@ def save_learning_progress(user_id, progress):
         else:
             cur.execute(
                 """INSERT INTO learning_progress (user_id, progress_json, updated_at)
+                   VALUES (?, ?, ?)
+                   ON CONFLICT (user_id) DO UPDATE
+                   SET progress_json = excluded.progress_json, updated_at = excluded.updated_at""",
+                (user_id, payload, time.time()),
+            )
+
+
+def get_roadmap_progress(user_id):
+    with _conn() as conn:
+        cur = conn.cursor()
+        cur.execute(f"SELECT progress_json FROM roadmap_progress WHERE user_id = {_ph(1)}", (user_id,))
+        row = cur.fetchone()
+        if not row:
+            return None
+        try:
+            return json.loads(row[0])
+        except (TypeError, ValueError):
+            return None
+
+
+def save_roadmap_progress(user_id, progress):
+    payload = json.dumps(progress)[:20000]  # hard cap, matches learning_progress
+    with _conn() as conn:
+        cur = conn.cursor()
+        if IS_POSTGRES:
+            cur.execute(
+                """INSERT INTO roadmap_progress (user_id, progress_json, updated_at)
+                   VALUES (%s, %s, %s)
+                   ON CONFLICT (user_id) DO UPDATE
+                   SET progress_json = EXCLUDED.progress_json, updated_at = EXCLUDED.updated_at""",
+                (user_id, payload, time.time()),
+            )
+        else:
+            cur.execute(
+                """INSERT INTO roadmap_progress (user_id, progress_json, updated_at)
+                   VALUES (?, ?, ?)
+                   ON CONFLICT (user_id) DO UPDATE
+                   SET progress_json = excluded.progress_json, updated_at = excluded.updated_at""",
+                (user_id, payload, time.time()),
+            )
+
+
+def get_training_progress(user_id):
+    with _conn() as conn:
+        cur = conn.cursor()
+        cur.execute(f"SELECT progress_json FROM training_progress WHERE user_id = {_ph(1)}", (user_id,))
+        row = cur.fetchone()
+        if not row:
+            return None
+        try:
+            return json.loads(row[0])
+        except (TypeError, ValueError):
+            return None
+
+
+def save_training_progress(user_id, progress):
+    payload = json.dumps(progress)[:20000]  # hard cap, matches roadmap_progress
+    with _conn() as conn:
+        cur = conn.cursor()
+        if IS_POSTGRES:
+            cur.execute(
+                """INSERT INTO training_progress (user_id, progress_json, updated_at)
+                   VALUES (%s, %s, %s)
+                   ON CONFLICT (user_id) DO UPDATE
+                   SET progress_json = EXCLUDED.progress_json, updated_at = EXCLUDED.updated_at""",
+                (user_id, payload, time.time()),
+            )
+        else:
+            cur.execute(
+                """INSERT INTO training_progress (user_id, progress_json, updated_at)
                    VALUES (?, ?, ?)
                    ON CONFLICT (user_id) DO UPDATE
                    SET progress_json = excluded.progress_json, updated_at = excluded.updated_at""",

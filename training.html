@@ -3,8 +3,8 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>FinPerson — Crypto Impulse Check</title>
-<meta name="description" content="Practice your reaction to real BTC/ETH volatility events — no synthetic data, no real money.">
+<title>FinPerson — Behavioral Training</title>
+<meta name="description" content="Spaced repetition of real exercises, targeted at your own weakest axis.">
 <meta name="theme-color" content="#F2EFE6" media="(prefers-color-scheme: light)">
 <meta name="theme-color" content="#0F1524" media="(prefers-color-scheme: dark)">
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%231B2A4A'/%3E%3Ctext x='16' y='22' font-family='Georgia,serif' font-size='17' fill='%23EDEFE6' text-anchor='middle'%3EFP%3C/text%3E%3C/svg%3E">
@@ -24,32 +24,19 @@
 </header>
 
 <main class="wrap dash" id="main">
-  <h1 style="font-family:var(--font-display);font-weight:500;">Crypto Impulse Check</h1>
-  <p class="lede" style="font-size:16px;">Every real BTC or ETH volatility event from the last year, one at a time, oldest first — shown without what happened next. Decide, then see the actual outcome. Your returns compound round to round, tracked against always following the Donchian breakout rule turtle-sim's simulator trades. No synthetic data, no real money, nothing here executes a trade.</p>
+  <h1 style="font-family:var(--font-display);font-weight:500;">Behavioral Training</h1>
+  <p class="lede" style="font-size:16px;">Not new content — the same exercises from the <a class="linkish" href="roadmap.html">Roadmap</a>, resurfaced on a schedule and targeted at whichever axis your own profile reads as furthest from your matched archetype.</p>
 
-  <div class="learn-disclaimer">Educational only. Past price moves say nothing certain about future ones — this is a reflection exercise on your own reaction, not investment research or advice.</div>
+  <div class="learn-disclaimer">Completing a review means doing the exercise again — no score, no pass/fail, same as everywhere else on this site.</div>
 
-  <div class="dash-setup-row" style="margin:18px 0;">
-    <span class="dash-label">Coin</span>
-    <div class="chip-row" id="coin-chips">
-      <button class="chip active" data-coin="bitcoin" aria-pressed="true">Bitcoin</button>
-      <button class="chip" data-coin="ethereum" aria-pressed="false">Ethereum</button>
-    </div>
-    <span id="current-price-ticker" style="margin-left:auto;font-family:var(--font-mono);font-size:13px;color:var(--slate);"></span>
-  </div>
-
-  <p id="breakout-context" class="scenario-text" style="font-size:13px;color:var(--slate);margin:-8px 0 18px;"></p>
-
-  <section id="crypto-content">
-    <div class="skeleton-grid scenario-empty-body" id="crypto-status">
-      <div class="skeleton-card"></div>
-    </div>
+  <section id="training-content">
+    <p class="scenario-empty-body" id="training-status">Loading your profile…</p>
   </section>
 </main>
 
 <footer class="footer">
   <div class="wrap footer-legal">
-    <p><strong>Not financial advice.</strong> This is an educational practice tool. Price data is real (CoinGecko); nothing here holds, trades, or recommends any actual asset.</p>
+    <p><strong>Not a diagnosis.</strong> "Growth area" reflects your own quiz answers compared to your matched archetype's typical pattern — not a clinical or professional assessment.</p>
     <p class="footer-copy">&copy; <span id="year">2026</span> FinPerson.</p>
   </div>
 </footer>
@@ -59,18 +46,17 @@
 <script src="data.js"></script>
 <script src="fbm.js"></script>
 <script src="idm.js"></script>
+<script src="learn.js"></script>
 <script src="observations.js"></script>
 <script src="api.js"></script>
 <script src="ui.js"></script>
 <script src="legal.js"></script>
 <script src="help.js"></script>
-<script src="chart.js"></script>
-<script src="turtle-chart.js"></script>
 <script src="roadmap-data.js"></script>
 <script src="roadmap.js"></script>
 <script src="training-data.js"></script>
 <script src="training.js"></script>
-<script src="crypto-impulse-page.js"></script>
+<script src="training-page.js"></script>
 <script src="https://accounts.google.com/gsi/client" async defer></script>
 <script src="auth.js"></script>
 </body>

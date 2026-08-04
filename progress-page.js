@@ -10,6 +10,8 @@
     return;
   }
 
+  if (typeof markRoadmapLevelComplete === "function") markRoadmapLevelComplete("progress-review");
+
   const primary = PERSONAS.find(p => p.slug === saved.archetype);
   const first = history.length ? history[0].capability : saved.capability;
   const latest = saved.capability;

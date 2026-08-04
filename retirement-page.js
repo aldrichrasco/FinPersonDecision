@@ -103,6 +103,7 @@
       <div>Combined with employer/mandatory: <strong style="color:var(--teal);">${fmtUsd(combined.finalValue)}</strong></div>
       <div style="color:var(--slate);">The employer/mandatory portion alone is worth ${fmtUsd(combined.finalValue - yourOnly.finalValue)} of that total over ${years} years.</div>
     `;
+    if (typeof markRoadmapLevelComplete === "function") markRoadmapLevelComplete("retirement-systems");
   }
 
   document.querySelectorAll("#rs-country-chips .chip").forEach(chip => {

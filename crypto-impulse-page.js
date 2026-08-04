@@ -201,6 +201,8 @@
   }
 
   function renderReveal(choice, result) {
+    if (typeof markRoadmapLevelComplete === "function") markRoadmapLevelComplete("crypto-impulse");
+    if (typeof markTrainingRep === "function") markTrainingRep("crypto-impulse");
     if (choice !== result.breakout_signal) state.overrideCount += 1;
     state.playerEquity *= 1 + result.player_return_pct / 100;
     state.ruleEquity *= 1 + result.rule_return_pct / 100;
@@ -235,6 +237,8 @@
   }
 
   function renderSummary() {
+    if (typeof markRoadmapLevelComplete === "function") markRoadmapLevelComplete("full-crypto-session");
+    if (typeof markTrainingRep === "function") markTrainingRep("full-crypto-session");
     status.hidden = true;
     const total = state.rounds.length;
     const helped = state.playerEquity >= state.ruleEquity;

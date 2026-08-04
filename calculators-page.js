@@ -730,17 +730,30 @@
     deferred: renderDeferredInterest, bnpl: renderBnpl,
   };
 
+  // Roadmap levels link here as calculators.html#calc=<key> (see
+  // roadmap-data.js) so "go do this" lands on the right tab directly,
+  // not just the page — activateCalc() is shared by that deep link, the
+  // tab clicks below, and the initial page load.
+  function activateCalc(key) {
+    if (!RENDERERS[key]) return;
+    currentCalc = key;
+    document.querySelectorAll("#calc-tabs .chip").forEach(c => {
+      const active = c.dataset.calc === key;
+      c.classList.toggle("active", active);
+      c.setAttribute("aria-pressed", String(active));
+    });
+    RENDERERS[key]();
+    if (typeof markRoadmapLevelComplete === "function") markRoadmapLevelComplete(key);
+    if (typeof markTrainingRep === "function") markTrainingRep(key);
+  }
+
   document.querySelectorAll("#calc-tabs .chip").forEach(chip => {
     chip.addEventListener("click", () => {
       if (chip.dataset.calc === currentCalc) return;
-      currentCalc = chip.dataset.calc;
-      document.querySelectorAll("#calc-tabs .chip").forEach(c => {
-        c.classList.toggle("active", c === chip);
-        c.setAttribute("aria-pressed", String(c === chip));
-      });
-      RENDERERS[currentCalc]();
+      activateCalc(chip.dataset.calc);
     });
   });
 
-  renderGrowth();
+  const hashMatch = location.hash.match(/calc=([\w-]+)/);
+  activateCalc(hashMatch && RENDERERS[hashMatch[1]] ? hashMatch[1] : "growth");
 })();
