@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>FinPerson — Calculators</title>
+<meta name="description" content="Compound growth, Rule of 72, fee drag, and savings-goal calculators — real formulas, no accounts needed.">
+<meta name="theme-color" content="#F2EFE6" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#0F1524" media="(prefers-color-scheme: dark)">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%231B2A4A'/%3E%3Ctext x='16' y='22' font-family='Georgia,serif' font-size='17' fill='%23EDEFE6' text-anchor='middle'%3EFP%3C/text%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="styles.css">
+</head>
+<body>
+<a class="skip-link" href="#main">Skip to content</a>
+
+<header class="topbar">
+  <div class="wrap topbar-inner">
+    <a class="logo" href="index.html" style="text-decoration:none;color:inherit;">FinPerson</a>
+    <div id="auth-slot"></div>
+  </div>
+</header>
+
+<main class="wrap dash" id="main">
+  <h1 style="font-family:var(--font-display);font-weight:500;">Calculators</h1>
+  <p class="lede" style="font-size:16px;">Real compound-interest math, not a demo. Change any number and every result updates instantly. Looking for the "why," not just the numbers? See <a class="linkish" href="habits.html">Good Financial Habits</a>. Outside the US? See how <a class="linkish" href="retirement.html">retirement systems compare internationally</a>.</p>
+
+  <div class="learn-disclaimer">Educational only. These are standard formulas, not a projection of what your own money will actually do — real returns are never a straight line.</div>
+
+  <div class="dash-setup-row" style="margin:18px 0;">
+    <span class="dash-label">Calculator</span>
+    <div class="chip-row" id="calc-tabs">
+      <button class="chip active" data-calc="growth" aria-pressed="true">Compound Growth</button>
+      <button class="chip" data-calc="rule72" aria-pressed="false">Rule of 72</button>
+      <button class="chip" data-calc="fees" aria-pressed="false">Fee Drag</button>
+      <button class="chip" data-calc="goal" aria-pressed="false">Savings Goal</button>
+      <button class="chip" data-calc="latte" aria-pressed="false">Latte Factor</button>
+      <button class="chip" data-calc="debt" aria-pressed="false">Debt Payoff</button>
+      <button class="chip" data-calc="emergency" aria-pressed="false">Emergency Fund</button>
+      <button class="chip" data-calc="minpayment" aria-pressed="false">Minimum Payment Trap</button>
+      <button class="chip" data-calc="payday" aria-pressed="false">Payday Loan</button>
+      <button class="chip" data-calc="autotitle" aria-pressed="false">Auto Title Loan</button>
+      <button class="chip" data-calc="deferred" aria-pressed="false">Deferred Interest</button>
+      <button class="chip" data-calc="bnpl" aria-pressed="false">BNPL Stacking</button>
+    </div>
+  </div>
+
+  <section id="calc-content"></section>
+</main>
+
+<footer class="footer">
+  <div class="wrap footer-legal">
+    <p><strong>Not financial advice.</strong> Standard compound-interest formulas, computed client-side — nothing here is a personalized projection or recommendation.</p>
+    <p class="footer-copy">&copy; <span id="year">2026</span> FinPerson.</p>
+  </div>
+</footer>
+
+<script src="instruments.js"></script>
+<script src="study.js"></script>
+<script src="data.js"></script>
+<script src="fbm.js"></script>
+<script src="idm.js"></script>
+<script src="observations.js"></script>
+<script src="api.js"></script>
+<script src="ui.js"></script>
+<script src="legal.js"></script>
+<script src="help.js"></script>
+<script src="chart.js"></script>
+<script src="turtle-chart.js"></script>
+<script src="finance-calc.js"></script>
+<script src="calculators-page.js"></script>
+<script src="https://accounts.google.com/gsi/client" async defer></script>
+<script src="auth.js"></script>
+</body>
+</html>

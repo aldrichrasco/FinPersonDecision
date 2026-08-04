@@ -2215,6 +2215,19 @@ body.has-app-nav .study-badge{bottom:84px;}
 .metric-card[data-tooltip]:focus-within .metric-tooltip{opacity:1;pointer-events:none;transform:translateY(0);}
 .inst-actions{display:flex;gap:14px;justify-content:center;margin-top:16px;}
 
+/* ------------------------------------------------- glossary term tooltips
+   Same visual language as .metric-tooltip above, scoped separately since
+   this wraps inline text (calculators-page.js) rather than a whole card —
+   .metric-card's own padding/border would be wrong here. */
+.glossary-term{position:relative;cursor:help;border-bottom:1px dotted var(--slate);}
+.glossary-tooltip{position:absolute;left:0;bottom:calc(100% + 6px);z-index:20;
+  width:230px;background:var(--ink);color:var(--paper-raised);font-size:12px;line-height:1.45;
+  padding:9px 11px;border-radius:8px;opacity:0;pointer-events:none;
+  transform:translateY(4px);transition:opacity .15s ease,transform .15s ease;
+  box-shadow:0 10px 24px -10px rgba(0,0,0,0.4);font-family:var(--font-body);font-weight:400;}
+.glossary-term:hover .glossary-tooltip,
+.glossary-term:focus-visible .glossary-tooltip{opacity:1;transform:translateY(0);}
+
 /* ---------------------------------------------------------------- report */
 .report-header{
   display:flex;align-items:flex-start;gap:20px;flex-wrap:wrap;

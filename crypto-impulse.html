@@ -25,7 +25,7 @@
 
 <main class="wrap dash" id="main">
   <h1 style="font-family:var(--font-display);font-weight:500;">Crypto Impulse Check</h1>
-  <p class="lede" style="font-size:16px;">A real BTC or ETH price move from the last year, shown without what happened next. Decide, then see the actual outcome — no synthetic data, no real money, nothing here executes a trade.</p>
+  <p class="lede" style="font-size:16px;">Every real BTC or ETH volatility event from the last year, one at a time, oldest first — shown without what happened next. Decide, then see the actual outcome. Your returns compound round to round, tracked against always following the Donchian breakout rule turtle-sim's simulator trades. No synthetic data, no real money, nothing here executes a trade.</p>
 
   <div class="learn-disclaimer">Educational only. Past price moves say nothing certain about future ones — this is a reflection exercise on your own reaction, not investment research or advice.</div>
 
@@ -37,6 +37,8 @@
     </div>
     <span id="current-price-ticker" style="margin-left:auto;font-family:var(--font-mono);font-size:13px;color:var(--slate);"></span>
   </div>
+
+  <p id="breakout-context" class="scenario-text" style="font-size:13px;color:var(--slate);margin:-8px 0 18px;"></p>
 
   <section id="crypto-content">
     <div class="skeleton-grid scenario-empty-body" id="crypto-status">
@@ -62,6 +64,8 @@
 <script src="ui.js"></script>
 <script src="legal.js"></script>
 <script src="help.js"></script>
+<script src="chart.js"></script>
+<script src="turtle-chart.js"></script>
 <script src="crypto-impulse-page.js"></script>
 <script src="https://accounts.google.com/gsi/client" async defer></script>
 <script src="auth.js"></script>

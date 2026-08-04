@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>FinPerson — Retirement Systems Around the World</title>
+<meta name="description" content="How US 401(k)/IRA, Australian Superannuation, UK workplace pensions, Canadian RRSP/TFSA, and NZ KiwiSaver actually work, compared side by side.">
+<meta name="theme-color" content="#F2EFE6" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#0F1524" media="(prefers-color-scheme: dark)">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%231B2A4A'/%3E%3Ctext x='16' y='22' font-family='Georgia,serif' font-size='17' fill='%23EDEFE6' text-anchor='middle'%3EFP%3C/text%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="styles.css">
+</head>
+<body>
+<a class="skip-link" href="#main">Skip to content</a>
+
+<header class="topbar">
+  <div class="wrap topbar-inner">
+    <a class="logo" href="index.html" style="text-decoration:none;color:inherit;">FinPerson</a>
+    <div id="auth-slot"></div>
+  </div>
+</header>
+
+<main class="wrap dash" id="main">
+  <h1 style="font-family:var(--font-display);font-weight:500;">Retirement Systems Around the World</h1>
+  <p class="lede" style="font-size:16px;">"Save for retirement" means something structurally different depending on where you are. Five systems, compared on how they actually work — not just the name.</p>
+
+  <div class="learn-disclaimer">General education, not advice. Contribution rates, caps, and access ages here are typical/approximate and change often by legislation — this is for understanding the shape of each system, not a source for your own numbers. Verify current figures with an official source (e.g. your country's retirement/pension regulator) before acting.</div>
+
+  <div style="overflow-x:auto;margin:22px 0;">
+    <table style="width:100%;border-collapse:collapse;font-size:13px;min-width:640px;">
+      <thead>
+        <tr style="border-bottom:1px solid var(--line);">
+          <th style="text-align:left;padding:8px 12px 8px 0;font-family:var(--font-mono);text-transform:uppercase;font-size:10.5px;letter-spacing:.06em;color:var(--slate);">System</th>
+          <th style="text-align:left;padding:8px 12px;font-family:var(--font-mono);text-transform:uppercase;font-size:10.5px;letter-spacing:.06em;color:var(--slate);">Mandatory?</th>
+          <th style="text-align:left;padding:8px 12px;font-family:var(--font-mono);text-transform:uppercase;font-size:10.5px;letter-spacing:.06em;color:var(--slate);">Typical rate</th>
+          <th style="text-align:left;padding:8px 12px;font-family:var(--font-mono);text-transform:uppercase;font-size:10.5px;letter-spacing:.06em;color:var(--slate);">Tax treatment</th>
+          <th style="text-align:left;padding:8px 0 8px 12px;font-family:var(--font-mono);text-transform:uppercase;font-size:10.5px;letter-spacing:.06em;color:var(--slate);">Access age</th>
+        </tr>
+      </thead>
+      <tbody style="font-family:var(--font-mono);">
+        <tr style="border-bottom:1px solid var(--line);"><td style="padding:9px 12px 9px 0;">US 401(k) / IRA</td><td style="padding:9px 12px;">No</td><td style="padding:9px 12px;">Elective + employer match</td><td style="padding:9px 12px;">Pre-tax or Roth (post-tax)</td><td style="padding:9px 0 9px 12px;">59&frac12;</td></tr>
+        <tr style="border-bottom:1px solid var(--line);"><td style="padding:9px 12px 9px 0;">AU Superannuation</td><td style="padding:9px 12px;">Yes (employer-paid)</td><td style="padding:9px 12px;">~11&ndash;12% of wages</td><td style="padding:9px 12px;">15% flat on contributions</td><td style="padding:9px 0 9px 12px;">~60 (preservation age)</td></tr>
+        <tr style="border-bottom:1px solid var(--line);"><td style="padding:9px 12px 9px 0;">UK Workplace Pension</td><td style="padding:9px 12px;">Auto-enrolled (opt-out)</td><td style="padding:9px 12px;">~8% combined min.</td><td style="padding:9px 12px;">Tax relief on contributions</td><td style="padding:9px 0 9px 12px;">55, rising to 57</td></tr>
+        <tr style="border-bottom:1px solid var(--line);"><td style="padding:9px 12px 9px 0;">Canada RRSP / TFSA</td><td style="padding:9px 12px;">No</td><td style="padding:9px 12px;">~18% earned income (RRSP)</td><td style="padding:9px 12px;">RRSP pre-tax; TFSA tax-free</td><td style="padding:9px 0 9px 12px;">No fixed age (TFSA)</td></tr>
+        <tr><td style="padding:9px 12px 9px 0;">NZ KiwiSaver</td><td style="padding:9px 12px;">Auto-enrolled (opt-out)</td><td style="padding:9px 12px;">3&ndash;10% employee + 3% employer</td><td style="padding:9px 12px;">Post-tax in, taxed growth</td><td style="padding:9px 0 9px 12px;">65</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div style="display:grid;gap:16px;margin-bottom:32px;">
+
+    <section class="scenario-card">
+      <p class="scenario-eyebrow">United States · 401(k) + IRA</p>
+      <p style="font-size:14.5px;line-height:1.65;margin:0;">
+        Entirely voluntary — nothing requires participation. A 401(k) is offered through your employer; you elect a
+        contribution percentage, often with a partial employer match (e.g. 50% of what you contribute, up to 6% of
+        salary — "free money" up to that point, since not claiming it is leaving part of your compensation unclaimed).
+        An IRA is a separate account you open yourself, with its own lower contribution limit. Both come in Traditional
+        (contribute pre-tax, pay tax on withdrawal) or Roth (contribute after-tax, withdraw tax-free) versions. Standard
+        access age is 59&frac12; — earlier withdrawals typically face a 10% penalty plus tax, with some exceptions.
+      </p>
+    </section>
+
+    <section class="scenario-card">
+      <p class="scenario-eyebrow">Australia · Superannuation</p>
+      <p style="font-size:14.5px;line-height:1.65;margin:0;">
+        The structural outlier here: participation isn't a choice. Employers are legally required to pay a percentage
+        of your wages — the "Superannuation Guarantee," currently in the ~11&ndash;12% range and has been rising over
+        time — into a super fund of your choosing, on top of your salary rather than deducted from it. Concessional
+        (pre-tax) contributions are taxed at a flat 15% going in, generally lower than most people's marginal income
+        tax rate. Funds are locked until your "preservation age" (around 60, depending on birth year), with narrow
+        early-access exceptions like severe financial hardship or terminal illness.
+      </p>
+    </section>
+
+    <section class="scenario-card">
+      <p class="scenario-eyebrow">United Kingdom · Workplace Pension</p>
+      <p style="font-size:14.5px;line-height:1.65;margin:0;">
+        Employees are automatically enrolled by their employer (you can opt out) into a workplace pension, with a
+        minimum combined employee + employer contribution around 8% of qualifying earnings — split varies by scheme,
+        commonly close to 5% employee / 3% employer. Contributions get tax relief, effectively reducing their real
+        cost. This sits alongside a separate State Pension, funded by National Insurance contributions over your
+        working life — the two are easy to conflate but are genuinely different layers. Normal access age is
+        currently 55, rising to 57 from 2028.
+      </p>
+    </section>
+
+    <section class="scenario-card">
+      <p class="scenario-eyebrow">Canada · RRSP / TFSA</p>
+      <p style="font-size:14.5px;line-height:1.65;margin:0;">
+        Two separate voluntary accounts, no national employer mandate (though employer-run group RRSPs exist). An
+        RRSP works like the US Traditional 401(k)/IRA — pre-tax in, taxed on withdrawal, room based on roughly 18% of
+        prior-year earned income up to an annual cap. A TFSA is more unusual: contributions are after-tax, but growth
+        AND withdrawals are entirely tax-free, and unused contribution room carries forward indefinitely with no
+        retirement-specific access restriction at all — it can be used for any goal, not just retirement.
+      </p>
+    </section>
+
+    <section class="scenario-card">
+      <p class="scenario-eyebrow">New Zealand · KiwiSaver</p>
+      <p style="font-size:14.5px;line-height:1.65;margin:0;">
+        New employees are auto-enrolled (with an opt-out window); you choose a contribution rate between roughly 3%
+        and 10% of pay, your employer must contribute a minimum of about 3%, and the government adds a small annual
+        member tax credit for eligible contributors. Funds are generally locked until age 65, but with a notable
+        exception: KiwiSaver savings can be withdrawn early to help fund a first home deposit, making it double as a
+        house-deposit vehicle for many younger members in a way most of the other systems here don't support.
+      </p>
+    </section>
+
+  </div>
+
+  <section class="scenario-card">
+    <p class="scenario-eyebrow">Try it — Retirement Contribution Growth</p>
+    <p class="scenario-text" style="font-size:15px;max-width:640px;">
+      Pick a system for a representative starting point, then adjust the numbers. This uses the same compounding
+      math as the <a class="linkish" href="calculators.html">Calculators</a> page — see how much of the total comes
+      from contributions that aren't optional at all.
+    </p>
+    <div class="chip-row" id="rs-country-chips" style="margin-bottom:18px;">
+      <button class="chip active" data-country="us" aria-pressed="true">US 401(k)</button>
+      <button class="chip" data-country="au" aria-pressed="false">AU Super</button>
+      <button class="chip" data-country="uk" aria-pressed="false">UK Pension</button>
+      <button class="chip" data-country="ca" aria-pressed="false">CA RRSP</button>
+      <button class="chip" data-country="nz" aria-pressed="false">NZ KiwiSaver</button>
+    </div>
+    <div id="rs-fields"></div>
+    <canvas id="rs-chart" style="width:100%;display:block;"></canvas>
+    <div id="rs-legend" style="display:flex;flex-wrap:wrap;gap:16px;margin-top:12px;font-family:var(--font-mono);font-size:12px;"></div>
+    <div id="rs-results" style="margin-top:16px;font-family:var(--font-mono);font-size:14px;line-height:1.9;"></div>
+  </section>
+
+</main>
+
+<footer class="footer">
+  <div class="wrap footer-legal">
+    <p><strong>Not financial advice.</strong> General education about how these systems are structured, not a recommendation and not current authoritative figures — rules and rates change; check an official source.</p>
+    <p class="footer-copy">&copy; <span id="year">2026</span> FinPerson.</p>
+  </div>
+</footer>
+
+<script src="instruments.js"></script>
+<script src="study.js"></script>
+<script src="data.js"></script>
+<script src="fbm.js"></script>
+<script src="idm.js"></script>
+<script src="observations.js"></script>
+<script src="api.js"></script>
+<script src="ui.js"></script>
+<script src="legal.js"></script>
+<script src="help.js"></script>
+<script src="chart.js"></script>
+<script src="turtle-chart.js"></script>
+<script src="finance-calc.js"></script>
+<script src="retirement-page.js"></script>
+<script src="https://accounts.google.com/gsi/client" async defer></script>
+<script src="auth.js"></script>
+</body>
+</html>

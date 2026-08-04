@@ -1135,10 +1135,19 @@ def crypto_scenario():
     only the lead-in price path up to and including the event day. The
     outcome is revealed by POST /api/crypto/decision, keyed by
     event_timestamp so the same real event is looked up again rather than
-    trusting anything the client could have seen."""
+    trusting anything the client could have seen.
+
+    With no event_timestamp, picks a random event (single-scenario mode).
+    With one, returns that specific event — used by the chained-decision
+    flow to walk /api/crypto/session-events' roadmap in chronological
+    order rather than randomly."""
     coin = request.args.get("coin", "bitcoin")
+    event_timestamp = request.args.get("event_timestamp", type=float)
     try:
-        scenario = crypto.pick_scenario(coin, threshold_pct=CRYPTO_VOLATILITY_THRESHOLD_PCT)
+        if event_timestamp is not None:
+            scenario = crypto.find_event_by_timestamp(coin, event_timestamp, threshold_pct=CRYPTO_VOLATILITY_THRESHOLD_PCT)
+        else:
+            scenario = crypto.pick_scenario(coin, threshold_pct=CRYPTO_VOLATILITY_THRESHOLD_PCT)
     except ValueError:
         return jsonify({"error": "unsupported coin"}), 400
     except crypto.CryptoAPIError as err:
@@ -1153,7 +1162,52 @@ def crypto_scenario():
         "pct_change": scenario["pct_change"],
         "price_at_event": scenario["price_at_event"],
         "lead_in": scenario["lead_in"],
+        # Whether this real move was ALSO a Donchian channel breakout (the
+        # turtle-sim.js rule) — safe to reveal pre-decision, it's a fact
+        # about the lead-in data the player can already see, not the
+        # outcome. breakout_continued stays out of this response.
+        "breakout_signal": scenario["breakout_signal"],
+        "breakout_period": crypto.DONCHIAN_PERIOD,
     })
+
+
+@app.route("/api/crypto/breakout-stats")
+@rate_limit(limit=20, window=60, scope="crypto")
+def crypto_breakout_stats():
+    """Aggregate, real-data answer to "does a breakout like this usually
+    continue?" across every volatility event in the last year for this
+    coin — the turtle-trading question crypto-impulse-page.js surfaces
+    alongside each scenario."""
+    coin = request.args.get("coin", "bitcoin")
+    try:
+        stats = crypto.get_breakout_stats(coin, threshold_pct=CRYPTO_VOLATILITY_THRESHOLD_PCT)
+    except ValueError:
+        return jsonify({"error": "unsupported coin"}), 400
+    except crypto.CryptoAPIError as err:
+        app.logger.warning("crypto breakout stats fetch failed: %s", err)
+        return jsonify({"error": "price data unavailable right now"}), 503
+    return jsonify(stats)
+
+
+@app.route("/api/crypto/session-events")
+@rate_limit(limit=20, window=60, scope="crypto")
+def crypto_session_events():
+    """The chronological roadmap a chained decision run steps through —
+    every real event_timestamp for this coin, oldest first, with the
+    lightweight facts (direction/pct_change/breakout_signal) already safe
+    to reveal pre-decision. The client fetches each round's full scenario
+    one at a time via GET /api/crypto/scenario?event_timestamp=..."""
+    coin = request.args.get("coin", "bitcoin")
+    try:
+        rounds = crypto.list_session_events(coin, threshold_pct=CRYPTO_VOLATILITY_THRESHOLD_PCT)
+    except ValueError:
+        return jsonify({"error": "unsupported coin"}), 400
+    except crypto.CryptoAPIError as err:
+        app.logger.warning("crypto session-events fetch failed: %s", err)
+        return jsonify({"error": "price data unavailable right now"}), 503
+    if not rounds:
+        return jsonify({"error": "no volatility event found in the available window"}), 404
+    return jsonify({"coin": coin, "rounds": rounds})
 
 
 @app.route("/api/crypto/decision", methods=["POST"])
@@ -1183,6 +1237,8 @@ def crypto_decision():
 
     price_after = event["price_after_outcome"]
     outcome_pct_change = round((price_after - event["price_at_event"]) / event["price_at_event"] * 100, 2)
+    player_return_pct = crypto.action_return_pct(event, choice)
+    rule_return_pct = crypto.action_return_pct(event, event["breakout_signal"])
 
     db.record_crypto_impulse_decision(
         user_id=current_user_id(),
@@ -1201,6 +1257,11 @@ def crypto_decision():
         "pct_change": event["pct_change"],
         "outcome": event["outcome"],
         "outcome_pct_change": outcome_pct_change,
+        "breakout_signal": event["breakout_signal"],
+        "breakout_continued": event["breakout_continued"],
+        "breakout_period": crypto.DONCHIAN_PERIOD,
+        "player_return_pct": player_return_pct,
+        "rule_return_pct": rule_return_pct,
     })
 
 

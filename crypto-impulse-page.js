@@ -1,18 +1,26 @@
-// Crypto Impulse Check — a real historical BTC/ETH volatility event
-// (crypto.py, real CoinGecko data) shown without its outcome, a decision,
-// then the real outcome revealed. Deliberately avoids a right/wrong
-// verdict on the choice itself, same tone as coach.py's DECISION_COACHING
-// mode ("no correct answer, just a trade-off") — a single historical
-// instance doesn't validate or invalidate a strategy, and framing it that
-// way would be dishonest about what one data point can actually tell you.
+// Crypto Impulse Check — a chained run through a coin's real historical
+// BTC/ETH volatility events (crypto.py, real CoinGecko data), oldest
+// first. Each round is shown without its outcome, a decision, then the
+// real outcome revealed, exactly like before — but now the rounds chain:
+// returns compound round to round, tracked against what always following
+// the Donchian breakout rule (the same rule turtle-sim.js's simulator
+// trades, see pro-turtle-page.js) would have done. The final summary
+// reuses turtle-sim's own drawEquityCurves (turtle-chart.js) — the same
+// "dashed rule vs. solid you" comparison, now built from real market
+// history instead of a synthetic PRNG series.
+//
+// Deliberately avoids a right/wrong verdict on any single choice — same
+// tone as coach.py's DECISION_COACHING mode. A handful of real events
+// isn't a backtest with statistical power; the summary says so.
 (function () {
   const content = document.getElementById("crypto-content");
   const status = document.getElementById("crypto-status");
   const ticker = document.getElementById("current-price-ticker");
+  const breakoutContext = document.getElementById("breakout-context");
 
   let currentCoin = "bitcoin";
   let currentScenario = null;
-  let revealed = false;
+  let state = null;
 
   const COIN_LABEL = { bitcoin: "BTC", ethereum: "ETH" };
 
@@ -22,6 +30,15 @@
 
   function fmtDate(ms) {
     return new Date(ms).toLocaleDateString(undefined, { year: "numeric", month: "short", day: "numeric" });
+  }
+
+  function fmtPct(x) {
+    return `${x >= 0 ? "+" : ""}${x.toFixed(1)}%`;
+  }
+
+  function fmtEquity(equityMultiplier) {
+    const pct = (equityMultiplier - 1) * 100;
+    return `${pct >= 0 ? "+" : ""}${pct.toFixed(1)}%`;
   }
 
   async function refreshTicker() {
@@ -35,19 +52,61 @@
     }
   }
 
-  async function loadScenario(coin) {
+  async function refreshBreakoutStats() {
+    if (!breakoutContext) return;
+    breakoutContext.textContent = "";
+    try {
+      const res = await fetch(`${API_BASE_URL}/api/crypto/breakout-stats?coin=${currentCoin}`);
+      if (!res.ok) return;
+      const s = await res.json();
+      if (!s.n_breakouts) return;
+      breakoutContext.textContent =
+        `Turtle Trading angle: of the last ${s.n_breakouts} real ${COIN_LABEL[currentCoin]} moves that were also a ` +
+        `${s.period}-day Donchian breakout (the same rule turtle-sim's simulator trades), price kept moving the ` +
+        `same direction over the next 14 days ${s.continuation_rate}% of the time (n=${s.n_breakouts}).`;
+    } catch (e) {
+      breakoutContext.textContent = "";
+    }
+  }
+
+  // Entry point: loads the coin's real event roadmap (chronological,
+  // oldest first) and starts a fresh chained run at round 1.
+  async function loadSession(coin) {
     currentCoin = coin;
-    revealed = false;
+    state = { rounds: [], roundIndex: 0, playerEquity: 1, ruleEquity: 1, playerCurve: [1], ruleCurve: [1], overrideCount: 0 };
     status.hidden = false;
     content.innerHTML = "";
     content.appendChild(status);
     refreshTicker();
+    refreshBreakoutStats();
 
     try {
-      const res = await fetch(`${API_BASE_URL}/api/crypto/scenario?coin=${coin}`);
+      const res = await fetch(`${API_BASE_URL}/api/crypto/session-events?coin=${coin}`);
       if (!res.ok) {
         const err = await res.json().catch(() => ({}));
-        renderError(err.error || "Couldn't load a scenario right now.");
+        renderError(err.error || "Couldn't load real events right now.");
+        return;
+      }
+      const data = await res.json();
+      state.rounds = data.rounds;
+      loadRound(0);
+    } catch (e) {
+      renderError("Couldn't reach the price data right now.");
+    }
+  }
+
+  async function loadRound(index) {
+    state.roundIndex = index;
+    status.hidden = false;
+    content.innerHTML = "";
+    content.appendChild(status);
+
+    try {
+      const eventTimestamp = state.rounds[index].event_timestamp;
+      const res = await fetch(`${API_BASE_URL}/api/crypto/scenario?coin=${currentCoin}&event_timestamp=${eventTimestamp}`);
+      if (!res.ok) {
+        const err = await res.json().catch(() => ({}));
+        renderError(err.error || "Couldn't load this round right now.");
         return;
       }
       currentScenario = await res.json();
@@ -60,20 +119,40 @@
   function renderError(message) {
     status.hidden = true;
     content.innerHTML = `<p class="scenario-empty-body">${esc(message)} <button class="linkish" id="retry-btn" type="button">Try again</button></p>`;
-    document.getElementById("retry-btn")?.addEventListener("click", () => loadScenario(currentCoin));
+    document.getElementById("retry-btn")?.addEventListener("click", () => loadSession(currentCoin));
+  }
+
+  function breakoutBadge(signal, period) {
+    if (signal !== "buy" && signal !== "sell") return "";
+    const dir = signal === "buy" ? "upside" : "downside";
+    return `<p class="scenario-text" style="font-size:13px;color:var(--slate);">
+      This was also a real ${period}-day Donchian breakout to the ${dir} — the same signal turtle-sim's rule trades on.
+    </p>`;
+  }
+
+  function ruleLine(signal) {
+    if (signal !== "buy" && signal !== "sell") return "";
+    const label = signal === "buy" ? "BUY" : "SELL";
+    return `<p class="scenario-text" style="font-size:13px;color:var(--slate);">
+      The Donchian rule here says: <strong>${label}</strong>. Your choice below can follow it or override it.
+    </p>`;
   }
 
   function renderScenario() {
     status.hidden = true;
     const s = currentScenario;
     const verb = s.direction === "drop" ? "dropped" : "spiked";
+    const total = state.rounds.length;
     content.innerHTML = `
+      <p class="scenario-eyebrow" style="margin-bottom:2px;">Round ${state.roundIndex + 1} of ${total}</p>
       <section class="scenario-card" id="scenario-card">
         <p class="scenario-eyebrow">${COIN_LABEL[s.coin]} · ${fmtDate(s.event_timestamp)}</p>
         <p class="scenario-text">
           ${COIN_LABEL[s.coin]} just ${verb} ${Math.abs(s.pct_change)}% in a single day, landing at ${fmtUsd(s.price_at_event)}.
           This actually happened. You don't know yet what it did next.
         </p>
+        ${breakoutBadge(s.breakout_signal, s.breakout_period)}
+        ${ruleLine(s.breakout_signal)}
         <canvas id="price-chart" width="760" height="180" style="width:100%;max-width:100%;height:180px;display:block;margin:14px 0;"></canvas>
         <div class="scenario-choices">
           <button class="choice-btn" data-choice="buy">
@@ -122,20 +201,66 @@
   }
 
   function renderReveal(choice, result) {
-    revealed = true;
+    if (choice !== result.breakout_signal) state.overrideCount += 1;
+    state.playerEquity *= 1 + result.player_return_pct / 100;
+    state.ruleEquity *= 1 + result.rule_return_pct / 100;
+    state.playerCurve.push(state.playerEquity);
+    state.ruleCurve.push(state.ruleEquity);
+
     const outcomeUp = result.outcome_pct_change > 0;
     const outcomeText = `Over the next ${result.outcome.length} days, ${COIN_LABEL[result.coin]} moved ${outcomeUp ? "up" : "down"} another ${Math.abs(result.outcome_pct_change)}%.`;
+    const isLastRound = state.roundIndex + 1 >= state.rounds.length;
 
     const card = document.getElementById("scenario-card");
     const framing = framingFor(choice, result);
+    const breakoutOutcome = breakoutOutcomeText(result);
     card.insertAdjacentHTML("beforeend", `
       <div class="scenario-eyebrow" style="margin-top:18px;">What actually happened</div>
       <p class="scenario-text">${outcomeText}</p>
       <p class="scenario-text" style="color:var(--slate);font-size:14px;">${framing}</p>
-      <button class="btn btn-secondary reroll-btn" id="reroll-btn">Try another moment</button>
+      ${breakoutOutcome}
+      <p class="scenario-text" style="font-family:var(--font-mono);font-size:13px;">
+        Round return: you ${fmtPct(result.player_return_pct)} &middot; rule ${fmtPct(result.rule_return_pct)}
+      </p>
+      <p class="scenario-text" style="font-family:var(--font-mono);font-size:13px;color:var(--slate);">
+        Running total: you ${fmtEquity(state.playerEquity)} &middot; always-follow-the-rule ${fmtEquity(state.ruleEquity)}
+      </p>
+      <button class="btn btn-primary" id="next-round-btn">${isLastRound ? "See summary" : "Next round"}</button>
     `);
     drawPricePath(currentScenario.lead_in, result.outcome);
-    document.getElementById("reroll-btn").addEventListener("click", () => loadScenario(currentCoin));
+    document.getElementById("next-round-btn").addEventListener("click", () => {
+      if (isLastRound) renderSummary();
+      else loadRound(state.roundIndex + 1);
+    });
+  }
+
+  function renderSummary() {
+    status.hidden = true;
+    const total = state.rounds.length;
+    const helped = state.playerEquity >= state.ruleEquity;
+    content.innerHTML = `
+      <section class="scenario-card">
+        <p class="scenario-eyebrow">Run complete — ${COIN_LABEL[currentCoin]}</p>
+        <h2 style="font-family:var(--font-display);font-weight:500;font-size:22px;margin:4px 0 12px;">
+          ${state.overrideCount} override${state.overrideCount === 1 ? "" : "s"} out of ${total} round${total === 1 ? "" : "s"}
+        </h2>
+        <canvas id="crypto-equity-chart" style="width:100%;display:block;"></canvas>
+        <p class="scenario-text" style="font-family:var(--font-mono);margin-top:14px;">
+          Always following the rule: <strong>${fmtEquity(state.ruleEquity)}</strong>
+        </p>
+        <p class="scenario-text" style="font-family:var(--font-mono);">
+          You: <strong style="color:${helped ? "var(--teal)" : "var(--brick)"};">${fmtEquity(state.playerEquity)}</strong>
+        </p>
+        <p class="scenario-text" style="font-size:13px;color:var(--slate);">
+          Dashed line: always following the Donchian rule. Solid line: what you actually did.
+          ${total} real event${total === 1 ? "" : "s"} is a single run, not a backtest with statistical power —
+          this shows what compounding your own choices looked like this time, not what to expect next time.
+        </p>
+        <button class="btn btn-secondary reroll-btn" id="reroll-btn">Run it again</button>
+      </section>
+    `;
+    drawEquityCurves(document.getElementById("crypto-equity-chart"), state.ruleCurve, state.playerCurve);
+    document.getElementById("reroll-btn").addEventListener("click", () => loadSession(currentCoin));
   }
 
   // Deliberately no "you were right/wrong" verdict — see this file's
@@ -164,6 +289,19 @@
       }
     }
     return line;
+  }
+
+  // Ties this one instance back to the aggregate rate in #breakout-context
+  // — one breakout continuing or reversing doesn't confirm or refute that
+  // rate, same "one data point" caveat as framingFor above.
+  function breakoutOutcomeText(result) {
+    if (result.breakout_signal !== "buy" && result.breakout_signal !== "sell") return "";
+    const dir = result.breakout_signal === "buy" ? "upside" : "downside";
+    const verdict = result.breakout_continued ? "continued in that direction" : "reversed instead";
+    return `<p class="scenario-text" style="font-size:13px;color:var(--slate);">
+      This was also a real ${result.breakout_period}-day breakout to the ${dir} — this particular one ${verdict}
+      over the following ${result.outcome.length} days.
+    </p>`;
   }
 
   // Same technique as dashboard.js's drawNetWorthChart: device-pixel-ratio
@@ -231,9 +369,9 @@
         c.classList.toggle("active", c === chip);
         c.setAttribute("aria-pressed", String(c === chip));
       });
-      loadScenario(chip.dataset.coin);
+      loadSession(chip.dataset.coin);
     });
   });
 
-  loadScenario(currentCoin);
+  loadSession(currentCoin);
 })();
