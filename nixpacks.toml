@@ -21,13 +21,34 @@ providers = ["python"]
 # actually works the moment ANTHROPIC_API_KEY is fixed; revisit if build
 # time becomes a real problem — the leaner alternative is a lighter local
 # vector store than Chroma, not dropping requirements-agent.txt entirely.
+#
+# Explicitly creates the venv at /opt/venv: overriding [phases.install]
+# replaces Nixpacks' own default install phase ENTIRELY, including the
+# `python -m venv --copies /opt/venv` step that phase normally does. The
+# rest of the generated Dockerfile (an ENV PATH pointing at /opt/venv/bin,
+# plus a /root/.profile entry for interactive shells) still assumes that
+# venv exists — a real deploy failed with "pip: command not found" (exit
+# 127) because a bare `pip install` here has nothing to resolve to: plain
+# nix python3 doesn't ship a system-wide pip, and /opt/venv was never
+# created. Recreating that one step is the fix, not switching package
+# managers or dropping the override.
 [phases.install]
-cmds = ["pip install -r requirements.txt -r requirements-agent.txt"]
+cmds = [
+  "python -m venv --copies /opt/venv",
+  "/opt/venv/bin/pip install -r requirements.txt -r requirements-agent.txt",
+]
 
 # Bakes the RAG index into the deployed image at build time rather than
 # building it (including fastembed's ~130MB model download) on a live
 # request's cold start, or worse, needing a persistent volume Railway isn't
 # currently configured with. See rag/build_index.py's docstring for the
 # corpus_js.json workflow this depends on.
+#
+# Explicit /opt/venv/bin/python, not bare `python` — same reasoning as
+# [phases.install] above: this phase's cmds aren't guaranteed to inherit
+# an activated venv from the install phase just because both are custom
+# overrides, so name the interpreter that actually has requirements.txt/
+# requirements-agent.txt's packages installed rather than assuming
+# whichever `python` PATH resolves to here is the right one.
 [phases.build]
-cmds = ["python -m rag.build_index"]
+cmds = ["/opt/venv/bin/python -m rag.build_index"]
