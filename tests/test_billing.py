@@ -17,7 +17,13 @@ class BillingUnconfiguredTests(unittest.TestCase):
     def test_status_anonymous_returns_null_plan(self):
         response = self.client.get('/api/billing/status')
         self.assertEqual(response.status_code, 200)
-        self.assertEqual(response.get_json(), {'plan': None})
+        self.assertIsNone(response.get_json()['plan'])
+
+    def test_status_reports_yearly_unavailable_when_unconfigured(self):
+        # No STRIPE_PRICE_ID_YEARLY in this environment, so the pricing page
+        # must not be told a yearly plan exists.
+        response = self.client.get('/api/billing/status')
+        self.assertFalse(response.get_json()['yearly_available'])
 
     def test_webhook_returns_503_when_unconfigured(self):
         response = self.client.post('/api/billing/webhook', data=b'{}', headers={'Stripe-Signature': 'anything'})

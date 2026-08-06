@@ -446,8 +446,37 @@ function renderQuizResult() {
     <p class="quiz-read-hedge" style="margin-top:14px;">
       Want a more careful read than a 30-second quiz can give? <a href="assessment.html">Take the full assessment &rarr;</a>
     </p>
+    <form id="quiz-lead-form" style="margin-top:18px;padding-top:16px;border-top:1px solid var(--line);display:flex;gap:8px;flex-wrap:wrap;align-items:center;">
+      <label for="quiz-lead-email" style="flex:1;min-width:220px;">
+        <span style="display:block;font-size:12.5px;color:var(--slate);margin-bottom:6px;">Want to stay in the loop as FinPerson grows? Leave your email.</span>
+        <input type="email" id="quiz-lead-email" class="goal-input" placeholder="you@example.com" required style="width:100%;">
+      </label>
+      <button class="btn btn-secondary" type="submit" style="flex-shrink:0;">Keep me posted</button>
+      <span id="quiz-lead-status" style="font-size:12.5px;color:var(--slate);width:100%;"></span>
+    </form>
   `;
   document.querySelector(".quiz-result-actions .btn-primary")?.focus();
+
+  const leadForm = document.getElementById("quiz-lead-form");
+  leadForm?.addEventListener("submit", async (e) => {
+    e.preventDefault();
+    const emailInput = document.getElementById("quiz-lead-email");
+    const status = document.getElementById("quiz-lead-status");
+    const submitBtn = leadForm.querySelector("button[type=submit]");
+    submitBtn.disabled = true;
+    status.textContent = "Saving…";
+    const ok = typeof submitEmailLead === "function"
+      ? await submitEmailLead(emailInput.value.trim(), "quiz_result", primarySlug)
+      : false;
+    if (ok) {
+      status.textContent = "Thanks — saved.";
+      emailInput.disabled = true;
+      submitBtn.textContent = "Saved";
+    } else {
+      status.textContent = "Couldn't save that — try again in a moment.";
+      submitBtn.disabled = false;
+    }
+  });
 }
 
 function initQuiz() {

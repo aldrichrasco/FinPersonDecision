@@ -19,19 +19,52 @@ const NAV_ITEMS = [
 // Donate is included here too (not just the footer) so it's reachable the
 // same way from every page, not just ones where you've scrolled to the
 // bottom — inconsistent reachability was flagged directly.
-const MENU_ITEMS = [
-  { href: "roadmap.html", label: "Roadmap" },
-  { href: "training.html", label: "Training" },
-  { href: "learn.html", label: "Learn" },
-  { href: "classroom.html", label: "Games" },
-  { href: "crypto-impulse.html", label: "Crypto Impulse Check" },
-  { href: "calculators.html", label: "Calculators" },
-  { href: "habits.html", label: "Good Habits" },
-  { href: "retirement.html", label: "Retirement Systems" },
-  { href: "shop.html", label: "Resources" },
-  { href: "pro.html", label: "FinPerson Pro" },
-  { href: "donate.html", label: "Donate" },
+// Grouped, not a flat list: this menu reached 13 entries as pages were
+// added, which for a product whose whole pitch is "immediately
+// understandable" is exactly the wrong front door — a beginner opening a
+// wall of 13 links has no idea which one is the starting point. The three
+// groups answer "where do I start / what do I practise / what does it
+// cost", in that order. Adding a page means picking a group, not just
+// appending.
+//
+// shop.html is deliberately NOT listed: it still ships literal
+// "Your book title here" placeholder copy and a REPLACE-WITH-YOUR-... href
+// (see its own SETUP REQUIRED comment). The file is left in place so it can
+// be finished later, but an unfinished page shouldn't be reachable from the
+// main menu of a product asking people to trust it with money questions.
+const MENU_GROUPS = [
+  {
+    label: "Start here",
+    items: [
+      { href: "roadmap.html", label: "Roadmap" },
+      { href: "learn.html", label: "Learn" },
+      { href: "habits.html", label: "Good Habits" },
+    ],
+  },
+  {
+    label: "Practise",
+    items: [
+      { href: "training.html", label: "Behavioural Training" },
+      { href: "calculators.html", label: "Calculators" },
+      { href: "crypto-impulse.html", label: "Crypto Impulse Check" },
+      { href: "classroom.html", label: "Games" },
+      { href: "retirement.html", label: "Retirement Systems" },
+    ],
+  },
+  {
+    label: "More",
+    items: [
+      { href: "mri-report.html", label: "Advanced MRI" },
+      { href: "pro.html", label: "FinPerson Pro" },
+      { href: "pricing.html", label: "Pricing" },
+      { href: "donate.html", label: "Donate" },
+    ],
+  },
 ];
+
+// Flat view, kept because other code may still want "every menu destination"
+// without caring how it's grouped.
+const MENU_ITEMS = MENU_GROUPS.flatMap(g => g.items);
 
 // Grows a dropdown panel in from the corner nearest its trigger instead of
 // the instant [hidden] snap it used to be, and shrinks back the same way on
@@ -103,7 +136,10 @@ function initNav() {
         <span class="nav-label">Explore</span>
       </button>
       <div class="app-nav-more-panel" id="app-nav-more-panel" hidden>
-        ${MENU_ITEMS.map(item => `<a href="${item.href}"${item.href.replace(".html", "") === page ? ' aria-current="page"' : ""}>${item.label}</a>`).join("")}
+        ${MENU_GROUPS.map(group => `
+          <p class="app-nav-more-group">${group.label}</p>
+          ${group.items.map(item => `<a href="${item.href}"${item.href.replace(".html", "") === page ? ' aria-current="page"' : ""}>${item.label}</a>`).join("")}
+        `).join("")}
       </div>
     </div>`;
   document.body.appendChild(nav);

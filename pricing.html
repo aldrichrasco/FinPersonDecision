@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>FinPerson — Pricing</title>
+<meta name="description" content="Free: the quiz, the sandbox, calculators, and every simulation. Supporter ($5/mo): behavioural coaching, FinPerson Pro, and the Advanced Financial MRI.">
+<meta name="theme-color" content="#F2EFE6" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#0F1524" media="(prefers-color-scheme: dark)">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%231B2A4A'/%3E%3Ctext x='16' y='22' font-family='Georgia,serif' font-size='17' fill='%23EDEFE6' text-anchor='middle'%3EFP%3C/text%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="styles.css">
+<script defer src="analytics.js"></script>
+</head>
+<body>
+<a class="skip-link" href="#main">Skip to content</a>
+
+<header class="topbar">
+  <div class="wrap topbar-inner">
+    <a class="logo" href="index.html" style="text-decoration:none;color:inherit;">FinPerson</a>
+    <div id="auth-slot"></div>
+  </div>
+</header>
+
+<main class="wrap dash" id="main">
+  <h1 style="font-family:var(--font-display);font-weight:500;">Pricing</h1>
+  <p class="lede" style="font-size:16px;">The whole Financial MRI — quiz, sandbox, every calculator and simulation — is free, no account required. One thing is paid: live, back-and-forth behavioural coaching — kept cheap, $5/mo.</p>
+
+  <div style="display:grid;gap:16px;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));margin:28px 0;">
+
+    <section class="scenario-card">
+      <p class="scenario-eyebrow">Free</p>
+      <h2 style="font-family:var(--font-display);font-weight:500;font-size:26px;margin:0 0 4px;">$0</h2>
+      <p style="font-size:13px;color:var(--slate);margin:0 0 18px;">No account needed to start</p>
+      <ul style="list-style:none;padding:0;margin:0 0 20px;font-size:14px;line-height:2;">
+        <li>✓ The 30-second quiz &amp; archetype match</li>
+        <li>✓ The decision sandbox, all personas</li>
+        <li>✓ Roadmap &amp; Behavioral Training</li>
+        <li>✓ All 12 Calculators, incl. debt-trap simulators</li>
+        <li>✓ Crypto Impulse Check</li>
+        <li>✓ Learn, Theory, Good Financial Habits</li>
+        <li>✓ Retirement Systems comparison</li>
+      </ul>
+      <a class="btn btn-secondary" href="index.html" style="width:100%;text-align:center;">Start free</a>
+    </section>
+
+    <section class="scenario-card" style="border-color:var(--teal);">
+      <p class="scenario-eyebrow" style="color:var(--teal);">Supporter</p>
+      <h2 style="font-family:var(--font-display);font-weight:500;font-size:26px;margin:0 0 4px;" id="pricing-amount">$5<span style="font-size:15px;color:var(--slate);font-weight:400;">/mo</span></h2>
+      <p style="font-size:13px;color:var(--slate);margin:0 0 12px;" id="pricing-sub">Everything in Free, plus:</p>
+      <!-- Hidden until the server confirms a yearly price id is configured
+           (billing.yearly_available) — never advertise a plan that would
+           silently charge monthly. -->
+      <div class="chip-row" id="pricing-interval" style="margin:0 0 16px;" hidden>
+        <button class="chip active" data-interval="monthly" aria-pressed="true">Monthly</button>
+        <button class="chip" data-interval="yearly" aria-pressed="false">Yearly</button>
+      </div>
+      <ul style="list-style:none;padding:0;margin:0 0 20px;font-size:14px;line-height:2;">
+        <li>✓ Behavioural coaching — unlimited conversations, any persona</li>
+        <li>✓ Reads your real sandbox history, not a blank slate</li>
+        <li>✓ FinPerson Pro — the Turtle Trading simulation &amp; results history</li>
+        <li>✓ Advanced Financial MRI — cross-exercise report on your real practice data</li>
+        <li>✓ Cancel anytime, no lock-in</li>
+      </ul>
+      <button class="btn btn-primary" id="pricing-subscribe-btn" type="button" style="width:100%;">Become a supporter — $5/mo</button>
+      <p id="pricing-status" style="font-size:12.5px;color:var(--slate);margin:10px 0 0;min-height:1.2em;"></p>
+    </section>
+
+  </div>
+
+  <div class="learn-disclaimer">Educational only, not financial advice — paying for coaching doesn't change that. Your coach reflects patterns back to you; it doesn't tell you what to buy, sell, or do with real money.</div>
+</main>
+
+<footer class="footer">
+  <div class="wrap footer-legal">
+    <p><strong>Not financial advice.</strong> FinPerson is a practice environment, not a bank, broker, or advisory service.</p>
+    <p class="footer-copy">&copy; <span id="year">2026</span> FinPerson.</p>
+  </div>
+</footer>
+
+<script src="instruments.js"></script>
+<script src="study.js"></script>
+<script src="data.js"></script>
+<script src="fbm.js"></script>
+<script src="idm.js"></script>
+<script src="observations.js"></script>
+<script src="api.js"></script>
+<script src="ui.js"></script>
+<script src="legal.js"></script>
+<script src="help.js"></script>
+<script src="pricing-page.js"></script>
+<script src="https://accounts.google.com/gsi/client" async defer></script>
+<script src="auth.js"></script>
+</body>
+</html>

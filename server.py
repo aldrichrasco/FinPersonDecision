@@ -52,6 +52,7 @@ import ratelimit
 import coach
 import coach_agent
 import crypto
+import mri_report
 import llm
 import billing
 import mailer
@@ -721,17 +722,41 @@ def profile_nudge_log():
     return jsonify({"ok": True})
 
 
+@app.route("/api/leads", methods=["POST"])
+@rate_limit(limit=10, window=60, scope="leads")
+def create_lead():
+    """Captures an email from an anonymous quiz-taker (quiz.js's "keep my
+    result" prompt). Just storage — see db.py's ddl_email_leads comment for
+    why this doesn't send anything yet."""
+    payload = request.get_json(silent=True)
+    if not isinstance(payload, dict):
+        return jsonify({"error": "invalid JSON body"}), 400
+    email = (payload.get("email") or "").strip().lower()
+    if not email or not EMAIL_RE.match(email) or len(email) > 254:
+        return jsonify({"error": "a valid email is required"}), 400
+    source = str(payload.get("source") or "")[:100]
+    archetype = str(payload.get("archetype") or "")[:100]
+    db.record_email_lead(email, source, archetype, current_user_id())
+    return jsonify({"ok": True})
+
+
 @app.route("/api/billing/create-checkout-session", methods=["POST"])
 @rate_limit(limit=10, window=60, scope="billing")
 def billing_create_checkout_session():
-    """Starts a real Stripe Checkout session for a monthly-supporter
-    subscription — Stripe's hosted page collects the card, FinPerson never
-    sees it. Nothing is gated on the result yet; see billing.py."""
+    """Starts a real Stripe Checkout session for a supporter subscription —
+    Stripe's hosted page collects the card, FinPerson never sees it. Accepts
+    an optional {"interval": "monthly"|"yearly"} body; anything else is
+    treated as monthly rather than rejected, since an unrecognised interval
+    should not block someone from subscribing at all."""
     uid = current_user_id()
     if not uid:
         return jsonify({"error": "not signed in"}), 401
     if not billing.billing_configured():
         return jsonify({"error": "billing not configured"}), 503
+    payload = request.get_json(silent=True)
+    interval = "monthly"
+    if isinstance(payload, dict) and payload.get("interval") == "yearly":
+        interval = "yearly"
     email = db.get_user_email(uid)
     base = request.host_url.rstrip("/")
     try:
@@ -740,6 +765,7 @@ def billing_create_checkout_session():
             client_reference_id=str(uid),
             success_url=f"{base}/donate.html?billing=success",
             cancel_url=f"{base}/donate.html?billing=cancel",
+            interval=interval,
         )
     except billing.BillingError as err:
         app.logger.warning("billing error: %s", err)
@@ -793,20 +819,50 @@ def billing_webhook():
 @app.route("/api/billing/status")
 @rate_limit(limit=60, window=60, scope="billing")
 def billing_status():
+    """`yearly_available` is included for anonymous callers too — the
+    pricing page needs to know whether to offer a yearly toggle before
+    anyone signs in, and it leaks nothing user-specific."""
     uid = current_user_id()
+    base = {"yearly_available": billing.yearly_available()}
     if not uid:
-        return jsonify({"plan": None})
+        return jsonify({**base, "plan": None})
     sub = db.get_subscription(uid)
-    return jsonify(sub or {"plan": None})
+    return jsonify({**base, **(sub or {"plan": None})})
 
 
 def subscription_active(uid):
-    """Gate for FinPerson Pro features (the Turtle Trading simulation).
-    Nothing else in the app reads this — the retail product stays free."""
+    """Gate for the Supporter tier: live coaching (/api/chat), FinPerson Pro
+    (the Turtle Trading simulation), and the Advanced Financial MRI report
+    (/api/mri/report) all share this one check — the free practice tools
+    (quiz, sandbox, every calculator/simulator, Roadmap, Training) never
+    read this and stay free."""
     if not uid:
         return False
     sub = db.get_subscription(uid)
     return bool(sub and sub.get("status") in ("active", "trialing"))
+
+
+@app.route("/api/mri/report")
+@rate_limit(limit=30, window=60, scope="mri")
+def mri_report_route():
+    """The Advanced Financial MRI: a cross-exercise analysis built entirely
+    from data the free tools already produced (quiz profile, turtle-sim
+    rounds, Crypto Impulse Check decisions, Roadmap/Training progress) —
+    see mri_report.py's module docstring for why this counts as the paid
+    tier's actual content rather than a new exercise to gate."""
+    uid = current_user_id()
+    if not uid:
+        return jsonify({"error": "not signed in"}), 401
+    if not subscription_active(uid):
+        return jsonify({"error": "subscription required", "paywall": True}), 402
+    report = mri_report.build_report(
+        db.get_user_profile(uid),
+        db.get_turtle_sessions_with_rounds(uid),
+        db.get_crypto_impulse_decisions(uid),
+        db.get_roadmap_progress(uid),
+        db.get_training_progress(uid),
+    )
+    return jsonify(report)
 
 
 @app.route("/api/turtle/session", methods=["GET", "POST"])

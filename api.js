@@ -163,6 +163,22 @@ function saveTrainingProgress(progress) {
 // Fire-and-forget, same style as logScenarioChoice. No-ops for anonymous
 // users (server 401s, which we ignore) — this is supplementary research
 // telemetry, not something the quiz flow depends on.
+// Returns true/false rather than throwing — callers show their own
+// inline success/error state (see quiz.js's email-capture prompt).
+async function submitEmailLead(email, source, archetype) {
+  try {
+    const res = await fetchWithTimeout(`${API_BASE_URL}/api/leads`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      credentials: "include",
+      body: JSON.stringify({ email, source, archetype }),
+    });
+    return res.ok;
+  } catch (e) {
+    return false;
+  }
+}
+
 function logProfileSnapshot(profile, archetype, confidence) {
   fetch(`${API_BASE_URL}/api/research/events`, {
     method: "POST",

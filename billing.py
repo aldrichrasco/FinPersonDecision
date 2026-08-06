@@ -12,6 +12,14 @@ Environment variables:
     STRIPE_SECRET_KEY       sk_test_... or sk_live_...
     STRIPE_WEBHOOK_SECRET   whsec_... (from the Stripe webhook endpoint config)
     STRIPE_PRICE_ID         price_... for the monthly-supporter subscription
+    STRIPE_PRICE_ID_YEARLY  price_... for the yearly plan (OPTIONAL)
+
+Only the monthly price is required. STRIPE_PRICE_ID_YEARLY is optional so
+the yearly option on pricing.html degrades cleanly: if it isn't set, a
+yearly checkout request falls back to the monthly price rather than
+failing, and yearly_available() lets the UI hide the toggle entirely.
+Both prices must be created in the Stripe dashboard — this file never
+decides an amount, it only references a price id.
 
 Without these set, billing_configured() returns False and every route in
 server.py that depends on it returns a clean 503 rather than crashing — same
@@ -23,6 +31,7 @@ import os
 SECRET_KEY = os.environ.get("STRIPE_SECRET_KEY")
 WEBHOOK_SECRET = os.environ.get("STRIPE_WEBHOOK_SECRET")
 PRICE_ID = os.environ.get("STRIPE_PRICE_ID")
+PRICE_ID_YEARLY = os.environ.get("STRIPE_PRICE_ID_YEARLY")
 
 
 class BillingError(Exception):
@@ -31,6 +40,22 @@ class BillingError(Exception):
 
 def billing_configured():
     return bool(SECRET_KEY and WEBHOOK_SECRET and PRICE_ID)
+
+
+def yearly_available():
+    """True only when a distinct yearly price id is configured — the UI
+    uses this to decide whether to offer the yearly toggle at all, rather
+    than advertising a plan that would silently charge monthly."""
+    return bool(billing_configured() and PRICE_ID_YEARLY)
+
+
+def _price_for(interval):
+    """Falls back to the monthly price when yearly isn't configured, so a
+    stale/hand-crafted `interval=yearly` request can never 500 — it just
+    buys the plan that actually exists."""
+    if interval == "yearly" and PRICE_ID_YEARLY:
+        return PRICE_ID_YEARLY
+    return PRICE_ID
 
 
 def _stripe():
@@ -42,11 +67,12 @@ def _stripe():
     return stripe
 
 
-def create_checkout_session(customer_email, success_url, cancel_url, client_reference_id):
+def create_checkout_session(customer_email, success_url, cancel_url, client_reference_id, interval="monthly"):
     """Returns the Stripe-hosted Checkout URL to redirect the browser to.
     `client_reference_id` (our own user_id, as a string) is echoed back on
     the checkout.session.completed webhook so it can be linked to a
-    FinPerson account — Stripe has no other way to know who this is."""
+    FinPerson account — Stripe has no other way to know who this is.
+    `interval` is "monthly" (default) or "yearly"; see _price_for()."""
     if not billing_configured():
         raise BillingError("billing not configured")
     stripe = _stripe()
@@ -54,7 +80,7 @@ def create_checkout_session(customer_email, success_url, cancel_url, client_refe
         session = stripe.checkout.Session.create(
             mode="subscription",
             payment_method_types=["card"],
-            line_items=[{"price": PRICE_ID, "quantity": 1}],
+            line_items=[{"price": _price_for(interval), "quantity": 1}],
             customer_email=customer_email,
             client_reference_id=client_reference_id,
             success_url=success_url,

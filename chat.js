@@ -306,15 +306,15 @@ async function renderChatPaywall() {
       </div>
     </div>
     <div class="chat-paywall">
-      <span class="donate-featured-badge">Coaching</span>
+      <span class="donate-featured-badge">Behavioural Coaching</span>
       <h2 class="chat-paywall-h2">Talk it through with your ${esc(personaMeta.name)} coach</h2>
-      <p class="chat-paywall-body">The quiz, your archetype match, and the practice sandbox are free — that's the whole point of the Financial MRI. Live back-and-forth coaching from a persona-voiced AI that actually reads your sandbox history and goals is the paid part.</p>
+      <p class="chat-paywall-body">The quiz, your archetype match, and the practice sandbox are free — that's the whole point of the Financial MRI. Live back-and-forth behavioural coaching from a persona-voiced AI that actually reads your sandbox history and goals is the paid part — $5/mo.</p>
       <ul class="donate-featured-perks">
         <li>Unlimited conversations, any persona</li>
         <li>Reads your real sandbox history, not a blank slate</li>
         <li>Cancel anytime, no lock-in</li>
       </ul>
-      <button class="btn btn-primary" id="chat-subscribe-btn" type="button">Become a supporter</button>
+      <button class="btn btn-primary" id="chat-subscribe-btn" type="button">Become a supporter — $5/mo</button>
       <p class="chat-paywall-status" id="chat-paywall-status"></p>
       <p class="chat-paywall-alt">Not ready yet? <a href="dashboard.html?persona=${encodeURIComponent(chatPersona)}">Keep practicing in the free sandbox &rarr;</a></p>
     </div>

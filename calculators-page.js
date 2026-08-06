@@ -78,6 +78,41 @@
     `;
   }
 
+  // "Skins" — the same calculator, framed differently depending on the
+  // archetype the quiz already matched (getSavedPersona(), data.js — the
+  // same persistent signal chat.js/dashboard.js already key off, not a new
+  // storage mechanism). Deliberately partial: only calculator/archetype
+  // pairs with a genuinely distinct psychological angle are written out;
+  // everything else falls back to the calculator's own neutral copy rather
+  // than a force-fit variant. See ARCHETYPE_FRAMING below for coverage.
+  const ARCHETYPE_FRAMING = {
+    emergency: {
+      anxious_avoider: "You don't need the exact number today — even a rough one gives you something concrete to hold onto instead of a vague, general dread about money.",
+      impulsive_spender: "An emergency fund isn't just insurance against disasters — it's what keeps an ordinary bad week from turning into a bad decision made under pressure.",
+      passive_drifter: "One target number, automated, is easier to actually stick to than a plan you have to keep re-deciding to follow.",
+    },
+    minpayment: {
+      impulsive_spender: "This is the slow-motion version of the same pattern — a decision made in a moment that keeps compounding long after the moment's over.",
+      anxious_avoider: "The real math here is worse than most people's imagined version of it — which is exactly why it's worth looking at directly, once, instead of avoiding it.",
+      status_seeker: "The balance that funds looking successful is usually the same one working against you fastest — worth knowing the actual number.",
+    },
+    latte: {
+      impulsive_spender: "This calculator is built for exactly this pattern — not to shame the spending, just to make the alternative visible before the next decision.",
+      conscious_spender: "You already spend deliberately on what matters — this just prices the one habit you probably haven't examined the same way.",
+    },
+    goal: {
+      ambitious_builder: "You're already oriented toward growth — this turns \"invest more\" into an actual number and a date to check yourself against.",
+      passive_drifter: "A specific number turns \"I should probably save more\" into something you can automate once and stop having to think about.",
+      steady_saver: "You're already consistent — this just tells you honestly whether your current pace actually gets you there.",
+    },
+  };
+
+  function framedIntro(calcKey, defaultHtml) {
+    const saved = typeof getSavedPersona === "function" ? getSavedPersona() : null;
+    const variant = saved && ARCHETYPE_FRAMING[calcKey] && ARCHETYPE_FRAMING[calcKey][saved];
+    return variant || defaultHtml;
+  }
+
   // Generic multi-line growth chart: any number of {year,value} series,
   // same geometry approach as turtle-chart.js's drawEquityCurves but with
   // a real dollar-value domain instead of an equity multiplier.
@@ -272,8 +307,7 @@
       <section class="scenario-card">
         <p class="scenario-eyebrow">Savings Goal</p>
         <p class="scenario-text" style="font-size:15px;max-width:640px;">
-          Solve for how long a goal takes at a given contribution, or how much you'd need to contribute to hit
-          it by a given date.
+          ${framedIntro("goal", "Solve for how long a goal takes at a given contribution, or how much you'd need to contribute to hit it by a given date.")}
         </p>
         <div class="chip-row" id="goal-mode-tabs" style="margin-bottom:18px;">
           <button class="chip ${goalMode === "time" ? "active" : ""}" data-mode="time" aria-pressed="${goalMode === "time"}">Solve for time</button>
@@ -345,9 +379,9 @@
       <section class="scenario-card">
         <p class="scenario-eyebrow">Latte Factor — the cost of a small habit</p>
         <p class="scenario-text" style="font-size:15px;max-width:640px;">
-          Not a claim that coffee is the problem — any small, regular spend works the same way. This is the
+          ${framedIntro("latte", `Not a claim that coffee is the problem — any small, regular spend works the same way. This is the
           ${gloss("opportunity cost")} of it: what the same money would be worth if it went into an investment
-          account instead, on the same schedule.
+          account instead, on the same schedule.`)}
         </p>
         ${fieldsRow(
           field("lf-amount", "Cost per occurrence ($)", 5, { step: 0.5 }) +
@@ -466,9 +500,9 @@
       <section class="scenario-card">
         <p class="scenario-eyebrow">Emergency Fund</p>
         <p class="scenario-text" style="font-size:15px;max-width:640px;">
-          Usually taught as the first step, before investing at all: enough cash, held for ${gloss("liquidity")}
+          ${framedIntro("emergency", `Usually taught as the first step, before investing at all: enough cash, held for ${gloss("liquidity")}
           rather than growth, to cover a real gap — a lost job, a medical bill, a broken car — without going
-          into debt for it.
+          into debt for it.`)}
         </p>
         ${fieldsRow(
           field("ef-expenses", "Monthly essential expenses ($)", 2500, { step: 100 }) +
@@ -511,9 +545,9 @@
       <section class="scenario-card">
         <p class="scenario-eyebrow">Minimum Payment Trap</p>
         <p class="scenario-text" style="font-size:15px;max-width:640px;">
-          Real card issuers compute the minimum as a percentage of your CURRENT balance, with a dollar floor —
+          ${framedIntro("minpayment", `Real card issuers compute the minimum as a percentage of your CURRENT balance, with a dollar floor —
           so the payment shrinks as the balance does, and payoff drags out far longer than most people expect.
-          Compare it against a fixed payment on the same balance and ${gloss("apr")}.
+          Compare it against a fixed payment on the same balance and ${gloss("apr")}.`)}
         </p>
         ${fieldsRow(
           field("mp-balance", "Balance ($)", 4000, { step: 100 }) +
