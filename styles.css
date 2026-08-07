@@ -259,18 +259,18 @@ body::after{
 }
 .hero .wrap{position:relative;z-index:1;}
 .hero-grid{display:block;}
+.hero-copy{max-width:680px;}
 .hero-visual{display:none;}
 @media (min-width:900px){
-  .hero-grid{display:grid;grid-template-columns:minmax(0,1fr) minmax(240px,300px);gap:48px;align-items:start;}
-  .hero-visual{position:sticky;top:calc(72px + 4vh);}
-  .hero-visual{display:flex;flex-direction:column;align-items:center;text-align:center;gap:8px;}
+  .hero-grid{display:grid;grid-template-columns:minmax(0,1fr) minmax(260px,320px);gap:54px;align-items:center;}
+  .hero-visual{position:sticky;top:calc(72px + 4vh);display:flex;flex-direction:column;align-items:center;text-align:center;gap:10px;padding:24px 22px 20px;border:1px solid var(--line);border-radius:24px;background:linear-gradient(180deg, rgba(255,255,255,0.8), rgba(242,239,230,0.95));box-shadow:0 16px 40px rgba(17,24,39,0.06);backdrop-filter:saturate(140%) blur(8px);-webkit-backdrop-filter:saturate(140%) blur(8px);}
 }
-.hero-visual canvas{width:100%;max-width:280px;aspect-ratio:1;}
+.hero-visual canvas{width:100%;max-width:280px;aspect-ratio:1;border-radius:18px;background:rgba(255,255,255,0.7);padding:8px;}
 .hero-visual-label{
   font-family:var(--font-display);font-weight:500;font-size:17px;margin:4px 0 0;
   color:var(--ink);min-height:1.3em;transition:opacity .3s ease;
 }
-.hero-visual-caption{font-size:12px;color:var(--slate);margin:0;max-width:26ch;}
+.hero-visual-caption{font-size:12px;color:var(--slate);margin:0;max-width:24ch;}
 
 .returning-banner{
   display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:14px;
@@ -372,23 +372,23 @@ h1{
    object-position sits above centre so a logo in the upper area of the
    frame survives the crop. */
 .demo-video-banner{
-  width:min(100%, 1200px);
-  margin:0 auto 18px;
-  padding:clamp(12px,1.2vw,18px);
+  width:min(100%, 960px);
+  margin:0 auto 22px;
+  padding:clamp(10px,1vw,14px);
   border:1px solid var(--line);
   border-radius:24px;
-  background:linear-gradient(180deg, rgba(255,255,255,0.72), rgba(242,239,230,0.9));
-  box-shadow:0 14px 40px rgba(17,24,39,0.06);
+  background:linear-gradient(180deg, rgba(255,255,255,0.92), rgba(242,239,230,0.96));
+  box-shadow:0 16px 42px rgba(17,24,39,0.08);
 }
-.demo-video-figure{margin:0;position:relative;overflow:hidden;border-radius:16px;background:var(--paper-raised);}
+.demo-video-figure{margin:0;position:relative;overflow:hidden;border-radius:18px;background:var(--paper-raised);}
 .demo-video{
   display:block;width:100%;
-  height:clamp(220px,28vw,360px);
+  height:clamp(180px,22vw,280px);
   object-fit:cover;object-position:center 38%;
   background:var(--paper-raised);
 }
 .demo-video-desc{
-  max-width:680px;margin:12px auto 0;padding:0 24px;text-align:center;
+  max-width:640px;margin:10px auto 0;padding:0 18px;text-align:center;
   font-size:12.5px;line-height:1.55;color:var(--slate);
 }
 /* The banner replaces the hero's large top padding — that empty band is the
