@@ -371,36 +371,32 @@ h1{
    the width down to 387px, which is why it read as small.)
    object-position sits above centre so a logo in the upper area of the
    frame survives the crop. */
-.demo-video-banner{
-  width:min(100%, 960px);
-  margin:0 auto 22px;
-  padding:clamp(10px,1vw,14px);
-  border:1px solid var(--line);
-  border-radius:24px;
-  background:linear-gradient(180deg, rgba(255,255,255,0.92), rgba(242,239,230,0.96));
-  box-shadow:0 16px 42px rgba(17,24,39,0.08);
-}
-.demo-video-figure{margin:0;position:relative;overflow:hidden;border-radius:18px;background:var(--paper-raised);}
+/* Full-bleed, no card treatment: no padding/gradient/box-shadow around it.
+   A previous version used hardcoded rgba(255,255,255,...) for the card
+   background — invisible in light mode, but in dark mode it rendered as a
+   glaring white/cream panel floating in an all-black page. Everything below
+   uses the site's existing theme tokens (var(--paper-raised)/var(--line)),
+   which already flip correctly between themes, so this can't recur. */
+.demo-video-banner{width:100%;margin:0 0 22px;}
+.demo-video-figure{margin:0;position:relative;overflow:hidden;background:var(--paper-raised);}
 .demo-video{
   display:block;width:100%;
-  height:clamp(180px,22vw,280px);
-  object-fit:cover;object-position:center 38%;
+  height:clamp(170px,23vw,330px);
+  object-fit:cover;object-position:center center;
   background:var(--paper-raised);
+  border-top:1px solid var(--line);border-bottom:1px solid var(--line);
 }
 .demo-video-desc{
-  max-width:640px;margin:10px auto 0;padding:0 18px;text-align:center;
+  max-width:640px;margin:10px auto 0;padding:0 24px;text-align:center;
   font-size:12.5px;line-height:1.55;color:var(--slate);
 }
 /* The banner replaces the hero's large top padding — that empty band is the
    space it now occupies, so keeping both double-counts it. */
 .hero.has-demo-video{padding-top:clamp(18px,3vh,32px);}
-/* Caption now sits outside the figure, so this centres in the banner
-   itself rather than clearing a caption below it. */
 .demo-video-toggle{
   position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);
   padding:8px 18px;border-radius:999px;border:1px solid var(--line);
-  background:rgba(255,255,255,0.92);color:var(--ink);font-size:13px;cursor:pointer;
-  box-shadow:0 8px 24px rgba(17,24,39,0.12);
+  background:var(--paper-raised);color:var(--ink);font-size:13px;cursor:pointer;
 }
 .demo-video-toggle:hover{border-color:var(--ink);}
 
@@ -1301,6 +1297,17 @@ h1{
   transition:opacity .28s ease,transform .28s cubic-bezier(.22,1,.36,1);
 }
 .situation:hover .situation-label::after{opacity:.5;transform:translateX(0);}
+
+/* "More situations" — visually distinct from a real choice (dashed, no
+   gold hover-wash) so it reads as "reveal more options", not an 12th
+   situation to evaluate alongside the rest. */
+.situation-more{
+  width:100%;text-align:left;font:inherit;cursor:pointer;
+  border-style:dashed;background:transparent;
+}
+.situation-more::before{display:none;}
+.situation-more:hover{border-color:var(--ink);box-shadow:none;transform:none;}
+.situation-more .situation-label{color:var(--slate);}
 
 .linkish{background:none;border:none;padding:0;font-family:var(--font-body);
   font-size:inherit;color:var(--ink);text-decoration:underline;cursor:pointer;}

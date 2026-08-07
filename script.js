@@ -99,22 +99,60 @@ function initPrivacyScramble() {
   io.observe(el);
 }
 
+// All 11 situations rendered flat ran to two full screens before the
+// primary CTA — a first-time visitor had to scroll past ~8 cards just to
+// find the "or start free" path. Showing a smaller first screen and
+// tucking the rest behind "More situations" cuts what a new visitor has to
+// evaluate up front, without deleting any of them — same principle as the
+// nav trim (13 -> 4 items, everything still reachable).
+//
+// The six shown chosen for the widest spread of DISTINCT coach voices
+// (cautious_guardian, impulsive_spender, anxious_avoider, steady_saver,
+// ambitious_builder), ending on the lowest-commitment option ("Just having
+// a look") as a deliberate escape hatch — always give an "I'm not sure yet"
+// choice rather than forcing a pick. The other five (all valid, just
+// covering rarer or overlapping entry points) are one click away, not gone.
+const DEFAULT_SITUATION_IDS = ["debt", "overspending", "avoidance", "saving", "growing", "exploring"];
+
 function renderSituations() {
   const list = document.getElementById("situations");
   if (!list) return;
-  list.innerHTML = SITUATIONS.map(s => `
+
+  const shown = SITUATIONS.filter(s => DEFAULT_SITUATION_IDS.includes(s.id));
+  const rest = SITUATIONS.filter(s => !DEFAULT_SITUATION_IDS.includes(s.id));
+
+  const cardHtml = s => `
     <li>
       <a class="situation" href="dashboard.html?situation=${esc(s.id)}" data-id="${esc(s.id)}">
         <span class="situation-label">${esc(s.label)}</span>
         <span class="situation-sub">${esc(s.sub)}</span>
       </a>
-    </li>`).join("");
+    </li>`;
 
-  list.querySelectorAll(".situation").forEach(a => {
-    a.addEventListener("click", () => {
-      saveSituation(a.dataset.id);
-      if (typeof track === "function") track("situation_selected", { situation: a.dataset.id });
+  list.innerHTML = shown.map(cardHtml).join("") + (rest.length ? `
+    <li class="situations-more-toggle">
+      <button type="button" class="situation situation-more" id="situations-more-btn">
+        <span class="situation-label">More situations</span>
+        <span class="situation-sub">${rest.length} other starting points</span>
+      </button>
+    </li>` : "");
+
+  const bindClicks = () => {
+    list.querySelectorAll(".situation[data-id]").forEach(a => {
+      a.addEventListener("click", () => {
+        saveSituation(a.dataset.id);
+        if (typeof track === "function") track("situation_selected", { situation: a.dataset.id });
+      });
     });
+  };
+  bindClicks();
+
+  const moreBtn = document.getElementById("situations-more-btn");
+  moreBtn?.addEventListener("click", () => {
+    moreBtn.closest("li").remove();
+    list.insertAdjacentHTML("beforeend", rest.map(cardHtml).join(""));
+    bindClicks();
+    if (typeof track === "function") track("situations_expanded", {});
   });
 }
 
