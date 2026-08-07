@@ -361,6 +361,46 @@ h1{
 .skip-link:focus{left:16px;}
 
 /* shared section title */
+/* Landing-page product demo — see demo-video.js for why the section starts
+   hidden and only appears once a real file loads. */
+/* Full-bleed product banner, edge to edge above the hero.
+   The container sets the banner shape and the video FILLS it via
+   object-fit:cover — so any source ratio works without letterboxing, and a
+   16:9 clip is cropped to the band rather than shrunk to fit inside it.
+   (Height-capping a 16:9 was the earlier mistake: capping to 220px forced
+   the width down to 387px, which is why it read as small.)
+   object-position sits above centre so a logo in the upper area of the
+   frame survives the crop. */
+.demo-video-banner{width:100%;margin:0 0 4px;}
+.demo-video-figure{margin:0;position:relative;}
+.demo-video{
+  display:block;width:100%;
+  /* Height tracks WIDTH (vw), not viewport height. A fixed short height on a
+     full-bleed banner produces a runaway ratio as the screen widens — at
+     1440px a 200px band is 7.2:1, which cropped 68% of a 2.28:1 source and
+     rendered as a near-black strip. Scaling with vw keeps the ratio in a
+     usable range across widths; the clamp stops it dominating the fold. */
+  height:clamp(170px,23vw,330px);
+  object-fit:cover;object-position:center center;
+  background:var(--paper-raised);
+  border-top:1px solid var(--line);border-bottom:1px solid var(--line);
+}
+.demo-video-desc{
+  max-width:640px;margin:10px auto 0;padding:0 24px;text-align:center;
+  font-size:12.5px;line-height:1.55;color:var(--slate);
+}
+/* The banner replaces the hero's large top padding — that empty band is the
+   space it now occupies, so keeping both double-counts it. */
+.hero.has-demo-video{padding-top:clamp(18px,3vh,32px);}
+/* Caption now sits outside the figure, so this centres in the banner
+   itself rather than clearing a caption below it. */
+.demo-video-toggle{
+  position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);
+  padding:8px 18px;border-radius:999px;border:1px solid var(--line);
+  background:var(--paper-raised);color:var(--ink);font-size:13px;cursor:pointer;
+}
+.demo-video-toggle:hover{border-color:var(--ink);}
+
 .section-title{
   font-family:var(--font-display);font-weight:500;
   font-size:clamp(24px,3.4vw,34px);

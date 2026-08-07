@@ -30,8 +30,40 @@
 </header>
 
 <main id="main">
+
+  <!-- Full-bleed product banner. Deliberately OUTSIDE .wrap so it can span
+       the viewport edge to edge rather than the 920px content column.
+       demo-video.js reveals it ONLY once the file actually loads, so
+       deploying without the asset shows nothing rather than a broken
+       player — which is why the sentinel exists: a display:none element
+       never intersects, so observing the banner itself would deadlock
+       (no load -> no loadeddata -> never revealed). -->
+  <div id="demo-video-sentinel" aria-hidden="true" style="height:1px;"></div>
+
+  <div class="demo-video-banner" id="demo-video-section" hidden>
+    <figure class="demo-video-figure">
+      <video
+        id="demo-video"
+        class="demo-video"
+        muted
+        loop
+        playsinline
+        preload="none"
+        poster="assets/demo-poster.jpg"
+        aria-describedby="demo-video-desc">
+        <source src="assets/demo.mp4" type="video/mp4">
+      </video>
+      <button class="demo-video-toggle" id="demo-video-toggle" type="button" aria-pressed="false" hidden>Play</button>
+    </figure>
+    <p class="demo-video-desc" id="demo-video-desc">
+      A decision in the sandbox: a scenario appears, a choice is made, and the net-worth,
+      emergency-fund and debt figures move in response — no real accounts involved.
+    </p>
+  </div>
+
   <section class="hero">
     <div class="wrap">
+
       <div class="hero-grid">
         <div class="hero-copy">
           <div class="returning-banner" id="returning-banner" hidden></div>
@@ -222,6 +254,7 @@
 <script src="radar-chart.js"></script>
 <script src="hero-visual.js"></script>
 <script src="script.js"></script>
+<script src="demo-video.js"></script>
 <script src="ui.js"></script>
 <script src="legal.js"></script>
 <script src="help.js"></script>
