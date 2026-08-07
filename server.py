@@ -22,11 +22,16 @@ import io
 import os
 import re
 import secrets
+import sys
 import time
 
 # Load .env if present, so a key can live in a file rather than a shell export.
 # Deliberately dependency-free: python-dotenv is not required.
 def _load_dotenv(path=".env"):
+    if os.environ.get("FINPERSON_SKIP_DOTENV", "").lower() in {"1", "true", "yes"}:
+        return
+    if "unittest" in sys.modules or "pytest" in sys.modules:
+        return
     try:
         with open(path) as fh:
             for line in fh:
@@ -1681,6 +1686,15 @@ def generate_quiz_question():
     return jsonify(question)
 
 
+def health():
+    """Lightweight endpoint for container health checks and deployment probes."""
+    return jsonify({"status": "ok"}), 200
+
+
+if "health" not in app.view_functions:
+    app.add_url_rule("/health", endpoint="health", view_func=health)
+
+
 @app.route("/api/chat-info")
 def chat_info():
     """Lets the frontend know whether the coach is configured."""
@@ -1722,7 +1736,6 @@ def server_error(e):
 
 # ---------------------------------------------------------------- health
 
-@app.route("/health")
 def health():
     """Liveness/readiness check for Railway/Render — verifies the app can
     actually reach its database, not just that the process is up. A cheap
@@ -1733,6 +1746,10 @@ def health():
     except Exception as e:
         app.logger.exception("health check failed: %s", e)
         return jsonify({"status": "error"}), 503
+
+
+if "health" not in app.view_functions:
+    app.add_url_rule("/health", endpoint="health", view_func=health)
 
 
 if __name__ == "__main__":

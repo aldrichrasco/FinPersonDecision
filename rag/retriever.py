@@ -28,7 +28,12 @@ def _get_store():
         raise IndexNotBuilt(
             f"No index at {PERSIST_DIR} — run `python rag/build_index.py` first."
         )
-    from langchain_chroma import Chroma
+    try:
+        from langchain_chroma import Chroma
+    except ModuleNotFoundError as exc:  # pragma: no cover - exercised when optional agent deps are absent
+        raise RuntimeError(
+            "RAG retrieval requires optional agent dependencies; install -r requirements-agent.txt"
+        ) from exc
 
     _store = Chroma(
         collection_name=COLLECTION_NAME,

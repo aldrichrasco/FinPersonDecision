@@ -16,7 +16,13 @@ back) is fully verifiable without any working API key; only the final
 "coach answers using retrieved context" step needs one.
 """
 
-from langchain_core.embeddings import Embeddings
+try:
+    from langchain_core.embeddings import Embeddings
+except ModuleNotFoundError:  # pragma: no cover - exercised when optional agent deps are absent
+    class Embeddings:  # type: ignore[no-redef]
+        """Fallback base class when langchain-core is not installed."""
+
+        pass
 
 
 class FastEmbedEmbeddings(Embeddings):
