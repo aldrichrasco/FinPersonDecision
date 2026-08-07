@@ -1613,6 +1613,22 @@ body.has-app-nav .help-fab{bottom:84px;}
 .recap-takeaway p{margin:5px 0 0;font-size:14.5px;line-height:1.55;color:var(--ink);}
 .recap-beliefs{margin:0 0 22px;}
 .recap-beliefs-list{margin:6px 0 8px;padding-left:18px;font-size:13.5px;line-height:1.6;color:var(--ink);}
+/* Round recap's narrative section — same visual language as
+   .recap-takeaway (the free part) so the paid section reads as a sibling,
+   not a bolted-on ad. */
+.recap-narrative{border:1px solid var(--line);border-radius:12px;padding:15px 17px;margin-bottom:22px;}
+.recap-narrative-text{margin:5px 0 0;font-size:14.5px;line-height:1.6;color:var(--ink);}
+.recap-narrative-locked{
+  border-color:color-mix(in srgb, var(--marigold) 45%, var(--line));
+  background:var(--gold-tint);
+}
+.recap-narrative-fade{
+  position:relative;-webkit-mask-image:linear-gradient(180deg, #000 40%, transparent 96%);
+  mask-image:linear-gradient(180deg, #000 40%, transparent 96%);
+}
+.recap-narrative-unlock{margin-top:10px;padding-top:12px;border-top:1px solid color-mix(in srgb, var(--marigold) 30%, var(--line));}
+.recap-narrative-unlock-copy{font-size:13px;color:var(--slate);margin:0 0 10px;}
+.recap-narrative-unlock-status{font-size:12px;color:var(--slate);margin:8px 0 0;min-height:1.3em;}
 .recap-actions{display:flex;gap:9px;flex-wrap:wrap;}
 .recap-dismiss{display:block;margin:16px auto 0;background:none;border:none;
   font-family:var(--font-body);font-size:13px;color:var(--slate);cursor:pointer;}

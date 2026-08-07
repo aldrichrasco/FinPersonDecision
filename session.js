@@ -20,6 +20,29 @@ function roundProgress(decisionCount) {
   };
 }
 
+// Stitches this round's authored per-choice outcome lines (dashboard.js's
+// SCENARIOS outcome text, carried into decisionLog) into one short flowing
+// paragraph — no new content, just the sentences already shown one at a
+// time, read back as a single story. Scenarios without an authored outcome
+// (adaptive/generated ones) are silently skipped rather than leaving a gap.
+const NARRATIVE_TRANSITIONS = ["Then", "After that", "Next", "A little later", "From there", "Not long after"];
+// Outcome lines that open with a recurring character's name (Priya, Devon,
+// Jordan — see SCENARIOS in dashboard.js) must keep their capital when
+// spliced after a transition; lowercasing "Priya's thrilled..." into
+// "priya's thrilled..." reads as a typo, not a sentence continuation.
+const PROPER_NOUN_STARTS = ["Priya", "Devon", "Jordan"];
+function buildRoundNarrative(slice) {
+  const sentences = slice.map(d => d.outcome).filter(Boolean);
+  if (!sentences.length) return null;
+  return sentences.map((sentence, i) => {
+    if (i === 0) return sentence;
+    const transition = NARRATIVE_TRANSITIONS[(i - 1) % NARRATIVE_TRANSITIONS.length];
+    const properNoun = PROPER_NOUN_STARTS.some(name => sentence.startsWith(name));
+    const clause = properNoun ? sentence : sentence.charAt(0).toLowerCase() + sentence.slice(1);
+    return `${transition}, ${clause}`;
+  }).join(" ");
+}
+
 // Builds the recap shown when a round completes. Reads from the same
 // observation layer the person already sees, so nothing new is invented.
 function buildRoundRecap(decisionLog, zoneHistory, roundNumber) {
@@ -83,6 +106,7 @@ function buildRoundRecap(decisionLog, zoneHistory, roundNumber) {
     factLine,
     takeaway,
     tone: pattern.tone,
+    narrative: buildRoundNarrative(slice),
     stats: { built, clearedDebt, usedCredit, drew, waited, steady, of: slice.length },
     beliefsTouched,
   };

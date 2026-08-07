@@ -362,6 +362,19 @@ const sessionId = (() => {
   }
 })();
 
+// Whether the round recap's full narrative (see showRoundRecap) unlocks —
+// same $5/mo gate as chat/Pro/MRI. Fetched once, non-blocking: the sandbox
+// itself never waits on this, and a round completed before it resolves
+// just sees the free teaser rather than the recap failing to show.
+let subscriptionActive = false;
+(async () => {
+  try {
+    const res = await fetch(`${API_BASE_URL}/api/billing/status`, { credentials: "include" });
+    const data = await res.json();
+    subscriptionActive = data.status === "active" || data.status === "trialing";
+  } catch (e) {}
+})();
+
 function currentPersonaMeta() {
   return PERSONAS.find(p => p.slug === currentPersona) || null;
 }
@@ -800,6 +813,7 @@ function applyChoice(choice, chosenIndex) {
     scenarioZone: currentScenario.zone || "general",
     zone: zoneStatus(score),
     principle: currentScenario.principle || null,
+    outcome: choice.outcome || null,
   });
   zoneHistory.push(zoneStatus(score));
 
@@ -1213,6 +1227,60 @@ function updateDrawerHint() {
   hint.textContent = `${fmt(state.savings)} saved · ${fmt(state.debt)} owed`;
 }
 
+// The round's authored outcome lines, read back as one paragraph (see
+// buildRoundNarrative in session.js), is the one piece of the recap that's
+// genuinely new writing rather than a stats readout — so it's the paid
+// part, same $5/mo gate as chat/Pro/MRI. Free users get an opening-line
+// teaser, not nothing, so the value is felt before the ask.
+function recapNarrativeHtml(narrative) {
+  if (!narrative) return "";
+  if (subscriptionActive) {
+    return `
+      <div class="recap-narrative">
+        <span class="recap-takeaway-label">Your story, written out</span>
+        <p class="recap-narrative-text">${esc(narrative)}</p>
+      </div>`;
+  }
+  const teaser = narrative.split(" ").slice(0, 14).join(" ");
+  return `
+    <div class="recap-narrative recap-narrative-locked">
+      <span class="recap-takeaway-label">Your story, written out</span>
+      <p class="recap-narrative-text recap-narrative-fade">${esc(teaser)}&hellip;</p>
+      <div class="recap-narrative-unlock">
+        <p class="recap-narrative-unlock-copy">This round, told as what actually happened.</p>
+        <button class="btn btn-primary" id="recap-narrative-unlock-btn" type="button">Unlock — $5/mo</button>
+        <p class="recap-narrative-unlock-status" id="recap-narrative-status"></p>
+      </div>
+    </div>`;
+}
+
+async function startRecapCheckout() {
+  const btn = document.getElementById("recap-narrative-unlock-btn");
+  const status = document.getElementById("recap-narrative-status");
+  if (!btn || !status) return;
+  btn.disabled = true;
+  status.textContent = "Starting checkout…";
+  try {
+    const res = await fetch(`${API_BASE_URL}/api/billing/create-checkout-session`, { method: "POST", credentials: "include" });
+    if (res.status === 401) {
+      status.textContent = "Sign in first, then come back to subscribe.";
+      btn.disabled = false;
+      return;
+    }
+    if (res.status === 503) {
+      status.textContent = "Subscriptions aren't set up yet on this deployment.";
+      btn.disabled = false;
+      return;
+    }
+    if (!res.ok) throw new Error("checkout failed");
+    const data = await res.json();
+    window.location.href = data.url;
+  } catch (e) {
+    status.textContent = "Something went wrong — try again in a moment.";
+    btn.disabled = false;
+  }
+}
+
 function showRoundRecap(recap) {
   let overlay = document.getElementById("recap-overlay");
   if (!overlay) {
@@ -1228,6 +1296,7 @@ function showRoundRecap(recap) {
       <p class="recap-eyebrow">Round ${recap.roundNumber} complete</p>
       <h3 id="recap-title" class="recap-headline">${esc(recap.headline)}</h3>
       <p class="recap-facts">${esc(recap.factLine)}</p>
+      ${recapNarrativeHtml(recap.narrative)}
       <div class="recap-takeaway">
         <span class="recap-takeaway-label">Worth carrying forward</span>
         <p>${esc(recap.takeaway)}</p>
@@ -1244,6 +1313,7 @@ function showRoundRecap(recap) {
       </div>
       <button class="recap-dismiss" id="recap-close" type="button">Close</button>
     </div>`;
+  document.getElementById("recap-narrative-unlock-btn")?.addEventListener("click", startRecapCheckout);
   recapOpener = document.activeElement;
   overlay.classList.add("open");
   document.body.style.overflow = "hidden";
