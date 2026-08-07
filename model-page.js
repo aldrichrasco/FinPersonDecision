@@ -501,4 +501,8 @@
 
   const initial = TABS.includes(location.hash.slice(1)) ? location.hash.slice(1) : "calibration";
   showTab(initial);
+
+  // Theory is a Roadmap level (see roadmap-data.js) — reading it counts the
+  // same way reading a Learn topic does.
+  if (typeof markRoadmapLevelComplete === "function") markRoadmapLevelComplete("theory");
 })();

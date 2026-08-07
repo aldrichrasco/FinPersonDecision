@@ -279,6 +279,7 @@
       const sentPct = Math.round((state.sent / ENDOWMENT) * 100);
       const returnedPct = pool ? Math.round((state.returned / pool) * 100) : 0;
       logPlay("trust", state.role, state.archetype, { sent: state.sent, returned: state.returned, pool });
+      if (typeof markRoadmapLevelComplete === "function") markRoadmapLevelComplete("trust-game");
       // Investor's send is a risk-under-uncertainty call; Trustee's return is
       // unforced giving once the money is already theirs — closer to a pure
       // prosocial-orientation read, same logic a Dictator Game would give.

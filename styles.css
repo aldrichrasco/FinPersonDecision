@@ -1405,6 +1405,11 @@ body.has-app-nav{padding-bottom:88px;}
   color:var(--ink);text-decoration:none;}
 .app-nav-more-panel a:hover{background:var(--paper);}
 .app-nav-more-panel a[aria-current="page"]{font-weight:500;color:var(--teal);}
+/* Goal-based group labels above each row of calculator chips — see the
+   comment above #calc-tabs in calculators.html for why they're grouped. */
+.calc-group-label{margin:0 0 7px;font-family:var(--font-mono);font-size:10.5px;
+  text-transform:uppercase;letter-spacing:.07em;color:var(--slate);}
+
 /* Section headings inside the Explore panel — see MENU_GROUPS in ui.js for
    why this menu is grouped rather than a flat list. */
 .app-nav-more-group{margin:8px 0 2px;padding:0 12px;font-family:var(--font-mono);
@@ -1450,6 +1455,22 @@ body.has-app-nav .help-fab{bottom:84px;}
 /* ============================================================
    Round progress
    ============================================================ */
+/* Objective bar — the run's stated focus, above the round progress. Uses
+   the marigold/gold accent rather than teal so it reads as "the goal",
+   distinct from the teal used for good outcomes elsewhere; a focus is not
+   a success state. See SITUATION_OBJECTIVES in situations.js. */
+.objective-bar{margin-bottom:14px;padding:12px 16px;border-radius:12px;
+  background:var(--gold-tint);border:1px solid transparent;}
+.objective-head{display:flex;align-items:baseline;gap:10px;flex-wrap:wrap;}
+.objective-eyebrow{font-family:var(--font-mono);font-size:10px;text-transform:uppercase;
+  letter-spacing:.08em;color:var(--marigold-ink);}
+.objective-label{font-family:var(--font-display);font-size:17px;font-weight:500;color:var(--ink);}
+.objective-track{display:flex;align-items:baseline;gap:10px;margin-top:6px;
+  font-family:var(--font-mono);font-size:12px;color:var(--slate);}
+.objective-delta{font-weight:500;}
+.objective-delta.is-toward{color:var(--teal);}
+.objective-delta.is-away{color:var(--brick);}
+
 .round-bar{margin-bottom:16px;}
 .round-meta{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:7px;}
 .round-label{font-size:13px;font-weight:500;color:var(--ink);}

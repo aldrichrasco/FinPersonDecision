@@ -30,21 +30,44 @@
 
   <div class="learn-disclaimer">Educational only. These are standard formulas, not a projection of what your own money will actually do — real returns are never a straight line.</div>
 
-  <div class="dash-setup-row" style="margin:18px 0;">
-    <span class="dash-label">Calculator</span>
-    <div class="chip-row" id="calc-tabs">
-      <button class="chip active" data-calc="growth" aria-pressed="true">Compound Growth</button>
-      <button class="chip" data-calc="rule72" aria-pressed="false">Rule of 72</button>
-      <button class="chip" data-calc="fees" aria-pressed="false">Fee Drag</button>
-      <button class="chip" data-calc="goal" aria-pressed="false">Savings Goal</button>
-      <button class="chip" data-calc="latte" aria-pressed="false">Latte Factor</button>
-      <button class="chip" data-calc="debt" aria-pressed="false">Debt Payoff</button>
-      <button class="chip" data-calc="emergency" aria-pressed="false">Emergency Fund</button>
-      <button class="chip" data-calc="minpayment" aria-pressed="false">Minimum Payment Trap</button>
-      <button class="chip" data-calc="payday" aria-pressed="false">Payday Loan</button>
-      <button class="chip" data-calc="autotitle" aria-pressed="false">Auto Title Loan</button>
-      <button class="chip" data-calc="deferred" aria-pressed="false">Deferred Interest</button>
-      <button class="chip" data-calc="bnpl" aria-pressed="false">BNPL Stacking</button>
+  <!-- Grouped by what the person is trying to DO, not by what kind of maths
+       the tool runs. Twelve flat chips forced a reader to evaluate all
+       twelve to find one; four labelled groups of 2-4 let them skip ~75% of
+       the options on the first scan. Group labels carry the information
+       scent the tool names alone don't ("Deferred Interest" means nothing
+       until you know it sits under "Debt traps to spot"). -->
+  <div id="calc-tabs" style="margin:18px 0;display:flex;flex-direction:column;gap:14px;">
+    <div>
+      <p class="calc-group-label">Growing money</p>
+      <div class="chip-row">
+        <button class="chip active" data-calc="growth" aria-pressed="true">Compound Growth</button>
+        <button class="chip" data-calc="rule72" aria-pressed="false">Rule of 72</button>
+        <button class="chip" data-calc="goal" aria-pressed="false">Savings Goal</button>
+        <button class="chip" data-calc="fees" aria-pressed="false">Fee Drag</button>
+      </div>
+    </div>
+    <div>
+      <p class="calc-group-label">Building a buffer</p>
+      <div class="chip-row">
+        <button class="chip" data-calc="emergency" aria-pressed="false">Emergency Fund</button>
+        <button class="chip" data-calc="latte" aria-pressed="false">Latte Factor</button>
+      </div>
+    </div>
+    <div>
+      <p class="calc-group-label">Paying off debt</p>
+      <div class="chip-row">
+        <button class="chip" data-calc="debt" aria-pressed="false">Debt Payoff</button>
+        <button class="chip" data-calc="minpayment" aria-pressed="false">Minimum Payment Trap</button>
+      </div>
+    </div>
+    <div>
+      <p class="calc-group-label">Debt traps to spot</p>
+      <div class="chip-row">
+        <button class="chip" data-calc="payday" aria-pressed="false">Payday Loan</button>
+        <button class="chip" data-calc="autotitle" aria-pressed="false">Auto Title Loan</button>
+        <button class="chip" data-calc="deferred" aria-pressed="false">Deferred Interest</button>
+        <button class="chip" data-calc="bnpl" aria-pressed="false">BNPL Stacking</button>
+      </div>
     </div>
   </div>
 

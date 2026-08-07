@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>FinPerson — Ask</title>
+<meta name="description" content="Ask a financial-literacy question and get the actual source passages back, with citations. Free, no account, no answer invented when the sources don't cover it.">
+<meta name="theme-color" content="#F2EFE6" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#0F1524" media="(prefers-color-scheme: dark)">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%231B2A4A'/%3E%3Ctext x='16' y='22' font-family='Georgia,serif' font-size='17' fill='%23EDEFE6' text-anchor='middle'%3EFP%3C/text%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="styles.css">
+<script defer src="analytics.js"></script>
+</head>
+<body>
+<a class="skip-link" href="#main">Skip to content</a>
+
+<header class="topbar">
+  <div class="wrap topbar-inner">
+    <a class="logo" href="index.html" style="text-decoration:none;color:inherit;">FinPerson</a>
+    <div id="auth-slot"></div>
+  </div>
+</header>
+
+<main class="wrap dash" id="main">
+  <h1 style="font-family:var(--font-display);font-weight:500;">Ask</h1>
+  <p class="lede" style="font-size:16px;">Ask a question about money behaviour and get back the actual passages from this app's own research notes — with the source named. Free, no account.</p>
+
+  <div class="learn-disclaimer">This searches a curated library and shows you what it found. It does <strong>not</strong> write an answer, and it won't invent one: if the sources don't cover your question, it says so instead of guessing. General education, never financial advice.</div>
+
+  <form id="ask-form" style="display:flex;gap:8px;flex-wrap:wrap;align-items:flex-start;margin:22px 0;">
+    <label style="flex:1;min-width:240px;">
+      <span style="display:block;font-family:var(--font-mono);font-size:11px;text-transform:uppercase;letter-spacing:.06em;color:var(--slate);margin-bottom:6px;">Your question</span>
+      <input type="text" id="ask-input" class="goal-input" maxlength="500" style="width:100%;"
+             placeholder="Why do people avoid checking their balance?" required>
+    </label>
+    <button class="btn btn-primary" type="submit" id="ask-btn" style="flex-shrink:0;margin-top:22px;">Search</button>
+  </form>
+
+  <div class="chip-row" id="ask-examples" style="margin:-10px 0 22px;">
+    <button class="chip" type="button" data-q="What is present bias?">What is present bias?</button>
+    <button class="chip" type="button" data-q="Why do people avoid checking their balance?">Why avoid checking a balance?</button>
+    <button class="chip" type="button" data-q="Why does compound interest matter so much?">Why does compounding matter?</button>
+  </div>
+
+  <section id="ask-results" aria-live="polite"></section>
+</main>
+
+<footer class="footer">
+  <div class="wrap footer-legal">
+    <p><strong>Not financial advice.</strong> Search results from a curated educational library, shown verbatim with their source.</p>
+    <p class="footer-copy">&copy; <span id="year">2026</span> FinPerson.</p>
+  </div>
+</footer>
+
+<script src="instruments.js"></script>
+<script src="study.js"></script>
+<script src="data.js"></script>
+<script src="fbm.js"></script>
+<script src="idm.js"></script>
+<script src="observations.js"></script>
+<script src="api.js"></script>
+<script src="ui.js"></script>
+<script src="legal.js"></script>
+<script src="help.js"></script>
+<script src="roadmap-data.js"></script>
+<script src="roadmap.js"></script>
+<script src="ask-page.js"></script>
+<script src="https://accounts.google.com/gsi/client" async defer></script>
+<script src="auth.js"></script>
+</body>
+</html>

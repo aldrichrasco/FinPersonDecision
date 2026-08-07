@@ -19,45 +19,48 @@ const NAV_ITEMS = [
 // Donate is included here too (not just the footer) so it's reachable the
 // same way from every page, not just ones where you've scrolled to the
 // bottom — inconsistent reachability was flagged directly.
-// Grouped, not a flat list: this menu reached 13 entries as pages were
-// added, which for a product whose whole pitch is "immediately
-// understandable" is exactly the wrong front door — a beginner opening a
-// wall of 13 links has no idea which one is the starting point. The three
-// groups answer "where do I start / what do I practise / what does it
-// cost", in that order. Adding a page means picking a group, not just
-// appending.
+// Deliberately tiny. This menu reached 13 entries as pages were added,
+// which for a product whose whole pitch is "immediately understandable" is
+// exactly the wrong front door — a beginner opening a wall of 13 links has
+// no idea which one is the starting point.
 //
-// shop.html is deliberately NOT listed: it still ships literal
-// "Your book title here" placeholder copy and a REPLACE-WITH-YOUR-... href
-// (see its own SETUP REQUIRED comment). The file is left in place so it can
-// be finished later, but an unfinished page shouldn't be reachable from the
-// main menu of a product asking people to trust it with money questions.
+// The cut is possible because roadmap.html is already a full index: it
+// deep-links every individual calculator, plus Learn, Good Habits,
+// Retirement Systems, Crypto Impulse Check, the Trust Game, the sandbox,
+// the coach and Progress. Listing those in the nav too was duplicating an
+// index that already existed and reads better as a guided path.
+//
+// So the rule for adding a page is: put it on the Roadmap, not in here.
+// This menu is only for destinations that are NOT a step on the path —
+// Calculators (highest standalone utility, people arrive wanting one
+// number), Training (a cross-cutting repeat loop, not a one-off step),
+// and Pricing.
+//
+// Two pages are intentionally unlisted but still reachable:
+//   · pro.html / mri-report.html — linked from pricing.html, since both
+//     are Supporter features and that's where someone goes to evaluate them.
+//   · shop.html — still ships literal "Your book title here" placeholder
+//     copy and a REPLACE-WITH-YOUR-... href (see its SETUP REQUIRED
+//     comment). Left on disk to finish later, but an unfinished page
+//     shouldn't be reachable from the menu of a product asking people to
+//     trust it with money questions.
 const MENU_GROUPS = [
   {
     label: "Start here",
     items: [
       { href: "roadmap.html", label: "Roadmap" },
-      { href: "learn.html", label: "Learn" },
-      { href: "habits.html", label: "Good Habits" },
+      { href: "calculators.html", label: "Calculators" },
+      // Same justification as Calculators: people arrive wanting one
+      // answer, not a guided path. Free and zero-cost to serve (retrieval
+      // is local), so it's also the natural front door for search traffic.
+      { href: "ask.html", label: "Ask" },
     ],
   },
   {
-    label: "Practise",
+    label: "Keep going",
     items: [
       { href: "training.html", label: "Behavioural Training" },
-      { href: "calculators.html", label: "Calculators" },
-      { href: "crypto-impulse.html", label: "Crypto Impulse Check" },
-      { href: "classroom.html", label: "Games" },
-      { href: "retirement.html", label: "Retirement Systems" },
-    ],
-  },
-  {
-    label: "More",
-    items: [
-      { href: "mri-report.html", label: "Advanced MRI" },
-      { href: "pro.html", label: "FinPerson Pro" },
       { href: "pricing.html", label: "Pricing" },
-      { href: "donate.html", label: "Donate" },
     ],
   },
 ];

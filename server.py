@@ -331,6 +331,84 @@ def admin_stats():
     return jsonify(db.admin_stats())
 
 
+MAX_ASK_CHARS = 500
+
+
+@app.route("/api/ask", methods=["POST"])
+@rate_limit(limit=30, window=60, scope="ask")
+def rag_ask():
+    """The free RAG companion: retrieval-only, no LLM call, no account.
+
+    Deliberately generates no prose. Retrieval runs entirely locally
+    (fastembed ONNX + on-disk Chroma), so this costs nothing per query and
+    can stay open to anonymous visitors without a spend cap — and it works
+    with no LLM provider key configured at all. The LLM-written coaching
+    reply stays the paid tier (/api/chat/<slug>).
+
+    Safeguarding runs on every question exactly as it does in chat(), and
+    for the same reason: someone in genuine distress must never be met with
+    a bare "no matching sources" and nothing else.
+    """
+    payload = request.get_json(silent=True)
+    if not isinstance(payload, dict):
+        return jsonify({"error": "invalid JSON body"}), 400
+    question = (payload.get("question") or "").strip()
+    if not question:
+        return jsonify({"error": "question required"}), 400
+    question = question[:MAX_ASK_CHARS]
+
+    persona = payload.get("persona")
+    if persona is not None and not coach.is_valid_persona(str(persona)):
+        persona = None
+    session_id = str(payload.get("session_id") or "")[:64] or None
+
+    signal = safeguarding.detect(question)
+
+    try:
+        from rag.retriever import IndexNotBuilt, grounded_answer
+    except ImportError:
+        return jsonify({"error": "search isn't available on this deployment"}), 503
+    try:
+        found = grounded_answer(question, k=3)
+    except IndexNotBuilt:
+        return jsonify({"error": "search index hasn't been built yet"}), 503
+    except Exception as err:  # noqa: BLE001
+        app.logger.warning("rag ask failed: %s", err)
+        return jsonify({"error": "couldn't search right now"}), 503
+
+    sources = [
+        {"title": r.get("title"), "source": r.get("source"), "text": r.get("text")}
+        for r in found["results"]
+    ]
+    db.record_rag_qa(
+        session_id=session_id, question=question, persona=persona,
+        grounded=found["grounded"], top_score=found["top_score"],
+        sources=[{"title": s["title"], "source": s["source"]} for s in sources],
+    )
+
+    out = {
+        "question": question,
+        "grounded": found["grounded"],
+        "sources": sources,
+        # Persona never changes which passages are returned — it's a framing
+        # hint for the client's intro line only (PRD F5: tone, not facts).
+        "persona": persona,
+    }
+    if signal:
+        out["safeguarding"] = safeguarding.response_for(signal)
+    return jsonify(out)
+
+
+@app.route("/api/admin/rag-qa-log")
+def admin_rag_qa_log():
+    """Q&A interaction export for the calibration study (PRD F8)."""
+    uid = current_user_id()
+    if not uid or not db.is_admin(uid):
+        return jsonify({"error": "forbidden"}), 403
+    limit = min(1000, max(1, request.args.get("limit", 200, type=int) or 200))
+    return jsonify({"entries": db.get_rag_qa_log(limit=limit)})
+
+
 @app.route("/api/admin/agent-tool-calls")
 def admin_agent_tool_calls():
     """Queryable trace of the coaching agent's (LLM_ENGINE=agent) tool use —

@@ -15,6 +15,14 @@ const ROADMAP_TIERS = [
     levels: [
       { id: "quiz", name: "Find your archetype", blurb: "Take the 30-second quiz.", href: "index.html", xp: 10 },
       { id: "learn-topic", name: "Read a Learn lesson", blurb: "Any topic — pick what looks most relevant.", href: "learn.html", xp: 10 },
+      // Kept in this (always-unlocked) first tier on purpose: classroom.html
+      // is reachable ONLY from here now that the nav is trimmed, so a level
+      // in a locked tier would make it unreachable for every new user. It
+      // earns the spot anyway — the game feeds risk_disposition and
+      // prosocial_orientation via nudgeAxis(), which is literally this
+      // tier's "find out where you stand".
+      { id: "trust-game", name: "Play the Trust Game", blurb: "The classic behavioural-economics game on trust and reciprocity.", href: "classroom.html", xp: 10 },
+      { id: "ask", name: "Ask a question", blurb: "Search the research library — real passages, sources named, free.", href: "ask.html", xp: 10 },
       { id: "growth", name: "Try Compound Growth", blurb: "See how sensitive a projection is to the rate you assume.", href: "calculators.html#calc=growth", xp: 10 },
       { id: "rule72", name: "Try Rule of 72", blurb: "A mental-math shortcut, checked against the real answer.", href: "calculators.html#calc=rule72", xp: 10 },
     ],
@@ -62,6 +70,11 @@ const ROADMAP_TIERS = [
       { id: "coach-chat", name: "Talk to the coach", blurb: "Ask it something real — it can look up your own saved profile.", href: "chat.html", xp: 10 },
       { id: "full-crypto-session", name: "Complete a full chained run", blurb: "Walk every real event for a coin, see the equity curve at the end.", href: "crypto-impulse.html", xp: 20 },
       { id: "progress-review", name: "Review your progress", blurb: "See how your saved profile and history are tracking.", href: "progress.html", xp: 10 },
+      // Deliberately the last level: the theory reads far better once
+      // someone has actually felt the exercises it explains. Also gives
+      // model.html a definite home now that the nav is only four items —
+      // it was reachable from the homepage but wasn't on the path.
+      { id: "theory", name: "Read the theory", blurb: "The Homeostasis Model and the six axes the whole app runs on.", href: "model.html", xp: 10 },
     ],
   },
 ];

@@ -51,6 +51,58 @@ PERSIST_DIR = os.path.join(RAG_DIR, "chroma_db")
 COLLECTION_NAME = "finperson_research_notes"
 
 
+# Static content pages whose .scenario-card sections are substantial prose
+# already written and reviewed for this app — Good Financial Habits and the
+# international retirement-systems comparison. Indexing them roughly doubles
+# the corpus using material that is already verified, with none of the
+# fabrication risk of writing new "literature summaries" from recall.
+CONTENT_PAGES = [
+    ("habits.html", "Good Financial Habits"),
+    ("retirement.html", "Retirement Systems"),
+]
+
+_TAG_RE = re.compile(r"<[^>]+>")
+_CARD_RE = re.compile(r'<section class="scenario-card">(.*?)</section>', re.S)
+_EYEBROW_RE = re.compile(r'<p class="scenario-eyebrow"[^>]*>(.*?)</p>', re.S)
+_H2_RE = re.compile(r"<h2[^>]*>(.*?)</h2>", re.S)
+_P_RE = re.compile(r"<p(?![^>]*scenario-eyebrow)[^>]*>(.*?)</p>", re.S)
+
+
+def _text(html_fragment):
+    """Tags out, entities decoded, whitespace collapsed. Deliberately not a
+    general HTML parser — these are this repo's own files with a known,
+    stable card structure, and this runs at build time so a structural
+    change shows up immediately as a document-count drop, not silently."""
+    import html as html_mod
+
+    return re.sub(r"\s+", " ", html_mod.unescape(_TAG_RE.sub(" ", html_fragment))).strip()
+
+
+def _load_content_pages():
+    docs = []
+    for filename, label in CONTENT_PAGES:
+        path = os.path.join(os.path.dirname(RAG_DIR), filename)
+        if not os.path.exists(path):
+            continue
+        with open(path, encoding="utf-8") as fh:
+            markup = fh.read()
+        for i, card in enumerate(_CARD_RE.findall(markup)):
+            eyebrow = _EYEBROW_RE.search(card)
+            heading = _H2_RE.search(card)
+            title = _text(heading.group(1)) if heading else (_text(eyebrow.group(1)) if eyebrow else f"{label} {i}")
+            body = " ".join(_text(p) for p in _P_RE.findall(card)).strip()
+            if len(body) < 80:  # skip nav/CTA-only cards
+                continue
+            eyebrow_txt = _text(eyebrow.group(1)) if eyebrow else ""
+            docs.append({
+                "id": f"{filename}:{i}",
+                "source": filename,
+                "title": title,
+                "text": f"{label} — {title}{f' ({eyebrow_txt})' if eyebrow_txt and eyebrow_txt != title else ''}: {body}",
+            })
+    return docs
+
+
 def _load_js_documents():
     """Reads the committed corpus_js.json snapshot — see this module's
     docstring for why this doesn't regenerate it via Node at build time."""
@@ -124,7 +176,7 @@ def build():
     if os.path.isdir(PERSIST_DIR):
         shutil.rmtree(PERSIST_DIR)
 
-    raw_docs = _load_js_documents() + _load_paper_sections()
+    raw_docs = _load_js_documents() + _load_paper_sections() + _load_content_pages()
     chunked = _chunk(raw_docs)
     print(f"{len(raw_docs)} source documents -> {len(chunked)} chunks after splitting.")
 

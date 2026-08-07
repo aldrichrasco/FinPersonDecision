@@ -54,3 +54,39 @@ def search(query: str, k: int = 3):
         }
         for doc, score in results
     ]
+
+
+# Empirically measured against this app's own index (fastembed
+# BAAI/bge-small-en-v1.5 + Chroma's default L2 distance, lower = closer):
+#
+#   on-topic   0.43 - 0.56   "what is present bias" / "why compound interest matters"
+#   off-topic  0.93 - 1.09   "how do I bake sourdough" / "capital of Mongolia"
+#
+# 0.75 sits in the empty band between those two clusters. It is a measured
+# cutoff, not a guessed one — re-measure it if the embedding model or the
+# corpus changes materially, because it is specific to both.
+RELEVANCE_DISTANCE_MAX = 0.75
+
+
+def grounded_answer(query: str, k: int = 3, max_distance: float = RELEVANCE_DISTANCE_MAX):
+    """Retrieval-only response: the passages themselves plus their sources,
+    or grounded=False when nothing clears the relevance bar.
+
+    Deliberately returns no generated prose. Retrieval here is local
+    (fastembed ONNX + on-disk Chroma) and therefore costs nothing per
+    query, so this path can stay free and uncapped for anonymous visitors;
+    the LLM-written coaching reply is the paid tier. It also means this
+    works with no LLM provider key configured at all.
+
+    grounded=False is the F3 "I don't have information on that" case — the
+    caller must surface that honestly rather than falling back to the
+    model's own knowledge, which is exactly where financial content gets
+    confabulated.
+    """
+    results = search(query, k=k)
+    relevant = [r for r in results if r["score"] <= max_distance]
+    return {
+        "grounded": bool(relevant),
+        "results": relevant,
+        "top_score": results[0]["score"] if results else None,
+    }

@@ -49,6 +49,20 @@
     </div>
   </section>
 
+  <!-- The run's focus, derived from the situation already chosen (see
+       SITUATION_OBJECTIVES in situations.js). Hidden entirely for
+       situations that have no honest single-metric aim. -->
+  <div class="objective-bar" id="objective-bar" hidden>
+    <div class="objective-head">
+      <span class="objective-eyebrow">Your focus this run</span>
+      <span class="objective-label" id="objective-label"></span>
+    </div>
+    <div class="objective-track" id="objective-track">
+      <span class="objective-metric" id="objective-metric"></span>
+      <span class="objective-delta" id="objective-delta"></span>
+    </div>
+  </div>
+
   <div class="round-bar" id="round-bar" hidden>
     <div class="round-meta">
       <span class="round-label" id="round-label">Round 1</span>

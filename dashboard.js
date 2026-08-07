@@ -523,6 +523,8 @@ async function selectPersona(slug, { fromCache = false, seedState = null } = {})
   triggers = [];
   decisionLog = [];
   zoneHistory = [zoneStatus(startScore)];
+  resetObjectiveBaseline();
+  renderObjectiveBar();
   updateHomeostasisPanel();
   document.getElementById("wellbeing-note").textContent = "Starting numbers loaded — try a scenario below.";
   document.getElementById("change-log").innerHTML = '<li class="log-empty">No decisions yet.</li>';
@@ -830,6 +832,7 @@ function applyChoice(choice, chosenIndex) {
   }
   renderPatternPanel();
   renderRoundBar();
+  renderObjectiveBar();
   updateDrawerHint();
   if (cycleResult) maybeRunPostProbes(cycleResult);
 
@@ -1131,6 +1134,49 @@ function openScaffoldResponse(principleKey, li) {
     }
   });
   host.querySelector(".scaffold-skip").addEventListener("click", () => host.remove());
+}
+
+// The run's focus, if the chosen situation has one. Baseline is captured
+// when the numbers are seeded (see selectPersona) so the delta is always
+// "since this run started", not since some earlier session.
+let objectiveBaseline = null;
+
+function currentObjective() {
+  if (typeof getSavedSituation !== "function" || typeof getSituationObjective !== "function") return null;
+  const id = getSavedSituation();
+  return id ? getSituationObjective(id) : null;
+}
+
+function resetObjectiveBaseline() {
+  const obj = currentObjective();
+  objectiveBaseline = obj && state ? (state[obj.metric] ?? null) : null;
+}
+
+// Reports the movement and nothing else — deliberately no "you did it" or
+// "you failed". The objective frames the run; it does not grade it.
+function renderObjectiveBar() {
+  const bar = document.getElementById("objective-bar");
+  if (!bar) return;
+  const obj = currentObjective();
+  if (!obj || !state || objectiveBaseline === null) { bar.hidden = true; return; }
+
+  bar.hidden = false;
+  document.getElementById("objective-label").textContent = obj.label;
+
+  const now = state[obj.metric] ?? 0;
+  const change = now - objectiveBaseline;
+  const metricName = (typeof OBJECTIVE_METRIC_LABEL !== "undefined" && OBJECTIVE_METRIC_LABEL[obj.metric]) || obj.metric;
+  document.getElementById("objective-metric").textContent = `${metricName}: ${fmt(objectiveBaseline)} → ${fmt(now)}`;
+
+  const deltaEl = document.getElementById("objective-delta");
+  if (!change) {
+    deltaEl.textContent = decisionCount ? "no change yet" : "";
+    deltaEl.className = "objective-delta";
+    return;
+  }
+  const movingToward = obj.direction === "down" ? change < 0 : change > 0;
+  deltaEl.textContent = `${change > 0 ? "+" : "−"}${fmt(Math.abs(change)).replace("$", "$")}`;
+  deltaEl.className = `objective-delta ${movingToward ? "is-toward" : "is-away"}`;
 }
 
 function renderRoundBar() {

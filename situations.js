@@ -111,6 +111,44 @@ const SITUATIONS = [
   },
 ];
 
+// A focus for the run, derived from the situation the person already
+// picked — so the sandbox opens with "here's what you're working on"
+// instead of an open-ended set of numbers with no stated aim.
+//
+// Deliberately partial. Only situations where ONE number genuinely
+// captures the aim get an objective; "I avoid looking at my money",
+// "money stresses me out", "I just drift along", "I take big swings" and
+// "just having a look" are about awareness rather than a target, and
+// inventing a metric for them would be a fake goal. Those simply show no
+// objective banner.
+//
+// Note holding_back: its objective moves savings DOWN. That is not a bug —
+// the Financial Homeostasis Model this app is built on is non-monotonic
+// (over-saving is a real cost, not a virtue), and this is the one place
+// that shows up as an explicit aim.
+//
+// This is a FOCUS, never a score. dashboard.js reports what the number
+// actually did and says nothing about whether the person succeeded —
+// same stance as the rest of the app on not grading a single decision.
+const SITUATION_OBJECTIVES = {
+  debt:          { label: "Escape the debt",              metric: "debt",        direction: "down" },
+  overspending:  { label: "Keep more of what you earn",   metric: "savings",     direction: "up" },
+  saving:        { label: "Build the buffer",             metric: "savings",     direction: "up" },
+  growing:       { label: "Put more of it to work",       metric: "investments", direction: "up" },
+  giving:        { label: "Rebuild your own buffer",      metric: "savings",     direction: "up" },
+  holding_back:  { label: "Let yourself actually use some", metric: "savings",   direction: "down" },
+};
+
+const OBJECTIVE_METRIC_LABEL = {
+  debt: "Debt",
+  savings: "Savings",
+  investments: "Investments",
+};
+
+function getSituationObjective(id) {
+  return SITUATION_OBJECTIVES[id] || null;
+}
+
 const SITUATION_KEY = "finperson_situation";
 
 function getSituation(id) {
