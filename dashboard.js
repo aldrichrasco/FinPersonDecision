@@ -7,15 +7,20 @@
 // so the sandbox can react in the current persona's voice afterward
 // (see reactionFor()) instead of just updating numbers silently.
 
+// A few names recur across otherwise-unrelated scenarios (Priya, Jordan,
+// Devon below) so the sandbox reads as a handful of people you actually
+// know, not a new anonymous stranger on every card. Deliberately light —
+// three names, touching five scenarios — since scenarios are drawn in
+// random order and can't safely reference a specific prior event.
 const SCENARIOS = [
   {
     text: "Your car needs a $1,200 repair to pass inspection.",
     principle: "catch_up_later",
     surface: "obligation",
     choices: [
-      { label: "Pay from savings", delta: { savings: -1200 }, flavor: "conservative" },
-      { label: "Put it on a 0% intro card", delta: { debt: 1200 }, flavor: "impulsive" },
-      { label: "Delay it and hope for the best", delta: { expenses: 300 }, flavor: "uncertain" },
+      { label: "Pay from savings", delta: { savings: -1200 }, flavor: "conservative", outcome: "The shop hands you the keys and a fresh inspection sticker — the buffer's thinner, but the car's fine." },
+      { label: "Put it on a 0% intro card", delta: { debt: 1200 }, flavor: "impulsive", outcome: "The repair's done today; the bill just moves onto a card with a clock already running on it." },
+      { label: "Delay it and hope for the best", delta: { expenses: 300 }, flavor: "uncertain", outcome: "You drive off without the sticker. The noise under the hood doesn't go away on its own." },
     ],
   },
   {
@@ -23,19 +28,19 @@ const SCENARIOS = [
     principle: "catch_up_later",
     surface: "opportunity",
     choices: [
-      { label: "Contribute the full 6%", delta: { investments: 1800, expenses: 300 }, flavor: "growth" },
-      { label: "Contribute 3%, keep more cash flow", delta: { investments: 900, expenses: 150 }, flavor: "conservative" },
-      { label: "Skip it for now", delta: {}, flavor: "uncertain" },
+      { label: "Contribute the full 6%", delta: { investments: 1800, expenses: 300 }, flavor: "growth", outcome: "The match lands in full — money from your employer you'd otherwise have left on the table." },
+      { label: "Contribute 3%, keep more cash flow", delta: { investments: 900, expenses: 150 }, flavor: "conservative", outcome: "Half the match comes through, and you keep more breathing room in the meantime." },
+      { label: "Skip it for now", delta: {}, flavor: "uncertain", outcome: "The match goes unclaimed this month. It'll still be there next time you look." },
     ],
   },
   {
-    text: "A friend invites you on a $2,000 trip next month.",
+    text: "Priya invites you on a $2,000 trip next month.",
     principle: "credit_is_free",
     surface: "credit_card",
     choices: [
-      { label: "Go, pay from savings", delta: { savings: -2000 }, flavor: "impulsive" },
-      { label: "Go, put it on a card", delta: { debt: 2000 }, flavor: "impulsive" },
-      { label: "Decline, start a trip fund instead", delta: { savings: 200 }, flavor: "conservative" },
+      { label: "Go, pay from savings", delta: { savings: -2000 }, flavor: "impulsive", outcome: "Priya's thrilled you're coming. The savings dip is real, but so is the trip." },
+      { label: "Go, put it on a card", delta: { debt: 2000 }, flavor: "impulsive", outcome: "You're going — the cost just moves from your account to your statement, plus interest if it sits." },
+      { label: "Decline, start a trip fund instead", delta: { savings: 200 }, flavor: "conservative", outcome: "Priya's a little disappointed, but the next invite won't catch you flat-footed." },
     ],
   },
   {
@@ -43,10 +48,10 @@ const SCENARIOS = [
     principle: "more_saved_is_better",
     surface: "windfall",
     choices: [
-      { label: "Pay down debt", delta: { debt: -3000 }, flavor: "conservative" },
-      { label: "Add to emergency savings", delta: { savings: 3000 }, flavor: "conservative" },
-      { label: "Invest it", delta: { investments: 3000 }, flavor: "growth" },
-      { label: "Donate part, save the rest", delta: { savings: 1500 }, flavor: "generous" },
+      { label: "Pay down debt", delta: { debt: -3000 }, flavor: "conservative", outcome: "The refund goes straight at the balance — less interest accruing from here." },
+      { label: "Add to emergency savings", delta: { savings: 3000 }, flavor: "conservative", outcome: "The refund becomes cushion instead of income you'd have spent without noticing." },
+      { label: "Invest it", delta: { investments: 3000 }, flavor: "growth", outcome: "The refund goes to work over a longer horizon instead of sitting in cash." },
+      { label: "Donate part, save the rest", delta: { savings: 1500 }, flavor: "generous", outcome: "Half goes somewhere that matters to you, half stays as cushion." },
     ],
   },
   {
@@ -54,9 +59,9 @@ const SCENARIOS = [
     principle: "waiting_is_safe",
     surface: "shortfall",
     choices: [
-      { label: "Absorb it, cut elsewhere", delta: { expenses: 150, savings: -100 }, flavor: "conservative" },
-      { label: "Move to somewhere cheaper", delta: { expenses: -50, savings: -800 }, flavor: "growth" },
-      { label: "Take on freelance work to cover it", delta: { income: 200 }, flavor: "growth" },
+      { label: "Absorb it, cut elsewhere", delta: { expenses: 150, savings: -100 }, flavor: "conservative", outcome: "You find $100 elsewhere in the budget; the rest just comes out of savings this month." },
+      { label: "Move to somewhere cheaper", delta: { expenses: -50, savings: -800 }, flavor: "growth", outcome: "The move costs upfront, but the new rent leaves more room going forward." },
+      { label: "Take on freelance work to cover it", delta: { income: 200 }, flavor: "growth", outcome: "Extra hours cover the increase — at the cost of the hours themselves." },
     ],
   },
   {
@@ -64,19 +69,19 @@ const SCENARIOS = [
     principle: "credit_is_free",
     surface: "credit_card",
     choices: [
-      { label: "Transfer and commit to a payoff plan", delta: { debt: -500 }, flavor: "conservative" },
-      { label: "Leave it as-is", delta: {}, flavor: "uncertain" },
-      { label: "Transfer, but keep spending on the old card too", delta: { debt: 800 }, flavor: "impulsive" },
+      { label: "Transfer and commit to a payoff plan", delta: { debt: -500 }, flavor: "conservative", outcome: "The transfer buys you interest-free time — worth it only if the payoff plan actually happens." },
+      { label: "Leave it as-is", delta: {}, flavor: "uncertain", outcome: "Nothing changes. The interest keeps doing what interest does." },
+      { label: "Transfer, but keep spending on the old card too", delta: { debt: 800 }, flavor: "impulsive", outcome: "The old balance moves, and a new one starts growing right behind it." },
     ],
   },
   {
-    text: "A friend swears the token everyone's buying is different from past crypto crashes — 'this one has real backing.'",
+    text: "Priya swears the token everyone's buying is different from past crypto crashes — 'this one has real backing.'",
     principle: "this_time_different",
     surface: "opportunity",
     choices: [
-      { label: "Put $800 in before it takes off", delta: { savings: -800, investments: 800 }, flavor: "impulsive" },
-      { label: "Ask what specifically makes it different, in writing", delta: {}, flavor: "conservative" },
-      { label: "Skip it — the pitch sounds familiar", delta: { savings: 100 }, flavor: "conservative" },
+      { label: "Put $800 in before it takes off", delta: { savings: -800, investments: 800 }, flavor: "impulsive", outcome: "Priya's excited. Whether the token is too is still a question nobody's actually answered." },
+      { label: "Ask what specifically makes it different, in writing", delta: {}, flavor: "conservative", outcome: "Priya doesn't have a clean answer ready. That tells you something on its own." },
+      { label: "Skip it — the pitch sounds familiar", delta: { savings: 100 }, flavor: "conservative", outcome: "Priya moves on to the next thing. Your $800 stays exactly where it was." },
     ],
   },
   {
@@ -84,29 +89,29 @@ const SCENARIOS = [
     principle: "this_time_different",
     surface: "opportunity",
     choices: [
-      { label: "Buy now before it goes higher", delta: { debt: 2000, savings: -8000 }, flavor: "impulsive" },
-      { label: "Keep renting and saving toward a bigger down payment", delta: { savings: 400 }, flavor: "conservative" },
-      { label: "Wait for a dip that may never come", delta: {}, flavor: "uncertain" },
+      { label: "Buy now before it goes higher", delta: { debt: 2000, savings: -8000 }, flavor: "impulsive", outcome: "You're in — a bigger mortgage, a bigger bet that the run continues." },
+      { label: "Keep renting and saving toward a bigger down payment", delta: { savings: 400 }, flavor: "conservative", outcome: "You watch the market from the sidelines, buffer growing a little each month." },
+      { label: "Wait for a dip that may never come", delta: {}, flavor: "uncertain", outcome: "You wait. The market doesn't check in with you either way." },
     ],
   },
   {
-    text: "A coworker's side hustle promises 20% monthly returns, and says the usual warning signs don't apply since it's run by someone you know.",
+    text: "Devon's side hustle promises 20% monthly returns, and says the usual warning signs don't apply since it's run by someone you know.",
     principle: "this_time_different",
     surface: "opportunity",
     choices: [
-      { label: "Put in a small amount to test it", delta: { savings: -500 }, flavor: "impulsive" },
-      { label: "Ask to see verified payouts going back three months", delta: {}, flavor: "conservative" },
-      { label: "Decline — the math doesn't work at any scale", delta: {}, flavor: "conservative" },
+      { label: "Put in a small amount to test it", delta: { savings: -500 }, flavor: "impulsive", outcome: "Devon's glad you're in. Small is relative when the math was never explained." },
+      { label: "Ask to see verified payouts going back three months", delta: {}, flavor: "conservative", outcome: "Devon gets vague fast. The absence of an answer is an answer." },
+      { label: "Decline — the math doesn't work at any scale", delta: {}, flavor: "conservative", outcome: "Devon shrugs it off. Your money stays put, no test required." },
     ],
   },
   {
-    text: "Your sibling asks to borrow $500 for rent — the third time this year.",
+    text: "Jordan asks to borrow $500 for rent — the third time this year.",
     principle: "others_first",
     surface: "obligation",
     choices: [
-      { label: "Lend it again, no questions", delta: { savings: -500 }, flavor: "generous" },
-      { label: "Offer to help them build a budget instead of cash", delta: {}, flavor: "generous" },
-      { label: "Say no this time and explain why", delta: {}, flavor: "conservative" },
+      { label: "Lend it again, no questions", delta: { savings: -500 }, flavor: "generous", outcome: "Jordan's relieved. This makes three times this year, and the pattern's still just between you two." },
+      { label: "Offer to help them build a budget instead of cash", delta: {}, flavor: "generous", outcome: "Jordan's not thrilled, but it's the first conversation about the actual problem, not just this month's version of it." },
+      { label: "Say no this time and explain why", delta: {}, flavor: "conservative", outcome: "It's an uncomfortable call. Jordan hears the reason, even if they don't love it." },
     ],
   },
   {
@@ -114,9 +119,9 @@ const SCENARIOS = [
     principle: "others_first",
     surface: "obligation",
     choices: [
-      { label: "Give the full $50 to fit in", delta: { savings: -50 }, flavor: "generous" },
-      { label: "Give $10 and be upfront about it", delta: { savings: -10 }, flavor: "conservative" },
-      { label: "Decline — it's okay to sit this one out", delta: {}, flavor: "conservative" },
+      { label: "Give the full $50 to fit in", delta: { savings: -50 }, flavor: "generous", outcome: "You're in with everyone else. The $50 doesn't ask why you gave it." },
+      { label: "Give $10 and be upfront about it", delta: { savings: -10 }, flavor: "conservative", outcome: "Nobody blinks. Being clear about the number cost you nothing socially." },
+      { label: "Decline — it's okay to sit this one out", delta: {}, flavor: "conservative", outcome: "It's a little awkward for a second, then the day moves on." },
     ],
   },
   {
@@ -124,9 +129,9 @@ const SCENARIOS = [
     principle: "others_first",
     surface: "family_loan",
     choices: [
-      { label: "Send $300 without being asked directly", delta: { savings: -300 }, flavor: "generous" },
-      { label: "Ask what specifically needs covering first", delta: { savings: -150 }, flavor: "generous" },
-      { label: "Offer a non-cash form of help instead", delta: {}, flavor: "conservative" },
+      { label: "Send $300 without being asked directly", delta: { savings: -300 }, flavor: "generous", outcome: "It arrives before they had to ask twice. Whether that was needed, you don't fully know yet." },
+      { label: "Ask what specifically needs covering first", delta: { savings: -150 }, flavor: "generous", outcome: "The conversation is a bit more direct than usual — and $150 covers exactly what's short." },
+      { label: "Offer a non-cash form of help instead", delta: {}, flavor: "conservative", outcome: "It's not what they expected, but it's help that doesn't touch your account." },
     ],
   },
   {
@@ -134,9 +139,9 @@ const SCENARIOS = [
     principle: "id_notice",
     surface: "obligation",
     choices: [
-      { label: "Open it right now, whatever's in there", delta: {}, flavor: "conservative" },
-      { label: "Skim the total, skip the details", delta: {}, flavor: "uncertain" },
-      { label: "Keep avoiding it a bit longer", delta: { expenses: 60 }, flavor: "uncertain" },
+      { label: "Open it right now, whatever's in there", delta: {}, flavor: "conservative", outcome: "Nothing on the statement was actually worse than the two months of not knowing." },
+      { label: "Skim the total, skip the details", delta: {}, flavor: "uncertain", outcome: "You've got a number now, at least. The line items stay a mystery." },
+      { label: "Keep avoiding it a bit longer", delta: { expenses: 60 }, flavor: "uncertain", outcome: "The statement waits. So does whatever's quietly accumulating on it." },
     ],
   },
   {
@@ -144,9 +149,9 @@ const SCENARIOS = [
     principle: "id_notice",
     surface: "subscription",
     choices: [
-      { label: "Cancel it and check your account for others like it", delta: { savings: 89 }, flavor: "conservative" },
-      { label: "Let it slide, it's not that much", delta: { expenses: 89 }, flavor: "uncertain" },
-      { label: "Cancel it, but don't check for more", delta: { savings: 89 }, flavor: "uncertain" },
+      { label: "Cancel it and check your account for others like it", delta: { savings: 89 }, flavor: "conservative", outcome: "One's gone, and you find a second one nobody remembers signing up for." },
+      { label: "Let it slide, it's not that much", delta: { expenses: 89 }, flavor: "uncertain", outcome: "$89 this month. Not much, until it's not much twelve more times." },
+      { label: "Cancel it, but don't check for more", delta: { savings: 89 }, flavor: "uncertain", outcome: "That one's handled. Whatever else is quietly renewing stays quietly renewing." },
     ],
   },
   {
@@ -154,9 +159,9 @@ const SCENARIOS = [
     principle: "credit_is_free",
     surface: "bnpl",
     choices: [
-      { label: "Use it — it's the same total, just split up", delta: { debt: 600 }, flavor: "impulsive" },
-      { label: "Pay the full $600 upfront instead", delta: { savings: -600 }, flavor: "conservative" },
-      { label: "Wait a week and see if you still want it", delta: {}, flavor: "conservative" },
+      { label: "Use it — it's the same total, just split up", delta: { debt: 600 }, flavor: "impulsive", outcome: "Four smaller charges land on your card instead of one bigger one today." },
+      { label: "Pay the full $600 upfront instead", delta: { savings: -600 }, flavor: "conservative", outcome: "It's done in one shot — no future payments to keep track of." },
+      { label: "Wait a week and see if you still want it", delta: {}, flavor: "conservative", outcome: "A week later, you'll know if this was the purchase or just the moment." },
     ],
   },
   {
@@ -164,9 +169,9 @@ const SCENARIOS = [
     principle: "waiting_is_safe",
     surface: "subscription",
     choices: [
-      { label: "Let it ride — comparing plans is a hassle", delta: { expenses: 40 }, flavor: "uncertain" },
-      { label: "Spend 20 minutes comparing two other plans", delta: {}, flavor: "conservative" },
-      { label: "Switch to the cheaper option without comparing details", delta: { expenses: -40 }, flavor: "impulsive" },
+      { label: "Let it ride — comparing plans is a hassle", delta: { expenses: 40 }, flavor: "uncertain", outcome: "Same coverage, $40 more a month, no time spent finding out if that's the going rate." },
+      { label: "Spend 20 minutes comparing two other plans", delta: {}, flavor: "conservative", outcome: "Twenty minutes tells you whether $40 more is normal or just what happens when nobody checks." },
+      { label: "Switch to the cheaper option without comparing details", delta: { expenses: -40 }, flavor: "impulsive", outcome: "The bill drops $40 — you're trusting that the coverage didn't drop with it." },
     ],
   },
 ];
@@ -187,9 +192,9 @@ const RECOVERY_SCENARIOS = [
     surface: "obligation",
     zone: "recovery",
     choices: [
-      { label: "Take the settlement, clear the debt", delta: { debt: -2500, savings: -1200 }, flavor: "conservative" },
-      { label: "Ask for a longer payment plan instead", delta: { debt: -400 }, flavor: "conservative" },
-      { label: "Ignore it, deal with it later", delta: { debt: 600 }, flavor: "uncertain" },
+      { label: "Take the settlement, clear the debt", delta: { debt: -2500, savings: -1200 }, flavor: "conservative", outcome: "The balance is gone in one move, and so is a chunk of the buffer that paid for it." },
+      { label: "Ask for a longer payment plan instead", delta: { debt: -400 }, flavor: "conservative", outcome: "It's slower, but it doesn't empty the account to get there." },
+      { label: "Ignore it, deal with it later", delta: { debt: 600 }, flavor: "uncertain", outcome: "The offer lapses. The balance doesn't." },
     ],
   },
   {
@@ -198,9 +203,9 @@ const RECOVERY_SCENARIOS = [
     surface: "opportunity",
     zone: "recovery",
     choices: [
-      { label: "Take them and direct the extra to debt", delta: { income: 400, debt: -800 }, flavor: "growth" },
-      { label: "Take a few, keep some breathing room", delta: { income: 200 }, flavor: "conservative" },
-      { label: "Pass — you're stretched enough", delta: {}, flavor: "uncertain" },
+      { label: "Take them and direct the extra to debt", delta: { income: 400, debt: -800 }, flavor: "growth", outcome: "More hours, less debt — the trade is direct and it shows up fast." },
+      { label: "Take a few, keep some breathing room", delta: { income: 200 }, flavor: "conservative", outcome: "A little extra income, and enough left in the tank to keep going." },
+      { label: "Pass — you're stretched enough", delta: {}, flavor: "uncertain", outcome: "You stay at your current pace. The extra income stays on the table." },
     ],
   },
   {
@@ -209,9 +214,9 @@ const RECOVERY_SCENARIOS = [
     surface: "opportunity",
     zone: "recovery",
     choices: [
-      { label: "Sell it, rebuild your buffer", delta: { savings: 900 }, flavor: "conservative" },
-      { label: "Sell it, clear a card", delta: { debt: -900 }, flavor: "conservative" },
-      { label: "Keep it — you might need it someday", delta: {}, flavor: "uncertain" },
+      { label: "Sell it, rebuild your buffer", delta: { savings: 900 }, flavor: "conservative", outcome: "It's gone from the closet and into the account where it can actually do something." },
+      { label: "Sell it, clear a card", delta: { debt: -900 }, flavor: "conservative", outcome: "The sale goes straight at a balance instead of sitting as cash." },
+      { label: "Keep it — you might need it someday", delta: {}, flavor: "uncertain", outcome: "It stays in the closet, worth exactly what it was before: nothing, until it's sold." },
     ],
   },
 ];
@@ -221,14 +226,14 @@ const RECOVERY_SCENARIOS = [
 // indefinitely. Here, spending is often the capable move.
 const LIVING_SCENARIOS = [
   {
-    text: "A close friend's wedding abroad would cost about $1,500. You can comfortably afford it.",
+    text: "Priya's wedding abroad would cost about $1,500. You can comfortably afford it.",
     principle: "more_saved_is_better",
     surface: "opportunity",
     zone: "living",
     choices: [
-      { label: "Go — this is what the money is for", delta: { savings: -1500 }, flavor: "conservative" },
-      { label: "Go, but keep it lean", delta: { savings: -800 }, flavor: "conservative" },
-      { label: "Skip it and keep saving", delta: { savings: 200 }, flavor: "uncertain" },
+      { label: "Go — this is what the money is for", delta: { savings: -1500 }, flavor: "conservative", outcome: "You're there for it. The buffer absorbs the cost the way it was built to." },
+      { label: "Go, but keep it lean", delta: { savings: -800 }, flavor: "conservative", outcome: "You make the wedding on a tighter budget — still there, just watching the spend." },
+      { label: "Skip it and keep saving", delta: { savings: 200 }, flavor: "uncertain", outcome: "The buffer keeps growing. Priya understands, but you weren't there." },
     ],
   },
   {
@@ -237,9 +242,9 @@ const LIVING_SCENARIOS = [
     surface: "obligation",
     zone: "living",
     choices: [
-      { label: "Book it now", delta: { savings: -400 }, flavor: "conservative" },
-      { label: "Book it, but wait for the new year", delta: { savings: -400, expenses: 40 }, flavor: "uncertain" },
-      { label: "Put it off again", delta: { expenses: 120 }, flavor: "uncertain" },
+      { label: "Book it now", delta: { savings: -400 }, flavor: "conservative", outcome: "Two years of not knowing ends with one appointment." },
+      { label: "Book it, but wait for the new year", delta: { savings: -400, expenses: 40 }, flavor: "uncertain", outcome: "It's on the calendar, just not yet — the waiting continues a little longer, on purpose this time." },
+      { label: "Put it off again", delta: { expenses: 120 }, flavor: "uncertain", outcome: "The appointment stays unbooked. So does the answer to whatever you've been wondering about." },
     ],
   },
   {
@@ -248,9 +253,9 @@ const LIVING_SCENARIOS = [
     surface: "obligation",
     zone: "living",
     choices: [
-      { label: "Replace it — it pays for itself", delta: { savings: -1300, income: 150 }, flavor: "growth" },
-      { label: "Buy a refurbished one", delta: { savings: -600, income: 80 }, flavor: "conservative" },
-      { label: "Keep struggling with it", delta: { expenses: 60 }, flavor: "uncertain" },
+      { label: "Replace it — it pays for itself", delta: { savings: -1300, income: 150 }, flavor: "growth", outcome: "The new machine is faster than the excuse for keeping the old one." },
+      { label: "Buy a refurbished one", delta: { savings: -600, income: 80 }, flavor: "conservative", outcome: "Most of the speed, less of the cost — a middle option that actually exists." },
+      { label: "Keep struggling with it", delta: { expenses: 60 }, flavor: "uncertain", outcome: "The laptop keeps slowing you down, a little at a time, in ways that don't show up on a statement." },
     ],
   },
 ];
@@ -260,9 +265,9 @@ const THEMED_SCENARIOS = {
     principle: "this_time_different",
     surface: "opportunity",
     choices: [
-      { label: "Buy more while it's down", delta: { investments: 1500, savings: -1500 }, flavor: "growth" },
-      { label: "Hold what you have and wait", delta: {}, flavor: "conservative" },
-      { label: "Sell before it drops further", delta: { investments: -1000, savings: 1000 }, flavor: "uncertain" },
+      { label: "Buy more while it's down", delta: { investments: 1500, savings: -1500 }, flavor: "growth", outcome: "You're betting the drop is noise. Sometimes it is." },
+      { label: "Hold what you have and wait", delta: {}, flavor: "conservative", outcome: "Nothing moves. That's the position you chose." },
+      { label: "Sell before it drops further", delta: { investments: -1000, savings: 1000 }, flavor: "uncertain", outcome: "You're out, at a loss, betting the drop is signal instead." },
     ],
   },
   impulsive: {
@@ -270,9 +275,9 @@ const THEMED_SCENARIOS = {
     principle: "credit_is_free",
     surface: "bnpl",
     choices: [
-      { label: "Buy it now, worry later", delta: { debt: 400 }, flavor: "impulsive" },
-      { label: "Close the tab", delta: {}, flavor: "conservative" },
-      { label: "Add it to a wishlist for next month", delta: { savings: 50 }, flavor: "growth" },
+      { label: "Buy it now, worry later", delta: { debt: 400 }, flavor: "impulsive", outcome: "It's yours in one click. The worry part is still ahead of you." },
+      { label: "Close the tab", delta: {}, flavor: "conservative", outcome: "The countdown times out without you. Nothing about your day changes." },
+      { label: "Add it to a wishlist for next month", delta: { savings: 50 }, flavor: "growth", outcome: "It's saved for later — if you still want it later, it'll still be there." },
     ],
   },
   uncertain: {
@@ -280,9 +285,9 @@ const THEMED_SCENARIOS = {
     principle: "id_notice",
     surface: "obligation",
     choices: [
-      { label: "Check it right now", delta: {}, flavor: "conservative" },
-      { label: "Deal with it later this week", delta: { expenses: 40 }, flavor: "uncertain" },
-      { label: "Ask a friend what they'd do first", delta: {}, flavor: "uncertain" },
+      { label: "Check it right now", delta: {}, flavor: "conservative", outcome: "Two minutes in the app tells you exactly what's going on. Usually that's the whole fix." },
+      { label: "Deal with it later this week", delta: { expenses: 40 }, flavor: "uncertain", outcome: "The alert sits unread. Whatever it is has a few more days to become a bigger problem or nothing at all." },
+      { label: "Ask a friend what they'd do first", delta: {}, flavor: "uncertain", outcome: "Your friend says check it. You still haven't." },
     ],
   },
   generous: {
@@ -290,9 +295,9 @@ const THEMED_SCENARIOS = {
     principle: "others_first",
     surface: "obligation",
     choices: [
-      { label: "Give the full $100", delta: { savings: -100 }, flavor: "generous" },
-      { label: "Give what fits your budget this month", delta: { savings: -30 }, flavor: "conservative" },
-      { label: "Skip it this time", delta: {}, flavor: "uncertain" },
+      { label: "Give the full $100", delta: { savings: -100 }, flavor: "generous", outcome: "It goes to something you actually believe in — the full amount, no half measures." },
+      { label: "Give what fits your budget this month", delta: { savings: -30 }, flavor: "conservative", outcome: "You give something real without stretching past what the month can hold." },
+      { label: "Skip it this time", delta: {}, flavor: "uncertain", outcome: "You sit this one out. The cause doesn't disappear, and neither does your reason for waiting." },
     ],
   },
   conservative: {
@@ -300,9 +305,9 @@ const THEMED_SCENARIOS = {
     principle: "id_notice",
     surface: "subscription",
     choices: [
-      { label: "High-deductible plan, invest the difference", delta: { investments: 600, expenses: -100 }, flavor: "growth" },
-      { label: "PPO, pay more for certainty", delta: { expenses: 100 }, flavor: "conservative" },
-      { label: "Auto-renew whatever you had last year", delta: {}, flavor: "uncertain" },
+      { label: "High-deductible plan, invest the difference", delta: { investments: 600, expenses: -100 }, flavor: "growth", outcome: "Lower premiums now, a bigger bill only if you actually need care this year." },
+      { label: "PPO, pay more for certainty", delta: { expenses: 100 }, flavor: "conservative", outcome: "You pay more every month for not having to think about it if something happens." },
+      { label: "Auto-renew whatever you had last year", delta: {}, flavor: "uncertain", outcome: "Same plan, same price change as everyone else who didn't look either." },
     ],
   },
 };
@@ -728,7 +733,10 @@ function applyChoice(choice, chosenIndex) {
 
   const meta = currentPersonaMeta();
   const reaction = meta ? reactionFor(choice.flavor, meta.group, meta.name) : null;
-  const why = explainChoice(applied);
+  // Authored scenarios carry a scene-specific outcome line; scenarios from
+  // the adaptive generator (prefetchScenario) don't, so fall back to the
+  // mechanical delta explanation rather than showing nothing.
+  const why = choice.outcome || explainChoice(applied);
 
   // --- Homeostatic tracking (PIPE) ---
   const prevScore = observedTrack[observedTrack.length - 1];
@@ -910,7 +918,7 @@ function applyChoice(choice, chosenIndex) {
     updateMetrics();
     drawChart();
     drawNetWorthChart();
-    renderDecisionOutcome(choice, applied, previousState, score);
+    renderDecisionOutcome(choice, applied, previousState, score, why);
     // Only show the trigger note if there's no observation toast already
     // up — toast() clears whatever's currently showing before rendering
     // new content, so firing both would cut the (richer, more
@@ -925,7 +933,7 @@ function applyChoice(choice, chosenIndex) {
   }
 }
 
-function renderDecisionOutcome(choice, applied, previousState, score) {
+function renderDecisionOutcome(choice, applied, previousState, score, why) {
   const card = document.getElementById("scenario-card");
   if (!card) return;
 
@@ -945,7 +953,7 @@ function renderDecisionOutcome(choice, applied, previousState, score) {
       </div>
       <span class="position-badge position-${position === "More stable" ? "good" : position === "Under pressure" ? "watch" : "bad"}">${position}</span>
     </div>
-    <p class="decision-result-summary">${esc(explainChoice(applied))}</p>
+    <p class="decision-result-summary">${esc(why)}</p>
     <div class="impact-list" aria-label="How this choice changed your numbers">
       ${impacts.length ? impacts.map(impact => `
         <div class="impact-row">
