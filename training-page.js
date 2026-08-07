@@ -9,7 +9,7 @@
   const saved = getProfile();
 
   if (!saved) {
-    status.innerHTML = `You haven't taken the quiz yet. <a href="index.html">Take the 30-second quiz</a> first — training is built around your own profile.`;
+    status.innerHTML = `You haven't taken the quiz yet. <a href="index.html">Take the quick quiz</a> first — training is built around your own profile.`;
     return;
   }
 

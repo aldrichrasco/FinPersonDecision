@@ -8,7 +8,7 @@
     { role: "assistant", text: "Welcome to FinPerson. I'm not going to lecture you — let me just show you how this works." },
     { role: "assistant", text: "Everything here starts from one idea: you learn more from watching your own choices than from reading advice." },
     { role: "user", text: "Okay, where do I start?" },
-    { role: "assistant", text: "A 30-second quiz gives you a starting profile across six behavioral axes, and matches you to one of eleven archetypes." },
+    { role: "assistant", text: "A quick quiz gives you a starting profile across six behavioral axes, and matches you to one of eleven archetypes." },
     { role: "assistant", text: "Then the sandbox: real-feeling money scenarios. You pick what you'd actually do, and your numbers react immediately — no waiting, no guessing." },
     { role: "user", text: "What if I don't understand why something moved?" },
     { role: "assistant", text: "That's what I'm there for in the sandbox — ask anything about a decision and I'll help you think it through. I won't tell you what to pick." },

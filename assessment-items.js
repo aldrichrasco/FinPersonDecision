@@ -1,5 +1,5 @@
 // The Full Assessment — a longer, Likert-scale instrument that sits behind
-// the 30-second quiz, not instead of it. The quick quiz (quiz.js) is the
+// the quick quiz, not instead of it. The quick quiz (quiz.js) is the
 // free MVP: fast, forced-choice, good enough for a first-pass archetype
 // match. This is the "truly check" pass: five statements per axis, rated
 // 1 (strongly disagree) to 5 (strongly agree), with roughly half of each

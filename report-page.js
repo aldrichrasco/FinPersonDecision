@@ -11,7 +11,7 @@
   const saved = await syncProfileFromServer();
 
   if (!saved) {
-    content.innerHTML = `<p class="scenario-empty-body">You haven't taken the quiz yet. <a href="index.html">Take the 30-second quiz</a> to generate your report.</p>`;
+    content.innerHTML = `<p class="scenario-empty-body">You haven't taken the quiz yet. <a href="index.html">Take the quick quiz</a> to generate your report.</p>`;
     return;
   }
 

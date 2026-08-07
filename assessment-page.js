@@ -21,7 +21,7 @@
       <p class="scenario-eyebrow">A closer look</p>
       <h1 style="font-family:var(--font-display);font-weight:500;margin:0 0 10px;">The full assessment</h1>
       <p class="lede" style="font-size:16px;max-width:60ch;">
-        The 30-second quiz gives you a fast first read. This is the longer, more careful version —
+        The quick quiz gives you a fast first read. This is the longer, more careful version —
         ${ASSESSMENT_ITEMS.length} statements, five per axis, rated on how much you agree with each one.
         It replaces your quiz result with a more precise version of the same six numbers, not a
         second, separate profile.

@@ -4,7 +4,7 @@
   const saved = getProfile();
 
   if (!saved) {
-    status.innerHTML = `You haven't taken the quiz yet. <a href="index.html">Take the 30-second quiz</a> to see your profile here.`;
+    status.innerHTML = `You haven't taken the quiz yet. <a href="index.html">Take the quick quiz</a> to see your profile here.`;
     return;
   }
 

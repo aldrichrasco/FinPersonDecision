@@ -10,7 +10,7 @@ const ACHIEVEMENTS = [
   {
     id: "first_steps",
     title: "First Steps",
-    description: "Took the 30-second quiz.",
+    description: "Took the quick quiz.",
     icon: "🌱",
     check: (ctx) => !!ctx.profile,
   },

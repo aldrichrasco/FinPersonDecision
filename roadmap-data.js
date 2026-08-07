@@ -13,7 +13,7 @@ const ROADMAP_TIERS = [
     name: "Foundations",
     blurb: "Find out where you stand and get comfortable with the tools.",
     levels: [
-      { id: "quiz", name: "Find your archetype", blurb: "Take the 30-second quiz.", href: "index.html", xp: 10 },
+      { id: "quiz", name: "Find your archetype", blurb: "Take the quick quiz.", href: "index.html", xp: 10 },
       { id: "learn-topic", name: "Read a Learn lesson", blurb: "Any topic — pick what looks most relevant.", href: "learn.html", xp: 10 },
       // Kept in this (always-unlocked) first tier on purpose: classroom.html
       // is reachable ONLY from here now that the nav is trimmed, so a level

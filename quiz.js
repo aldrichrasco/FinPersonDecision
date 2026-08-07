@@ -264,8 +264,47 @@ function openQuiz() {
   const overlay = document.getElementById("quiz-overlay");
   overlay.classList.add("open");
   document.body.style.overflow = "hidden";
-  renderQuizStep();
+  renderQuizIntro();
   document.addEventListener("keydown", onQuizKeydown);
+}
+
+// A proper beginning, not a jump straight into Q1 — this is a real
+// instrument (up to 20 questions), not the "30-second" throwaway its old
+// copy implied, so it gets a title screen like the full assessment does
+// rather than looking like a stray popup.
+function renderQuizIntro() {
+  document.getElementById("quiz-progress").textContent = "The Financial MRI Quiz";
+  document.getElementById("quiz-progress-track").hidden = true;
+  const body = document.getElementById("quiz-body");
+  body.innerHTML = `
+    <div class="quiz-intro">
+      <p class="quiz-intro-eyebrow">Six behavioral axes &middot; ${QUIZ_QUESTIONS.length} questions</p>
+      <h2 class="quiz-intro-title">What's your money mindset?</h2>
+      <p class="quiz-intro-body">No wrong answers — each question is a quick gut call, not a test to study for. Takes a couple of minutes. You'll get a first-pass archetype match at the end, and can refine it later with the full assessment.</p>
+      <button class="btn btn-primary" id="quiz-begin-btn" type="button">Begin</button>
+    </div>
+  `;
+  document.getElementById("quiz-begin-btn").addEventListener("click", () => {
+    document.getElementById("quiz-progress-track").hidden = false;
+    renderQuizStep();
+  });
+  triggerStepAnimation();
+}
+
+// Re-triggers the quiz-body entrance animation on every step change (intro
+// -> question -> question -> ... -> result). Toggling the class off and
+// back on (with a reflow in between) restarts the CSS animation each time;
+// just adding the class once would only ever play on the very first render.
+function triggerStepAnimation() {
+  const body = document.getElementById("quiz-body");
+  body.classList.remove("quiz-step-enter");
+  void body.offsetWidth; // force reflow so the removed class registers
+  body.classList.add("quiz-step-enter");
+}
+
+function updateQuizProgressBar(fraction) {
+  const fill = document.getElementById("quiz-progress-fill");
+  if (fill) fill.style.width = `${Math.round(Math.max(0, Math.min(1, fraction)) * 100)}%`;
 }
 
 function closeQuiz() {
@@ -299,6 +338,7 @@ function renderQuizStep() {
   const body = document.getElementById("quiz-body");
   const progress = document.getElementById("quiz-progress");
   progress.textContent = `Question ${quizStep + 1} of ${QUIZ_QUESTIONS.length}`;
+  updateQuizProgressBar(quizStep / QUIZ_QUESTIONS.length);
   const step = QUIZ_QUESTIONS[quizStep];
   body.innerHTML = `
     <p class="quiz-q">${esc(step.q)}</p>
@@ -321,6 +361,7 @@ function renderQuizStep() {
     });
   });
   body.querySelector(".quiz-option")?.focus();
+  triggerStepAnimation();
 }
 
 // If the top two candidate archetypes are still close after the 12 base
@@ -362,7 +403,9 @@ function maybeAskTiebreaker() {
   // The generated-question fetch can take a few seconds — without this the
   // last answered question just sits on screen looking frozen/stuck.
   document.getElementById("quiz-progress").textContent = "One more, to be sure";
+  updateQuizProgressBar(0.96);
   document.getElementById("quiz-body").innerHTML = `<p class="quiz-loading">Thinking of one more question&hellip;</p>`;
+  triggerStepAnimation();
 
   if (typeof fetchGeneratedQuizQuestion === "function") {
     fetchGeneratedQuizQuestion(situationLabel, axisA, axisB)
@@ -377,6 +420,7 @@ function renderTiebreakerQuestion(step) {
   const body = document.getElementById("quiz-body");
   const progress = document.getElementById("quiz-progress");
   progress.textContent = "One more, to be sure";
+  updateQuizProgressBar(0.96);
   body.innerHTML = `
     <p class="quiz-q">${esc(step.q)}</p>
     <div class="quiz-options">
@@ -393,9 +437,11 @@ function renderTiebreakerQuestion(step) {
     });
   });
   body.querySelector(".quiz-option")?.focus();
+  triggerStepAnimation();
 }
 
 function renderQuizResult() {
+  updateQuizProgressBar(1);
   const primarySlug = matchArchetype(quizProfile);
   const primary = PERSONAS.find(p => p.slug === primarySlug);
   const capability = capabilityIndex(quizProfile);
@@ -444,7 +490,7 @@ function renderQuizResult() {
       <a class="btn btn-secondary" href="${esc(personaUrl(primarySlug))}">Talk it through instead</a>
     </div>
     <p class="quiz-read-hedge" style="margin-top:14px;">
-      Want a more careful read than a 30-second quiz can give? <a href="assessment.html">Take the full assessment &rarr;</a>
+      Want a more careful read than a quick quiz can give? <a href="assessment.html">Take the full assessment &rarr;</a>
     </p>
     <form id="quiz-lead-form" style="margin-top:18px;padding-top:16px;border-top:1px solid var(--line);display:flex;gap:8px;flex-wrap:wrap;align-items:center;">
       <label for="quiz-lead-email" style="flex:1;min-width:220px;">
@@ -456,6 +502,7 @@ function renderQuizResult() {
     </form>
   `;
   document.querySelector(".quiz-result-actions .btn-primary")?.focus();
+  triggerStepAnimation();
 
   const leadForm = document.getElementById("quiz-lead-form");
   leadForm?.addEventListener("submit", async (e) => {

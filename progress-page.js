@@ -6,7 +6,7 @@
   const nudgeEntries = typeof fetchProfileNudgeLog === "function" ? await fetchProfileNudgeLog() : [];
 
   if (!saved) {
-    status.innerHTML = `You haven't taken the quiz yet. <a href="index.html">Take the 30-second quiz</a> to set your baseline.`;
+    status.innerHTML = `You haven't taken the quiz yet. <a href="index.html">Take the quick quiz</a> to set your baseline.`;
     return;
   }
 

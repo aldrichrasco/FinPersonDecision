@@ -637,6 +637,8 @@ h1{
   z-index:50;
 }
 .quiz-overlay.open{display:flex;}
+.quiz-overlay.open .quiz-modal{animation:quiz-modal-in .28s cubic-bezier(.2,.7,.3,1) both;}
+@keyframes quiz-modal-in{from{opacity:0;transform:translateY(10px) scale(.98);}to{opacity:1;transform:none;}}
 .quiz-modal{
   background:var(--paper-raised);
   border-radius:16px;
@@ -651,6 +653,36 @@ h1{
   font-family:var(--font-mono);font-size:12px;color:var(--slate);
   margin-bottom:18px;
 }
+/* Progress bar — a real instrument (up to 20 questions) reads as one when
+   its progress is a visible, filling track, not just a "X of Y" caption. */
+.quiz-progress-track{
+  height:4px;border-radius:2px;background:var(--line);
+  margin:-8px 0 18px;overflow:hidden;
+}
+.quiz-progress-fill{
+  height:100%;width:0%;border-radius:2px;
+  background:var(--marigold-ink,var(--ink));
+  transition:width .35s cubic-bezier(.2,.7,.3,1);
+}
+/* Retriggered on every question/step change (see triggerStepAnimation in
+   quiz.js) so moving through the quiz has a beat to it instead of content
+   just snapping in place. */
+.quiz-step-enter{animation:quiz-step-in .26s cubic-bezier(.2,.7,.3,1) both;}
+@keyframes quiz-step-in{from{opacity:0;transform:translateX(10px);}to{opacity:1;transform:none;}}
+@media (prefers-reduced-motion: reduce){
+  .quiz-overlay.open .quiz-modal,.quiz-step-enter{animation:none;}
+  .quiz-progress-fill{transition:none;}
+}
+.quiz-intro{text-align:left;}
+.quiz-intro-eyebrow{
+  font-family:var(--font-mono);font-size:11px;text-transform:uppercase;
+  letter-spacing:.08em;color:var(--marigold-ink);margin:0 0 10px;
+}
+.quiz-intro-title{
+  font-family:var(--font-display);font-weight:500;font-size:24px;
+  letter-spacing:-.01em;line-height:1.2;margin:0 0 12px;
+}
+.quiz-intro-body{font-size:14.5px;line-height:1.6;color:var(--slate);margin:0 0 22px;max-width:44ch;}
 .quiz-close{
   background:none;border:none;font-size:22px;line-height:1;
   color:var(--slate);cursor:pointer;padding:0 4px;
