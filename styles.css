@@ -371,22 +371,24 @@ h1{
    the width down to 387px, which is why it read as small.)
    object-position sits above centre so a logo in the upper area of the
    frame survives the crop. */
-.demo-video-banner{width:100%;margin:0 0 4px;}
-.demo-video-figure{margin:0;position:relative;}
+.demo-video-banner{
+  width:min(100%, 1200px);
+  margin:0 auto 18px;
+  padding:clamp(12px,1.2vw,18px);
+  border:1px solid var(--line);
+  border-radius:24px;
+  background:linear-gradient(180deg, rgba(255,255,255,0.72), rgba(242,239,230,0.9));
+  box-shadow:0 14px 40px rgba(17,24,39,0.06);
+}
+.demo-video-figure{margin:0;position:relative;overflow:hidden;border-radius:16px;background:var(--paper-raised);}
 .demo-video{
   display:block;width:100%;
-  /* Height tracks WIDTH (vw), not viewport height. A fixed short height on a
-     full-bleed banner produces a runaway ratio as the screen widens — at
-     1440px a 200px band is 7.2:1, which cropped 68% of a 2.28:1 source and
-     rendered as a near-black strip. Scaling with vw keeps the ratio in a
-     usable range across widths; the clamp stops it dominating the fold. */
-  height:clamp(170px,23vw,330px);
-  object-fit:cover;object-position:center center;
+  height:clamp(220px,28vw,360px);
+  object-fit:cover;object-position:center 38%;
   background:var(--paper-raised);
-  border-top:1px solid var(--line);border-bottom:1px solid var(--line);
 }
 .demo-video-desc{
-  max-width:640px;margin:10px auto 0;padding:0 24px;text-align:center;
+  max-width:680px;margin:12px auto 0;padding:0 24px;text-align:center;
   font-size:12.5px;line-height:1.55;color:var(--slate);
 }
 /* The banner replaces the hero's large top padding — that empty band is the
@@ -397,7 +399,8 @@ h1{
 .demo-video-toggle{
   position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);
   padding:8px 18px;border-radius:999px;border:1px solid var(--line);
-  background:var(--paper-raised);color:var(--ink);font-size:13px;cursor:pointer;
+  background:rgba(255,255,255,0.92);color:var(--ink);font-size:13px;cursor:pointer;
+  box-shadow:0 8px 24px rgba(17,24,39,0.12);
 }
 .demo-video-toggle:hover{border-color:var(--ink);}
 
