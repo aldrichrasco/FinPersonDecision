@@ -1279,6 +1279,13 @@ function closeRecap() {
   }
 }
 
+// Fires once per page load, the first time decisionLog crosses
+// observePattern's own "enough to say something real" threshold (3 — see
+// observations.js). Not derived from read.tone: "neutral" is ALSO the tone
+// of a genuine post-3-decisions read ("Mixed so far"), not just the
+// pre-3-decisions placeholder, so tone can't tell early from real apart.
+let patternDrawerAutoOpened = false;
+
 function renderPatternPanel() {
   const panel = document.getElementById("pattern-panel");
   if (!panel) return;
@@ -1294,6 +1301,23 @@ function renderPatternPanel() {
     <p class="pattern-headline">${esc(read.headline)}</p>
     <p class="pattern-body">${esc(read.body)}</p>
   `;
+
+  // This panel lives inside the collapsed "full breakdown" drawer, so a
+  // first-time visitor has no reason to ever open it — meaning the single
+  // most differentiating thing this product does (naming a real behavioral
+  // pattern, not just moving numbers) was easy to miss entirely. Open the
+  // drawer for them, once, exactly when that first real read appears.
+  if (decisionLog.length >= 3 && !patternDrawerAutoOpened) {
+    patternDrawerAutoOpened = true;
+    const drawer = document.getElementById("detail-drawer");
+    if (drawer && !drawer.open) {
+      drawer.open = true;
+      panel.scrollIntoView({ behavior: "smooth", block: "center" });
+      if (typeof toast === "function") {
+        toast("Your coach just noticed something — see below.", { tone: "good", duration: 3200 });
+      }
+    }
+  }
 }
 
 // Kept as an alias so existing call sites stay valid.
