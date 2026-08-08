@@ -21,6 +21,64 @@
     credit_use: e => `You faced credit <strong>${e.of}</strong> time${e.of === 1 ? "" : "s"}. How you use it, rather than whether you use it, is what separates the patterns closest to yours.`,
   };
 
+
+  // -------------------------------------------------------------- difference
+  // Answers the question a label alone always provokes: "but what makes MINE
+  // different?" Measured against the archetype's own target profile, so the
+  // comparison can never contradict the label it is explaining.
+  function renderDifference(fp, r) {
+    const name = personaName(r.archetype);
+    const dev = fp.deviation;
+    let body;
+    if (!dev) {
+      body = `<p class="mri-note">Not enough of your profile is filled in to compare you against a typical ${esc(name)}.</p>`;
+    } else if (dev.typical) {
+      body = `<p class="mri-note">You sit close to a typical <strong>${esc(name)}</strong> on every tendency. That is itself unusual: most people diverge somewhere, and having no outlier means the archetype describes you unusually well.</p>`;
+    } else {
+      const t = dev.top;
+      const dir = t.delta > 0 ? "higher" : "lower";
+      body = `
+        <p class="mri-note" style="margin-bottom:14px;">Most people matched to <strong>${esc(name)}</strong> sit around <strong>${t.expected}</strong> on ${esc(mriAxisName(t.axis))}.</p>
+        <p class="mri-finding" style="font-size:clamp(18px,3vw,23px);margin-bottom:14px;">You are at ${t.value}, which is ${Math.abs(t.delta)} points ${dir}.</p>
+        <p class="mri-note">${esc(differenceCopy(t.axis, t.delta))}</p>`;
+    }
+    return `
+      ${body}
+      <div style="margin-top:20px;padding-top:16px;border-top:1px solid var(--mri-rule-soft);">
+        <p class="mri-split-name" style="margin-bottom:8px;">Your fingerprint</p>
+        <p style="font-family:var(--mri-mono);font-size:15px;letter-spacing:.02em;margin:0 0 8px;">${esc(fp.code)}</p>
+        <p class="mri-note" style="font-size:12.5px;color:var(--mri-ink-3);">
+          Your archetype plus each tendency to the nearest ten. Two people can share the label and still not share this.
+          ${fp.distinctness && fp.distinctness.between ? " Yours sits almost equally close to two archetypes, so the label is a convenience more than a boundary." : ""}
+        </p>
+      </div>`;
+  }
+
+  const DIFFERENCE_COPY = {
+    temporal_orientation: d => d > 0
+      ? "You wait longer than the archetype does. That is what lets you hold positions others would abandon, and also what can keep you in one too long."
+      : "You work on a shorter horizon than the archetype does, so advice written for that label will tend to assume a patience you have not got.",
+    risk_disposition: d => d > 0
+      ? "You carry more uncertainty than the archetype expects, which widens what is available to you and widens what can go wrong."
+      : "You take less risk than the archetype implies, so the label probably overstates how much volatility you actually want.",
+    impulse_regulation: d => d > 0
+      ? "You pause more than the archetype does. The label suggests someone quicker off the mark than you actually are."
+      : "You move faster than the archetype does, which is where most of the difference between you and the label will show up.",
+    financial_attentiveness: d => d > 0
+      ? "You track detail more closely than the archetype does, which is a quiet advantage the label does not mention."
+      : "You watch the detail less than the archetype assumes, so the things that catch you out will be the ones that accumulate unnoticed.",
+    financial_self_efficacy: d => d > 0
+      ? "You back yourself harder than the archetype does. That gets you moving, and it is also the tendency most worth checking."
+      : "You are less sure of your own judgement than the archetype suggests, which usually means you are more careful than the label gives you credit for.",
+    prosocial_orientation: d => d > 0
+      ? "Other people weigh on your decisions more than the archetype accounts for, which changes where your money actually goes."
+      : "You decide more independently than the archetype implies, so advice about balancing others against yourself will land differently.",
+  };
+  function differenceCopy(axis, delta) {
+    const fn = DIFFERENCE_COPY[axis];
+    return fn ? fn(delta) : "";
+  }
+
   // ---------------------------------------------------------------- render
 
   const content = document.getElementById("mri-content");
@@ -174,7 +232,16 @@
     // assessment can produce, so it is skipped rather than shown at a
     // meaningless flat 50 across the board.
     const hasAxes = AXIS_KEYS.some(k => typeof profile[k] === "number");
-    if (hasAxes) parts.push(section(num(), "Your six tendencies", renderTendencies(profile)));
+    // The twin supplies the conditions that turn flat scores into conditional
+    // traits, so it has to be built before the tendencies render.
+    const twin = (typeof buildTwin === "function")
+      ? twinApplyCorrections(buildTwin(r.decisions || (typeof getMriDecisions === "function" ? getMriDecisions() : [])))
+      : null;
+    const fp = (hasAxes && typeof buildFingerprint === "function")
+      ? buildFingerprint(profile, r.archetype, twin) : null;
+
+    if (fp) parts.push(section(num(), "What makes yours different", renderDifference(fp, r)));
+    if (hasAxes) parts.push(section(num(), "Your six tendencies", renderTendencies(profile, fp)));
 
     // 06 Interaction
     const inter = (hasAxes && typeof mriInteraction === "function") ? mriInteraction(profile) : null;
@@ -286,25 +353,78 @@
     return `<div class="mri-ev">${items}</div>`;
   }
 
-  function renderTendencies(profile) {
-    const rows = AXIS_KEYS
-      .map(k => ({ key: k, value: Math.round(profile[k] ?? 50) }))
-      .sort((a, b) => b.value - a.value)
-      .map(t => `
-        <div class="mri-tend-row">
-          <span class="mri-tend-name">${esc(mriAxisName(t.key))}</span>
-          <span class="mri-tend-mid">
-            <span class="mri-tend-line">${esc(typeof mriTendencyLine === "function" ? mriTendencyLine(t.key, t.value) : AXES[t.key].sub)}</span>
-            <span class="mri-tend-bar"><span class="mri-tend-fill" style="width:${t.value}%;"></span></span>
-          </span>
-          <span class="mri-tend-val">${t.value}</span>
-        </div>`).join("");
-    const sorted = AXIS_KEYS.map(k => ({ k, v: profile[k] ?? 50 })).sort((a, b) => b.v - a.v);
-    const top = mriAxisName(sorted[0].k), bottom = mriAxisName(sorted[sorted.length - 1].k);
+  // Tendencies as CONDITIONAL traits where the twin has found a condition.
+  // A score says what you do on average; a condition says when the average
+  // stops holding, which is the part a reader has not heard before. Traits
+  // with a condition lead, and the rest stay as plain rows rather than being
+  // given a condition that has not been earned.
+  function renderTendencies(profile, fp) {
+    if (!fp) {
+      const rows = AXIS_KEYS
+        .map(k => ({ key: k, value: Math.round(profile[k] ?? 50) }))
+        .sort((a, b) => b.value - a.value)
+        .map(plainRow).join("");
+      return `<p class="mri-note" style="margin-bottom:16px;">Not scores. Higher does not mean better.</p>${rows}`;
+    }
+
+    const conditioned = fp.conditional.map(conditionalCard).join("");
+    const plain = fp.traits.filter(t => !t.condition)
+      .sort((a, b) => b.value - a.value).map(t => plainRow({ key: t.axis, value: t.value })).join("");
+
     return `
-      <p class="mri-note" style="margin-bottom:16px;">Not scores. Higher does not mean better. They describe how you tend to decide.</p>
-      ${rows}
-      <p class="mri-tend-note"><strong>${esc(top)}</strong> at the top and <strong>${esc(bottom)}</strong> at the bottom is the shape that produced your finding. The combination is what matters, not any single row.</p>`;
+      <p class="mri-note" style="margin-bottom:18px;">Not scores. Higher does not mean better. Where your twin has found the condition that changes a tendency, it is shown with it.</p>
+      ${conditioned}
+      ${plain ? `
+        <p class="mri-split-name" style="margin:26px 0 12px;">No condition found yet</p>
+        <p class="mri-note" style="font-size:13px;margin-bottom:14px;color:var(--mri-ink-3);">These tendencies have a level but no discovered trigger. More decisions is what finds one.</p>
+        ${plain}` : ""}`;
+  }
+
+  function plainRow(t) {
+    return `
+      <div class="mri-tend-row">
+        <span class="mri-tend-name">${esc(mriAxisName(t.key))}</span>
+        <span class="mri-tend-mid">
+          <span class="mri-tend-line">${esc(typeof mriTendencyLine === "function" ? mriTendencyLine(t.key, t.value) : "")}</span>
+          <span class="mri-tend-bar"><span class="mri-tend-fill" style="width:${t.value}%;"></span></span>
+        </span>
+        <span class="mri-tend-val">${t.value}</span>
+      </div>`;
+  }
+
+  // Trait -> Condition -> Behaviour, plus Strength / Risk / Use. "Use" is the
+  // leg that makes the framing actionable: naming a strength without saying
+  // where to point it leaves the reader with a compliment, not a move.
+  function conditionalCard(t) {
+    const ev = t.conditionEvidence;
+    const evColor = { strong: "var(--mri-good)", emerging: "var(--mri-accent)", limited: "var(--mri-ink-3)" }[ev.id];
+    return `
+      <div style="border:1px solid var(--mri-rule);border-left:3px solid var(--mri-accent);border-radius:3px;padding:20px 22px;margin-bottom:14px;background:var(--mri-surface);">
+        <div style="display:flex;justify-content:space-between;align-items:baseline;gap:12px;flex-wrap:wrap;margin-bottom:10px;">
+          <span class="mri-tend-name">${esc(mriAxisName(t.axis))}</span>
+          <span style="font-family:var(--mri-mono);font-size:11px;color:${evColor};">Evidence: ${esc(ev.label)} &middot; ${t.conditionCounts.support} of ${t.conditionCounts.total}</span>
+        </div>
+        <p style="font-family:var(--mri-serif);font-size:19px;margin:0 0 4px;">${esc(t.trait)}</p>
+        <div class="mri-tend-bar" style="margin-bottom:16px;"><span class="mri-tend-fill" style="width:${t.value}%;display:block;"></span></div>
+
+        <p class="mri-twin-lab" style="margin-bottom:6px;">Until</p>
+        <p style="font-family:var(--mri-serif);font-size:16px;line-height:1.45;margin:0 0 18px;">${esc(t.condition)}</p>
+
+        <div style="display:grid;grid-template-columns:1fr;gap:12px;padding-top:14px;border-top:1px solid var(--mri-rule-soft);">
+          <div>
+            <p class="mri-axis-lab" style="font-family:var(--mri-mono);font-size:10px;letter-spacing:.06em;text-transform:uppercase;color:var(--mri-good);margin:0 0 4px;">Strength</p>
+            <p class="mri-ev-txt" style="margin:0;">${esc(t.strength)}</p>
+          </div>
+          <div>
+            <p style="font-family:var(--mri-mono);font-size:10px;letter-spacing:.06em;text-transform:uppercase;color:var(--mri-warn);margin:0 0 4px;">Risk</p>
+            <p class="mri-ev-txt" style="margin:0;">${esc(t.risk)}</p>
+          </div>
+          <div>
+            <p style="font-family:var(--mri-mono);font-size:10px;letter-spacing:.06em;text-transform:uppercase;color:var(--mri-accent);margin:0 0 4px;">Use it</p>
+            <p class="mri-ev-txt" style="margin:0;">${esc(t.use)}</p>
+          </div>
+        </div>
+      </div>`;
   }
 
   function renderInteraction(inter, profile) {
