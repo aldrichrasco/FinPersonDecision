@@ -16,6 +16,7 @@ const ROADMAP_TIERS = [
       { id: "quiz", name: "Find your archetype", blurb: "Take the quick quiz.", href: "index.html", xp: 10 },
       { id: "financial-mri", name: "Read your Financial MRI", blurb: "The report your decisions build.", href: "report.html", xp: 15 },
       { id: "financial-twin", name: "Meet your Financial Twin", blurb: "The model of how you decide.", href: "twin.html", xp: 15 },
+      { id: "basket", name: "The basket exercise", blurb: "Spend a fixed budget. See what you drop.", href: "shopping.html", xp: 15 },
       { id: "learn-topic", name: "Read a Learn lesson", blurb: "Any topic — pick what looks most relevant.", href: "learn.html", xp: 10 },
       // Kept in this (always-unlocked) first tier on purpose: classroom.html
       // is reachable ONLY from here now that the nav is trimmed, so a level

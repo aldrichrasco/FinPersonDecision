@@ -53,6 +53,7 @@ const MENU_GROUPS = [
       // Roadmap like a side exercise.
       { href: "report.html", label: "Financial MRI" },
       { href: "twin.html", label: "Financial Twin" },
+      { href: "shopping.html", label: "The Basket" },
     ],
   },
   {
