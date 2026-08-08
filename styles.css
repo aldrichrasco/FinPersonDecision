@@ -2670,3 +2670,38 @@ body.has-app-nav .study-badge{bottom:84px;}
 @media (prefers-reduced-motion: reduce){
   .scenario-timer-fill{transition:none;}
 }
+
+/* ------------------------------------------------- sandbox immersion
+   The sandbox was a form: a paragraph, three buttons, and numbers that
+   changed off to the side. These turn it into a sequence of beats. All of it
+   is decoration over a UI that works without any of it, and all of it is
+   switched off under prefers-reduced-motion at the end of this block. */
+@keyframes scene-in{ from{ opacity:0; transform:translateY(10px); } to{ opacity:1; transform:none; } }
+@keyframes choice-in{ from{ opacity:0; transform:translateY(14px) scale(.985); } to{ opacity:1; transform:none; } }
+@keyframes choice-commit{
+  0%{ transform:none; }
+  35%{ transform:scale(1.015); box-shadow:0 0 0 3px color-mix(in srgb, var(--marigold) 40%, transparent); }
+  100%{ transform:scale(1); box-shadow:0 0 0 0 transparent; }
+}
+@keyframes choice-dismiss{ from{ opacity:1; transform:none; } to{ opacity:0; transform:translateY(8px) scale(.97); } }
+@keyframes stat-lift{ 0%{ transform:none; } 40%{ transform:translateY(-4px); } 100%{ transform:none; } }
+
+.scene-label{
+  font-family:var(--font-mono);font-size:10.5px;letter-spacing:.09em;
+  text-transform:uppercase;color:var(--slate);margin:0 0 6px;
+}
+
+/* Tiles that actually moved get flagged, so the eye is told where to look
+   rather than having to scan three numbers to find the changed one. */
+.stat-tile.stat-moved-up{ animation:stat-lift .6s cubic-bezier(.2,.7,.3,1); border-color:color-mix(in srgb, var(--teal) 55%, var(--line)); }
+.stat-tile.stat-moved-down{ animation:stat-lift .6s cubic-bezier(.2,.7,.3,1); border-color:color-mix(in srgb, var(--brick) 55%, var(--line)); }
+
+/* The scenario reads as a scene rather than a paragraph in a card. */
+.scenario-card{ position:relative; }
+.scenario-text{ letter-spacing:-.012em; }
+
+@media (prefers-reduced-motion: reduce){
+  .scenario-card *,
+  .stat-tile.stat-moved-up,
+  .stat-tile.stat-moved-down{ animation:none !important; }
+}

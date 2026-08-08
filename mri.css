@@ -317,3 +317,7 @@
   .twin-scan,.twin-core,.twin-boot > *,.twin-status:before,.twin-status-bar{ animation:none; }
   .twin-status-bar{ width:100%; }
 }
+
+.quizf-foot{display:flex;justify-content:space-between;align-items:center;gap:14px;margin-top:22px;}
+.quizf-clock{font-family:var(--mri-mono);font-size:11px;letter-spacing:.06em;color:var(--mri-ink-3);}
+.quizf-clock.is-slow{color:var(--mri-warn);}

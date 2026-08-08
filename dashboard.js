@@ -798,7 +798,10 @@ function rollScenario() {
     });
   }
   const character = scenarioCharacter(currentScenario.text);
+  const scene = (typeof sceneLabel === "function" && typeof ROUND_LENGTH !== "undefined")
+    ? sceneLabel(decisionCount, ROUND_LENGTH) : "";
   card.innerHTML = `
+    ${scene ? `<p class="scene-label">${esc(scene)}</p>` : ""}
     <div class="scenario-head">
       <p class="scenario-eyebrow">Scenario</p>
       ${character ? `
@@ -826,6 +829,7 @@ function rollScenario() {
     btn.addEventListener("click", () => {
       card.querySelectorAll(".choice-btn").forEach(b => { b.disabled = true; });
       btn.classList.add("choice-pressed");
+      if (typeof animateChoiceCommit === "function") animateChoiceCommit(btn);
       applyChoice(currentScenario.choices[+btn.dataset.i], +btn.dataset.i);
     });
   });
@@ -833,6 +837,7 @@ function rollScenario() {
   const timerEl = document.getElementById("scenario-timer");
   if (timerEl) timerEl.hidden = !currentScenario.timed;
   if (currentScenario.timed) startScenarioTimer(); else clearScenarioTimer();
+  if (typeof animateScenarioEntrance === "function") animateScenarioEntrance();
   renderFirstRun();
   renderPredictionProbe();
 }
@@ -1629,9 +1634,21 @@ function renderStatTile(prefix, rawValue, displayText, formatDelta, status, minD
 
   const prevText = valueEl.textContent;
   const hadPrev = prevText !== "—";
-  const diff = hadPrev ? rawValue - parseCurrency(prevText) : 0;
+  const prevValue = hadPrev ? parseCurrency(prevText) : rawValue;
+  const diff = hadPrev ? rawValue - prevValue : 0;
 
-  valueEl.textContent = displayText;
+  // Count to the new figure rather than snapping to it. A cost that appears
+  // instantly reads as a number changing; one that moves reads as something
+  // being spent, which is the entire point of showing it.
+  if (hadPrev && Math.abs(diff) >= minDelta && typeof animateNumber === "function") {
+    const formatFor = prefix === "stat-networth" ? (v => fmt(Math.round(v)))
+      : prefix === "stat-emergency" ? (v => `${v.toFixed(1)} mo`)
+      : (v => `${Math.round(v)}%`);
+    animateNumber(valueEl, prevValue, rawValue, formatFor);
+    if (typeof flashChanged === "function") flashChanged(prefix, diff);
+  } else {
+    valueEl.textContent = displayText;
+  }
   tile.className = `stat-tile status-${status}`;
 
   if (!hadPrev || Math.abs(diff) < minDelta) {

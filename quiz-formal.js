@@ -31,6 +31,17 @@
   let profile = neutralProfile();
   let midwayDone = false;
 
+  // Response time per question.
+  //
+  // Deliberately measured, not enforced. A hard cutoff would turn a
+  // preference instrument into a reaction test and change what the six axes
+  // actually mean, which is not a trade worth making for atmosphere. What it
+  // does buy is real: a fast answer and a laboured one carry different
+  // confidence, and deliberation time is the one signal a forced-choice
+  // question cannot otherwise capture.
+  let questionShownAt = 0;
+  const responseTimes = [];
+
   renderIntro();
 
   function setProgress(fraction) {
@@ -82,10 +93,17 @@
             <span>${esc(o.label)}</span>
           </button>`).join("")}
       </div>
-      ${step > 0 ? `<button class="quizf-back" id="quizf-back" type="button">&larr; Previous question</button>` : ""}`;
+      <div class="quizf-foot">
+        ${step > 0 ? `<button class="quizf-back" id="quizf-back" type="button">&larr; Previous question</button>` : "<span></span>"}
+        <span class="quizf-clock" id="quizf-clock" aria-hidden="true">0s</span>
+      </div>`;
 
+    questionShownAt = performance.now();
+    startQuestionClock();
     content.querySelectorAll(".quizf-opt").forEach(btn => {
       btn.addEventListener("click", () => {
+        responseTimes.push(Math.round(performance.now() - questionShownAt));
+        stopQuestionClock();
         applyAnswer(q.options[+btn.dataset.i]);
         step++;
         renderQuestion();
@@ -99,6 +117,26 @@
       renderQuestion();
     });
     content.querySelector(".quizf-opt")?.focus();
+  }
+
+  // A quiet elapsed readout. Present enough to create a sense of pace,
+  // never a countdown, because nothing here runs out.
+  let clockHandle = null;
+  function startQuestionClock() {
+    stopQuestionClock();
+    const el = document.getElementById("quizf-clock");
+    if (!el) return;
+    const tick = () => {
+      const s = Math.floor((performance.now() - questionShownAt) / 1000);
+      el.textContent = `${s}s`;
+      el.classList.toggle("is-slow", s >= 12);
+    };
+    tick();
+    clockHandle = setInterval(tick, 1000);
+  }
+  function stopQuestionClock() {
+    if (clockHandle) clearInterval(clockHandle);
+    clockHandle = null;
   }
 
   function applyAnswer(opt) {
@@ -191,7 +229,12 @@
       if (c !== null) logProfileSnapshot(profile, slug, c / 100);
     }
     if (typeof markRoadmapLevelComplete === "function") markRoadmapLevelComplete("quiz");
-    if (typeof track === "function") track("quiz_completed", { archetype: slug, questions: TOTAL });
+    stopQuestionClock();
+    const sorted = responseTimes.slice().sort((a, b) => a - b);
+    const median = sorted.length ? sorted[Math.floor(sorted.length / 2)] : null;
+    if (typeof track === "function") {
+      track("quiz_completed", { archetype: slug, questions: TOTAL, median_response_ms: median });
+    }
 
     const p = PERSONAS.find(x => x.slug === slug);
     meta.textContent = "Complete";
