@@ -21,6 +21,11 @@ const PORTRAIT_ACCENT = {
   impulsive: "#93402C",
   uncertain: "#4A3D63",
   generous: "#4E5157",
+  // The sandbox's three recurring named characters (Priya, Devon, Jordan —
+  // see SCENARIOS in dashboard.js) aren't archetypes, so they get their own
+  // single accent rather than borrowing one of the five group colors, which
+  // would wrongly imply "Priya IS a Growth-seeking archetype."
+  character: "#8A5A3C",
 };
 
 // Darkens a hex color by a flat multiplier — the one extra tone each
@@ -168,6 +173,18 @@ function portraitSymbol(slug) {
     // "Gives first, budgets around it" — a heart, offered outward.
     purposeful_giver: `
       <path d="M50 99 C40 92 40 85 46 83 C49 82 50 84 50 85 C50 84 51 82 54 83 C60 85 60 92 50 99 Z" fill="${F}" stroke="${L}" stroke-width="1.5" stroke-linejoin="round"/>`,
+    // Priya — always mid-invitation (a trip, a tip, a wedding): a small
+    // paper plane, sent rather than received.
+    priya: `
+      <path d="M39 96 L61 85 L50 90 L46 98 L44 92 L39 96 Z" fill="${F}" stroke="${L}" stroke-width="1.4" stroke-linejoin="round"/>`,
+    // Devon — the coworker with a pitch: a small phone, an upward line on
+    // the screen that never quite explains itself.
+    devon: `
+      <rect x="42" y="83" width="16" height="16" rx="2.2" fill="${F}" stroke="${L}" stroke-width="1.4"/>
+      <path d="M45 95 L49 89 L52 92 L56 86" fill="none" stroke="${L}" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"/>`,
+    // Jordan — the ask, held out plainly: an open hand.
+    jordan: `
+      <path d="M42 98 Q40 88 43 85 Q45 83 46 86 L46 82 Q46 79 48 79 Q50 79 50 82 L50 81 Q50 78 52 78 Q54 78 54 81 L54 83 Q54 80 56 80 Q58 80 58 83 L58 92 Q58 98 52 99 Z" fill="${F}" stroke="${L}" stroke-width="1.3" stroke-linejoin="round"/>`,
   };
   return symbols[slug] || "";
 }
@@ -184,6 +201,9 @@ const ARCHETYPE_PORTRAIT_SPEC = {
   anxious_avoider: { hair: "bangs-low", expr: "gentle" },
   passive_drifter: { hair: "uneven", expr: "neutral" },
   purposeful_giver: { hair: "bangs-soft", expr: "warm" },
+  priya: { hair: "big", expr: "excited" },
+  devon: { hair: "side-part", expr: "smirk" },
+  jordan: { hair: "bangs-soft", expr: "thoughtful" },
 };
 
 // Unique per call (not per archetype) so two portraits of the same
@@ -212,4 +232,17 @@ function archetypePortraitSvg(slug, group) {
     ${portraitFace(spec.expr)}
     <g transform="translate(0,-2)">${portraitSymbol(slug)}</g>
   </svg>`;
+}
+
+// Thin wrapper so callers rendering a recurring sandbox character (Priya,
+// Devon, Jordan) don't need to know "character" is a pseudo-group in the
+// accent map — same portrait machinery, just named by person instead of by
+// archetype+group. Returns null for anyone not in the roster rather than
+// silently falling back to a default face, since an unrecognised name here
+// is a caller bug worth surfacing, not a person worth drawing wrong.
+const CHARACTER_PORTRAIT_SLUGS = ["priya", "devon", "jordan"];
+function characterPortraitSvg(name) {
+  const slug = String(name || "").toLowerCase();
+  if (!CHARACTER_PORTRAIT_SLUGS.includes(slug)) return null;
+  return archetypePortraitSvg(slug, "character");
 }

@@ -669,6 +669,17 @@ function formatDeltaTag(delta) {
     .join(" · ");
 }
 
+// Detects whether a scenario's text names one of the sandbox's recurring
+// characters (see archetype-portraits.js's characterPortraitSvg), so the
+// card can show a small portrait rather than leaving the storytelling
+// purely textual. A plain substring check, not a scenario-authored field —
+// the name already has to appear in the sentence for the story to make
+// sense, so it doubles as the detector.
+const SCENARIO_CHARACTER_NAMES = ["Priya", "Devon", "Jordan"];
+function scenarioCharacter(text) {
+  return SCENARIO_CHARACTER_NAMES.find(name => text.includes(name)) || null;
+}
+
 function rollScenario() {
   decisionResolving = false;
   const card = document.getElementById("scenario-card");
@@ -701,8 +712,16 @@ function rollScenario() {
       zone: currentScenario.zone || "general",
     });
   }
+  const character = scenarioCharacter(currentScenario.text);
   card.innerHTML = `
-    <p class="scenario-eyebrow">Scenario</p>
+    <div class="scenario-head">
+      <p class="scenario-eyebrow">Scenario</p>
+      ${character ? `
+        <div class="scenario-character">
+          <span class="scenario-character-portrait">${characterPortraitSvg(character.toLowerCase())}</span>
+          <span class="scenario-character-name">${esc(character)}</span>
+        </div>` : ""}
+    </div>
     <p class="scenario-text">${esc(currentScenario.text)}</p>
     <div class="scenario-choices">
       ${currentScenario.choices.map((c, i) => `
