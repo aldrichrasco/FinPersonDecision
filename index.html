@@ -39,58 +39,53 @@
         <div class="hero-copy">
           <div class="returning-banner" id="returning-banner" hidden></div>
           <p class="scenario-eyebrow" style="margin-bottom:10px;">The Financial MRI</p>
-          <h1 class="hero-h1"><span class="hero-h1-line">Practice being you,</span><br><span class="hero-h1-line hero-h1-line--light">with money, before it's real.</span></h1>
-          <p class="lede">Real exercises, not a quiz — each one tests how you actually decide under pressure and feeds back into your pattern, not a generic score. Nothing here touches your real accounts.</p>
+          <h1 class="hero-h1"><span class="hero-h1-line">Find out how you</span><br><span class="hero-h1-line hero-h1-line--light">actually decide with money.</span></h1>
+          <p class="lede">Answer a short set of questions, then see what your decisions reveal about the conditions that change your behaviour. Nothing here touches your real accounts.</p>
 
-          <!-- Contained product demo, inside the hero column. Revealed by
-               demo-video.js only once the file genuinely loads, so shipping
-               without the asset shows nothing rather than a broken player.
-               The sentinel is what the IntersectionObserver watches: the
-               figure itself ships hidden, and a display:none element never
-               intersects, so observing it would deadlock. -->
-          <div id="demo-video-sentinel" aria-hidden="true" style="height:1px;"></div>
-
-  <div class="demo-video-banner" id="demo-video-section" hidden>
-    <figure class="demo-video-figure">
-      <video
-        id="demo-video"
-        class="demo-video"
-        muted
-        loop
-        playsinline
-        preload="none"
-        poster="assets/demo-poster.jpg"
-        aria-describedby="demo-video-desc">
-        <source src="assets/demo.mp4" type="video/mp4">
-      </video>
-      <button class="demo-video-toggle" id="demo-video-toggle" type="button" aria-pressed="false" hidden>Play</button>
-    </figure>
-    <p class="demo-video-desc" id="demo-video-desc">
-      A decision in the sandbox: a scenario appears, a choice is made, and the net-worth,
-      emergency-fund and debt figures move in response — no real accounts involved.
-    </p>
-  </div>
-
+          <!-- One primary path. The page previously offered the quiz and a
+               seven-card situation picker side by side, which asked people to
+               choose a route before they had been told what the product was,
+               and pushed the primary action 805px down the page. The sandbox
+               is still reachable, just no longer competing for the same
+               moment of attention. -->
           <div class="hero-entry-row">
-            <button class="btn btn-secondary" id="quiz-btn" type="button">Answer a few questions first</button>
-            <span class="hero-entry-or">or</span>
+            <button class="btn btn-primary hero-cta" id="quiz-btn" type="button">Start the assessment</button>
+          </div>
+          <p class="hero-entry-meta">About 3 minutes &middot; free &middot; no account needed</p>
+
+          <!-- Supporting illustration, revealed by demo-video.js only once the
+               file genuinely loads, so shipping without the asset shows
+               nothing rather than a broken player. The sentinel is what the
+               observer watches: the figure ships hidden, and a display:none
+               element never intersects, so observing it would deadlock. -->
+          <div id="demo-video-sentinel" aria-hidden="true" style="height:1px;"></div>
+          <div class="demo-video-banner" id="demo-video-section" hidden>
+            <figure class="demo-video-figure">
+              <video id="demo-video" class="demo-video" muted loop playsinline
+                     preload="none" poster="assets/demo-poster.jpg"
+                     aria-describedby="demo-video-desc">
+                <source src="assets/demo.mp4" type="video/mp4">
+              </video>
+              <button class="demo-video-toggle" id="demo-video-toggle" type="button" aria-pressed="false" hidden>Play</button>
+            </figure>
+            <p class="demo-video-desc" id="demo-video-desc">
+              A decision in the sandbox: a scenario appears, a choice is made, and the numbers move in response.
+            </p>
           </div>
 
-          <p class="situations-prompt">Where are you right now?</p>
-          <ul class="situations" id="situations"></ul>
 
           <p class="hero-reassure">
-            Free. No account needed. Nothing you enter is real money — private by default, educational only, never financial advice.<br>
-            <a class="linkish" href="model.html">See the theory behind this &rarr;</a> ·
-            <a class="linkish" href="tutorial.html">New here? Take the 60-second tour &rarr;</a> ·
-            <a class="linkish" href="assessment.html">Want the full assessment instead? &rarr;</a>
+            <a class="linkish" href="dashboard.html">Rather jump straight into the sandbox? &rarr;</a><br>
+            Private by default, educational only, never financial advice.<br>
+            <a class="linkish" href="model.html">The theory behind this &rarr;</a> &middot;
+            <a class="linkish" href="assessment.html">The longer assessment &rarr;</a>
           </p>
         </div>
 
         <div class="hero-visual" aria-hidden="true">
           <canvas id="hero-radar" width="280" height="280"></canvas>
           <p class="hero-visual-label" id="hero-radar-label"></p>
-          <p class="hero-visual-caption">One of eleven money mindsets the quiz maps you to</p>
+          <p class="hero-visual-caption">Your six tendencies, mapped from how you actually decide</p>
         </div>
       </div>
     </div>
@@ -102,18 +97,18 @@
       <ol class="steps">
         <li class="step">
           <span class="step-num">1</span>
-          <h3>Tell us where you are</h3>
-          <p>One tap. No forms, no sign-up, no questions about your real balances.</p>
+          <h3>Answer the assessment</h3>
+          <p>Short, forced-choice questions. No forms, no sign-up, nothing about your real balances.</p>
         </li>
         <li class="step">
           <span class="step-num">2</span>
-          <h3>Make some decisions</h3>
-          <p>Situations with genuine trade-offs. Every choice moves your numbers, so you feel the cost.</p>
+          <h3>Read your Financial MRI</h3>
+          <p>What your answers reveal, what the evidence behind each finding is, and what we are still unsure about.</p>
         </li>
         <li class="step">
           <span class="step-num">3</span>
-          <h3>Notice your patterns</h3>
-          <p>Your coach names what you keep doing. Not a score — just what actually happened, three times running.</p>
+          <h3>Add evidence in the sandbox</h3>
+          <p>Predict what you would do, then actually decide. The gap between those two is where the real finding comes from.</p>
         </li>
       </ol>
     </div>
