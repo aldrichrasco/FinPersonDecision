@@ -354,6 +354,7 @@
           <li>Every decision behind every number</li>
         </ul>
         <a class="mri-btn" href="mri-report.html">Unlock my full MRI</a>
+        <p class="mri-unlock-alt"><a href="twin.html">Meet your Financial Twin &rarr;</a></p>
         <p class="mri-unlock-alt">Ongoing coaching that tracks how this shifts month to month is the separate $5 monthly plan.</p>
       </div>`;
   }
