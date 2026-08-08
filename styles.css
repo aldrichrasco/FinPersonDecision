@@ -827,6 +827,20 @@ h1{
 .scenario-character-portrait{width:34px;height:34px;flex-shrink:0;border-radius:50%;overflow:hidden;background:var(--paper-raised);border:1px solid var(--line);}
 .scenario-character-portrait svg{width:100%;height:100%;display:block;}
 .scenario-character-name{font-family:var(--font-mono);font-size:11px;text-transform:uppercase;letter-spacing:0.05em;color:var(--slate);}
+/* Real-world grounding note — only present on scenarios with a genuine,
+   sourced statistic behind them (see `context` in dashboard.js's SCENARIOS).
+   Deliberately NOT shown on every card: a made-up-looking percentage on a
+   scenario with no real source would undercut the ones that do have one. */
+.scenario-context{
+  display:flex;gap:8px;align-items:baseline;flex-wrap:wrap;
+  font-size:12.5px;line-height:1.5;color:var(--slate);
+  margin:-8px 0 18px;padding:9px 12px;border-radius:9px;
+  background:var(--paper-raised);border:1px solid var(--line);
+}
+.scenario-context-label{
+  font-family:var(--font-mono);font-size:10px;text-transform:uppercase;
+  letter-spacing:0.06em;color:var(--marigold-ink);flex-shrink:0;
+}
 .scenario-choices{display:flex;flex-direction:column;gap:8px;margin-bottom:16px;}
 .choice-btn{
   text-align:left;background:var(--paper);border:1px solid var(--line);border-radius:var(--radius);

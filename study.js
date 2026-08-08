@@ -179,8 +179,9 @@ function showConsentGate() {
          aria-labelledby="consent-title">
       <h3 id="consent-title" class="consent-title">Taking part in the research</h3>
       <div class="consent-body">
-        <p>You've arrived with a study code, which means you've been invited to
-        take part in research about how people make financial decisions.</p>
+        <p>FinPerson doubles as a research study on how people make financial
+        decisions. You're being asked whether to take part — this works the
+        same whether you arrived by invite or joined yourself.</p>
         <p><strong>If you agree, we record:</strong> the choices you make in the
         practice sandbox, how you move through the app, and your answers to any
         questionnaires. Everything is linked to your study code only — never to

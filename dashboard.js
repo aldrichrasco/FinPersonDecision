@@ -17,6 +17,7 @@ const SCENARIOS = [
     text: "Your car needs a $1,200 repair to pass inspection.",
     principle: "catch_up_later",
     surface: "obligation",
+    context: "About 1 in 3 U.S. drivers say an unexpected repair bill would force them into debt — AAA survey.",
     choices: [
       { label: "Pay from savings", delta: { savings: -1200 }, flavor: "conservative", outcome: "The shop hands you the keys and a fresh inspection sticker — the buffer's thinner, but the car's fine." },
       { label: "Put it on a 0% intro card", delta: { debt: 1200 }, flavor: "impulsive", outcome: "The repair's done today; the bill just moves onto a card with a clock already running on it." },
@@ -58,6 +59,7 @@ const SCENARIOS = [
     text: "Rent is going up $150 a month at renewal.",
     principle: "waiting_is_safe",
     surface: "shortfall",
+    context: "About 37% of U.S. adults couldn't cover a sudden $400 expense with cash alone — Federal Reserve, 2024.",
     choices: [
       { label: "Absorb it, cut elsewhere", delta: { expenses: 150, savings: -100 }, flavor: "conservative", outcome: "You find $100 elsewhere in the budget; the rest just comes out of savings this month." },
       { label: "Move to somewhere cheaper", delta: { expenses: -50, savings: -800 }, flavor: "growth", outcome: "The move costs upfront, but the new rent leaves more room going forward." },
@@ -158,6 +160,7 @@ const SCENARIOS = [
     text: "Your card issuer offers a 'pay in 4' installment option at checkout for a $600 purchase.",
     principle: "credit_is_free",
     surface: "bnpl",
+    context: "Roughly half of U.S. credit cardholders carry a balance from month to month — Bankrate, 2024.",
     choices: [
       { label: "Use it — it's the same total, just split up", delta: { debt: 600 }, flavor: "impulsive", outcome: "Four smaller charges land on your card instead of one bigger one today." },
       { label: "Pay the full $600 upfront instead", delta: { savings: -600 }, flavor: "conservative", outcome: "It's done in one shot — no future payments to keep track of." },
@@ -240,6 +243,7 @@ const LIVING_SCENARIOS = [
     text: "You've postponed a health check for two years. It would cost $400 out of pocket.",
     principle: "more_saved_is_better",
     surface: "obligation",
+    context: "About 41% of U.S. adults carry some form of medical or dental debt — KFF, 2024.",
     zone: "living",
     choices: [
       { label: "Book it now", delta: { savings: -400 }, flavor: "conservative", outcome: "Two years of not knowing ends with one appointment." },
@@ -723,6 +727,7 @@ function rollScenario() {
         </div>` : ""}
     </div>
     <p class="scenario-text">${esc(currentScenario.text)}</p>
+    ${currentScenario.context ? `<p class="scenario-context"><span class="scenario-context-label">Real-world context</span>${esc(currentScenario.context)}</p>` : ""}
     <div class="scenario-choices">
       ${currentScenario.choices.map((c, i) => `
         <button class="choice-btn" data-i="${i}" data-flavor="${esc(c.flavor || "")}">
