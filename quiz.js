@@ -527,9 +527,12 @@ function renderQuizResult() {
 }
 
 function initQuiz() {
-  document.getElementById("quiz-btn").addEventListener("click", openQuiz);
-  document.getElementById("quiz-close").addEventListener("click", closeQuiz);
-  document.getElementById("quiz-overlay").addEventListener("click", e => {
+  // The landing page now routes to the full assessment at quiz.html, so the
+  // modal trigger is gone from there. Other pages may still carry one, hence
+  // the optional binding rather than assuming it exists.
+  document.getElementById("quiz-btn")?.addEventListener("click", openQuiz);
+  document.getElementById("quiz-close")?.addEventListener("click", closeQuiz);
+  document.getElementById("quiz-overlay")?.addEventListener("click", e => {
     if (e.target.id === "quiz-overlay") closeQuiz();
   });
 }

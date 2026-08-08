@@ -79,6 +79,63 @@
     return fn ? fn(delta) : "";
   }
 
+
+  function hasAxesEarly(profile) {
+    return AXIS_KEYS.some(k => typeof profile[k] === "number");
+  }
+
+  // The quiz can establish who you are; only decisions can establish what you
+  // do. The split is roughly 70/30 and the weights below say so explicitly,
+  // so the number is traceable rather than asserted.
+  const COMPLETENESS_PARTS = [
+    { id: "axes",       weight: 30, label: "Your six tendencies",                 needs: "the assessment" },
+    { id: "archetype",  weight: 20, label: "Your archetype and what makes yours different", needs: "the assessment" },
+    { id: "interaction",weight: 20, label: "How your tendencies interact",        needs: "the assessment" },
+    { id: "gap",        weight: 15, label: "The gap between what you say and do", needs: "decisions" },
+    { id: "condition",  weight: 10, label: "The conditions that change your behaviour", needs: "decisions" },
+    { id: "twin",       weight:  5, label: "A twin that can predict you",         needs: "decisions" },
+  ];
+
+  function renderCompleteness(r, hasAxes) {
+    const have = {
+      axes: hasAxes,
+      archetype: !!r.archetype,
+      interaction: hasAxes,
+      gap: !!r.prediction_gap,
+      condition: !!r.time_pressure,
+      twin: !!r.twin,
+    };
+    const pct = COMPLETENESS_PARTS.reduce((s, p) => s + (have[p.id] ? p.weight : 0), 0);
+    const missing = COMPLETENESS_PARTS.filter(p => !have[p.id]);
+
+    return `
+      <div class="mri-complete">
+        <div class="mri-complete-top">
+          <span class="mri-split-name">Your Financial MRI</span>
+          <span class="mri-complete-num">${pct}%</span>
+        </div>
+        <div class="mri-complete-track">
+          <span class="mri-complete-have" style="width:${pct}%;"></span>
+          <span class="mri-complete-gap" style="width:${100 - pct}%;"></span>
+        </div>
+        <ul class="mri-complete-list">
+          ${COMPLETENESS_PARTS.map(p => `
+            <li class="${have[p.id] ? "has" : "missing"}">${esc(p.label)}${have[p.id] ? "" : ` &mdash; needs ${esc(p.needs)}`}</li>`).join("")}
+        </ul>
+        ${missing.length ? `
+          <p class="mri-note" style="margin-top:16px;font-size:13.5px;">
+            ${missing.every(m => m.needs === "decisions")
+              ? "<strong>Questions cannot fill the rest.</strong> What is missing is what you actually do when a decision is in front of you, which only the sandbox can show."
+              : "Finish the assessment to complete the first part, then the sandbox fills the rest."}
+          </p>
+          <p style="margin-top:14px;">
+            ${missing.some(m => m.needs === "decisions")
+              ? '<a class="mri-btn mri-btn-sm" href="dashboard.html">Fill the gap in the sandbox</a>'
+              : '<a class="mri-btn mri-btn-sm" href="quiz.html">Take the assessment</a>'}
+          </p>` : `<p class="mri-note" style="margin-top:16px;">Every section has the evidence it needs. More decisions still sharpen it.</p>`}
+      </div>`;
+  }
+
   // ---------------------------------------------------------------- render
 
   const content = document.getElementById("mri-content");
@@ -217,7 +274,12 @@
       <p style="margin-top:14px;"><a class="mri-btn mri-btn-ghost mri-btn-sm" href="index.html">Add the quiz for the other half</a></p>
     `));
 
-    // 02 The finding
+    // 02 Completeness. Stated up front rather than discovered by hitting
+    // empty sections: knowing the report is 70% built is honest, and it is a
+    // better reason to continue than an unexplained gap.
+    parts.push(section(num(), "How complete this is", renderCompleteness(r, hasAxesEarly(profile))));
+
+    // 03 The finding
     parts.push(section(num(), "What we found", renderGap(r)));
 
     // 03 When it happens
