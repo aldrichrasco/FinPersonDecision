@@ -741,11 +741,12 @@ h1{
 .sandbox-heading p:last-child{max-width:58ch;margin:0;color:var(--slate);font-size:15px;line-height:1.55;}
 .dash-setup{margin-bottom:24px;}
 .dash-setup{padding:16px 0;border-top:1px solid var(--line);border-bottom:1px solid var(--line);}
+/* Replaces what used to be two permanently-expanded rows (11 persona chips
+   + difficulty chips) with a single line — the picker itself now lives in
+   #settings-overlay, reached through the button here. */
+.dash-setup-summary{display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap;font-size:14px;color:var(--ink);margin:0;}
 .dash-setup-row{display:flex;align-items:center;gap:16px;flex-wrap:wrap;margin-bottom:12px;}
-#restart-btn{margin-left:auto;}
 .dash-label{font-family:var(--font-mono);font-size:12px;text-transform:uppercase;letter-spacing:0.06em;color:var(--slate);width:70px;flex-shrink:0;}
-.persona-current{font-size:14px;color:var(--ink);margin:0;}
-.persona-current .linkish{font-size:13px;color:var(--slate);}
 .chip-row{display:flex;flex-wrap:wrap;gap:8px;}
 .chip{
   font-family:var(--font-body);font-size:13px;font-weight:500;

@@ -33,20 +33,10 @@
   </header>
 
   <section class="dash-setup">
-    <div class="dash-setup-row">
-      <span class="dash-label">Persona</span>
-      <p class="persona-current" id="persona-current" hidden></p>
-      <div class="chip-row" id="persona-chips"></div>
-    </div>
-    <div class="dash-setup-row">
-      <span class="dash-label glossary-term" tabindex="0">Difficulty<span class="glossary-tooltip">Same choices either way — this changes how big their impact is. Easy softens the swing on your numbers (&times;0.6), Medium is standard (&times;1), Hard sharpens it (&times;1.6).</span></span>
-      <div class="chip-row" id="difficulty-chips">
-        <button class="chip" data-difficulty="easy" aria-pressed="false">Easy</button>
-        <button class="chip active" data-difficulty="medium" aria-pressed="true">Medium</button>
-        <button class="chip" data-difficulty="hard" aria-pressed="false">Hard</button>
-      </div>
-      <button class="btn btn-ghost" id="restart-btn">Restart</button>
-    </div>
+    <p class="dash-setup-summary" id="dash-setup-summary">
+      <span id="dash-setup-summary-text">Pick a persona to start</span>
+      <button class="btn btn-secondary" id="dash-settings-btn" type="button">Choose</button>
+    </p>
   </section>
 
   <!-- The run's focus, derived from the situation already chosen (see
@@ -278,6 +268,33 @@
       <button class="quiz-close" id="legal-close" aria-label="Close">&times;</button>
     </div>
     <div id="legal-body"></div>
+  </div>
+</div>
+
+<!-- Persona + difficulty used to live inline, permanently — eleven persona
+     chips plus a difficulty row plus Restart, visible above every scenario,
+     every time. Moved into one modal behind a single "Change" button so the
+     page's default state is just the scenario itself; changing your setup
+     is an occasional, deliberate action, not furniture. -->
+<div class="quiz-overlay" id="settings-overlay">
+  <div class="quiz-modal" role="dialog" aria-modal="true" aria-labelledby="settings-title">
+    <div class="quiz-modal-head">
+      <span id="settings-title">Session settings</span>
+      <button class="quiz-close" id="settings-close" aria-label="Close">&times;</button>
+    </div>
+    <div class="dash-setup-row">
+      <span class="dash-label">Persona</span>
+    </div>
+    <div class="chip-row" id="persona-chips"></div>
+    <div class="dash-setup-row" style="margin-top:18px;">
+      <span class="dash-label glossary-term" tabindex="0">Difficulty<span class="glossary-tooltip">Same choices either way — this changes how big their impact is. Easy softens the swing on your numbers (&times;0.6), Medium is standard (&times;1), Hard sharpens it (&times;1.6).</span></span>
+    </div>
+    <div class="chip-row" id="difficulty-chips">
+      <button class="chip" data-difficulty="easy" aria-pressed="false">Easy</button>
+      <button class="chip active" data-difficulty="medium" aria-pressed="true">Medium</button>
+      <button class="chip" data-difficulty="hard" aria-pressed="false">Hard</button>
+    </div>
+    <button class="btn btn-ghost" id="restart-btn" style="margin-top:18px;">Restart this run</button>
   </div>
 </div>
 

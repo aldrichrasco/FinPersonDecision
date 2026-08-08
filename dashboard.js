@@ -556,49 +556,64 @@ async function selectPersona(slug, { fromCache = false, seedState = null } = {})
   updateMetrics();
   drawChart();
   drawNetWorthChart();
-  collapsePersonaPicker(slug);
+  renderDashSetupSummary();
+  closeSettingsModal();
   rollScenario();
 }
 
-// Swaps which of two elements is visible with a brief cross-fade instead
-// of the instant `hidden` toggle this used to be — one snaps away while
-// the other rises in from the opposite edge, so the picker collapsing (or
-// reopening) reads as one panel replacing another, not a flicker.
-function crossfadeSwap(hideEl, showEl) {
-  const reduce = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-  if (reduce) { hideEl.hidden = true; showEl.hidden = false; return; }
-  hideEl.style.transition = "opacity .16s ease-out, transform .16s ease-out";
-  hideEl.style.opacity = "0";
-  hideEl.style.transform = "translateY(4px)";
-  setTimeout(() => {
-    hideEl.hidden = true;
-    hideEl.style.transition = hideEl.style.opacity = hideEl.style.transform = "";
-    showEl.hidden = false;
-    showEl.style.transition = "none";
-    showEl.style.opacity = "0";
-    showEl.style.transform = "translateY(-4px)";
-    requestAnimationFrame(() => {
-      showEl.style.transition = "opacity .2s ease-out, transform .2s ease-out";
-      showEl.style.opacity = "1";
-      showEl.style.transform = "translateY(0)";
-    });
-  }, 160);
+// Persona (11 chips) and difficulty used to sit inline, permanently, above
+// every scenario — the densest, most-always-visible part of the page for
+// something changed rarely. Both now live in one modal (#settings-overlay),
+// reached through a single button, so the default page is just the
+// scenario; this renders the one-line summary that replaces them.
+const DIFFICULTY_DISPLAY = { easy: "Easy", medium: "Medium", hard: "Hard" };
+function renderDashSetupSummary() {
+  const text = document.getElementById("dash-setup-summary-text");
+  const btn = document.getElementById("dash-settings-btn");
+  if (!text || !btn) return;
+  if (!currentPersona) {
+    text.textContent = "Pick a persona to start";
+    btn.textContent = "Choose";
+    return;
+  }
+  const p = PERSONAS.find(p => p.slug === currentPersona);
+  text.innerHTML = `Coaching style: <strong>${esc(p ? p.name : currentPersona)}</strong> &middot; ${esc(DIFFICULTY_DISPLAY[difficulty] || difficulty)} difficulty`;
+  btn.textContent = "Change";
 }
 
-// Eleven chips at once was the single densest row on the page for anyone
-// who already has a persona settled (matched from the quiz, resumed from a
-// save, or just chosen a moment ago) — collapse to a one-line summary with
-// an explicit way back out, rather than showing the full picker forever.
-function collapsePersonaPicker(slug) {
-  const row = document.getElementById("persona-chips");
-  const current = document.getElementById("persona-current");
-  if (!row || !current) return;
-  const p = PERSONAS.find(p => p.slug === slug);
-  current.innerHTML = `Coaching style: <strong>${esc(p ? p.name : slug)}</strong> &middot; <button class="linkish" type="button" id="persona-try-else">Not you? Try someone else</button>`;
-  if (row.hidden) { current.hidden = false; } else { crossfadeSwap(row, current); }
-  document.getElementById("persona-try-else")?.addEventListener("click", () => {
-    crossfadeSwap(current, row);
-  });
+function openSettingsModal() {
+  const overlay = document.getElementById("settings-overlay");
+  if (!overlay) return;
+  overlay.classList.add("open");
+  document.body.style.overflow = "hidden";
+  settingsOpenerEl = document.activeElement;
+  document.addEventListener("keydown", onSettingsKeydown);
+  (document.querySelector("#persona-chips .chip.active") || document.querySelector("#persona-chips .chip"))?.focus();
+}
+
+function closeSettingsModal() {
+  const overlay = document.getElementById("settings-overlay");
+  if (!overlay || !overlay.classList.contains("open")) return;
+  overlay.classList.remove("open");
+  document.body.style.overflow = "";
+  document.removeEventListener("keydown", onSettingsKeydown);
+  if (settingsOpenerEl) settingsOpenerEl.focus();
+}
+
+let settingsOpenerEl = null;
+function onSettingsKeydown(e) {
+  if (e.key === "Escape") { closeSettingsModal(); return; }
+  if (e.key !== "Tab") return;
+  const modal = document.querySelector("#settings-overlay .quiz-modal");
+  if (!modal) return;
+  const focusable = modal.querySelectorAll("button, a[href]");
+  if (!focusable.length) return;
+  const first = focusable[0], last = focusable[focusable.length - 1];
+  if (e.shiftKey && document.activeElement === first) {
+    e.preventDefault(); last.focus();
+  } else if (!e.shiftKey && document.activeElement === last) {
+    e.preventDefault(); first.focus();
+  }
 }
 
 async function restartPersona() {
@@ -644,7 +659,16 @@ function renderDifficultyChips() {
         c.classList.toggle("active", active);
         c.setAttribute("aria-pressed", String(active));
       });
+      renderDashSetupSummary();
     });
+  });
+}
+
+function initSettingsModal() {
+  document.getElementById("dash-settings-btn")?.addEventListener("click", openSettingsModal);
+  document.getElementById("settings-close")?.addEventListener("click", closeSettingsModal);
+  document.getElementById("settings-overlay")?.addEventListener("click", e => {
+    if (e.target.id === "settings-overlay") closeSettingsModal();
   });
 }
 
@@ -689,8 +713,8 @@ function rollScenario() {
   const card = document.getElementById("scenario-card");
   if (!currentPersona) {
     card.innerHTML = `
-      <p class="scenario-empty-title">Pick a persona above to start</p>
-      <p class="scenario-empty-body">Scenarios and numbers are tailored to whichever coach you choose.</p>
+      <p class="scenario-empty-title">Choose a persona to start</p>
+      <p class="scenario-empty-body">Scenarios and numbers are tailored to whichever coach you choose — tap "Choose" above.</p>
     `;
     return;
   }
@@ -1703,6 +1727,8 @@ function initDrawerReveal() {
 renderPersonaChips();
 renderPredictionBanner();
 renderDifficultyChips();
+initSettingsModal();
+renderDashSetupSummary();
 initHomeostasisChart();
 initCoachPanel();
 initDrawerTabs();
@@ -1799,7 +1825,7 @@ function resumeFromServer(saved) {
   updateHomeostasisPanel();
   drawChart();
   drawNetWorthChart();
-  collapsePersonaPicker(currentPersona);
+  renderDashSetupSummary();
   rollScenario();
 }
 
