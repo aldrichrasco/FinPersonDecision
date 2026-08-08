@@ -55,6 +55,9 @@ function recordMriDecision(entry) {
       actual: typeof entry.actual === "number" ? entry.actual : null,
       matched: entry.matched === true,
       timed: entry.timed === true,
+      // Whether the countdown actually ran out before they chose. Stronger
+      // evidence than the scenario tag, which only says pressure was present.
+      expired: entry.expired === true,
       surface: entry.surface || null,
       principle: entry.principle || null,
       netWorthDelta: typeof entry.netWorthDelta === "number" ? entry.netWorthDelta : 0,

@@ -44,14 +44,10 @@
     }
     return `
       ${body}
-      <div style="margin-top:20px;padding-top:16px;border-top:1px solid var(--mri-rule-soft);">
-        <p class="mri-split-name" style="margin-bottom:8px;">Your fingerprint</p>
-        <p style="font-family:var(--mri-mono);font-size:15px;letter-spacing:.02em;margin:0 0 8px;">${esc(fp.code)}</p>
-        <p class="mri-note" style="font-size:12.5px;color:var(--mri-ink-3);">
-          Your archetype plus each tendency to the nearest ten. Two people can share the label and still not share this.
-          ${fp.distinctness && fp.distinctness.between ? " Yours sits almost equally close to two archetypes, so the label is a convenience more than a boundary." : ""}
-        </p>
-      </div>`;
+      ${fp.distinctness && fp.distinctness.between ? `
+        <p class="mri-note" style="margin-top:16px;font-size:13px;color:var(--mri-ink-3);">
+          Your profile sits almost equally close to two archetypes, so the label is a convenience more than a boundary.
+        </p>` : ""}`;
   }
 
   const DIFFERENCE_COPY = {
@@ -253,6 +249,15 @@
       ? `${r.decision_count} decision${r.decision_count === 1 ? "" : "s"} recorded`
       : "Quiz only, no decisions yet";
 
+    // Built up front: the fingerprint is the report's focus, so it has to
+    // exist before the opening section rather than midway through.
+    const hasAxes = hasAxesEarly(profile);
+    const twin = (typeof buildTwin === "function")
+      ? twinApplyCorrections(buildTwin(r.decisions || (typeof getMriDecisions === "function" ? getMriDecisions() : [])))
+      : null;
+    const fp = (hasAxes && typeof buildFingerprint === "function")
+      ? buildFingerprint(profile, r.archetype, twin) : null;
+
     // 01 Identity
     const name = displayName();
     const runnerUp = (r.archetype_ranking || [])[1];
@@ -261,13 +266,23 @@
     // An archetype only exists once a quiz or assessment has run. Someone who
     // went straight to the sandbox gets the same section framed around what
     // their decisions show, rather than an empty label.
-    parts.push(section(num(), "Who you are", r.archetype ? `
-      ${name ? `<h1 class="mri-name">${esc(name)}</h1>` : ""}
-      <div class="mri-arch-row">
-        <span class="mri-arch-primary">${esc(personaName(r.archetype))}</span>
-        ${runnerUp ? `<span class="mri-arch-sub">${esc(personaName(runnerUp.slug))} leaning</span>` : ""}
+    parts.push(section(num(), "Your financial fingerprint", r.archetype ? `
+      <div class="fp-hero">
+        <div class="fp-mark">${fp ? fingerprintMarkSvg(profile, { size: 190 }) : ""}</div>
+        <div class="fp-id">
+          ${name ? `<h1 class="mri-name" style="font-size:clamp(24px,4vw,32px);">${esc(name)}</h1>` : ""}
+          ${fp ? `<p class="fp-code">${esc(fp.code)}</p>` : ""}
+          <div class="mri-arch-row">
+            <span class="mri-arch-primary">${esc(personaName(r.archetype))}</span>
+            ${runnerUp ? `<span class="mri-arch-sub">${esc(personaName(runnerUp.slug))} leaning</span>` : ""}
+          </div>
+          <p class="mri-lede" style="font-size:15px;">${esc(persona ? persona.trait : "")}</p>
+        </div>
       </div>
-      <p class="mri-lede">${esc(persona ? persona.trait : "")}</p>
+      <p class="mri-note" style="margin-top:20px;font-size:13px;color:var(--mri-ink-3);">
+        Six arcs, one per tendency, each drawn to the length of its score. The archetype is the
+        label thousands of people share. <strong>This mark is the part that is only yours.</strong>
+      </p>
     ` : `
       ${name ? `<h1 class="mri-name">${esc(name)}</h1>` : ""}
       <p class="mri-lede">You have not been matched to an archetype yet, so this report is built purely from what you did. That is the more reliable half anyway.</p>
@@ -293,15 +308,6 @@
     // 05 Tendencies. Needs the six axes, which only the quiz or the full
     // assessment can produce, so it is skipped rather than shown at a
     // meaningless flat 50 across the board.
-    const hasAxes = AXIS_KEYS.some(k => typeof profile[k] === "number");
-    // The twin supplies the conditions that turn flat scores into conditional
-    // traits, so it has to be built before the tendencies render.
-    const twin = (typeof buildTwin === "function")
-      ? twinApplyCorrections(buildTwin(r.decisions || (typeof getMriDecisions === "function" ? getMriDecisions() : [])))
-      : null;
-    const fp = (hasAxes && typeof buildFingerprint === "function")
-      ? buildFingerprint(profile, r.archetype, twin) : null;
-
     if (fp) parts.push(section(num(), "What makes yours different", renderDifference(fp, r)));
     if (hasAxes) parts.push(section(num(), "Your six tendencies", renderTendencies(profile, fp)));
 

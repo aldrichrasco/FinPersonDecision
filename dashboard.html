@@ -62,6 +62,14 @@
     <div class="round-path" id="round-path"></div>
   </div>
 
+  <!-- Outside the scenario card on purpose. The card is rewritten by the
+       decision outcome, the probe and the reroll, and a countdown that dies
+       whenever the card re-renders is worse than no countdown at all. -->
+  <div class="scenario-timer" id="scenario-timer" hidden>
+    <div class="scenario-timer-track"><span class="scenario-timer-fill" id="scenario-timer-fill"></span></div>
+    <span class="scenario-timer-label" id="scenario-timer-label"></span>
+  </div>
+
   <section class="scenario-card" id="scenario-card">
     <!-- empty / loaded states injected by dashboard.js -->
   </section>

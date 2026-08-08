@@ -2650,3 +2650,23 @@ body.has-app-nav .study-badge{bottom:84px;}
 .hero-cta{font-size:16px;padding:15px 30px;}
 .hero-entry-meta{font-family:var(--font-mono);font-size:11.5px;letter-spacing:.05em;
   text-transform:uppercase;color:var(--slate);margin:10px 0 22px;}
+
+/* ------------------------------------------------- real time pressure
+   A countdown that actually runs. Scenarios tagged `timed` used to only
+   describe urgency while the interface applied none, which made the MRI's
+   deadline finding a measurement of a condition the product never created.
+   Running out never chooses for you; it marks the decision as made under
+   expiry and leaves the choice yours. */
+.scenario-timer{display:flex;align-items:center;gap:12px;margin:0 0 20px;max-width:560px;}
+.scenario-timer-track{flex:1;height:5px;border-radius:3px;background:var(--track,rgba(24,24,27,0.10));overflow:hidden;}
+.scenario-timer-fill{display:block;height:100%;width:100%;border-radius:3px;background:var(--marigold);
+  transition:width 1s linear, background .3s ease;}
+.scenario-timer-label{font-family:var(--font-mono);font-size:11.5px;color:var(--slate);
+  letter-spacing:.04em;flex-shrink:0;min-width:76px;text-align:right;}
+.scenario-timer.is-urgent .scenario-timer-fill{background:var(--brick);}
+.scenario-timer.is-urgent .scenario-timer-label{color:var(--brick);font-weight:600;}
+.scenario-timer.is-expired .scenario-timer-fill{width:0;}
+.scenario-timer.is-expired .scenario-timer-label{color:var(--brick);font-weight:600;}
+@media (prefers-reduced-motion: reduce){
+  .scenario-timer-fill{transition:none;}
+}

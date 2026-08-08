@@ -47,7 +47,9 @@
       return;
     }
 
+    content.className = "twin-boot";
     content.innerHTML = [
+      renderStatus(),
       renderHead(),
       renderBeliefs(),
       renderContested(),
@@ -58,6 +60,17 @@
     ].join("");
 
     bind();
+  }
+
+  // A short readout on load. States what the model is running on, in its own
+  // register, before it says anything about the person.
+  function renderStatus() {
+    const conf = twin.confirmed.length, cont = twin.contested.length;
+    return `
+      <div>
+        <p class="twin-status">Model online &middot; ${twin.decisionCount} decisions read &middot; ${conf} rule${conf === 1 ? "" : "s"} confirmed${cont ? ` &middot; ${cont} under challenge` : ""}</p>
+        <div class="twin-status-bar"></div>
+      </div>`;
   }
 
   // ------------------------------------------------------------------ head

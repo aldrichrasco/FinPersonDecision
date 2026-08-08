@@ -266,3 +266,54 @@
 .mri-complete-list li.has:before{content:"\2713";color:var(--mri-good);font-weight:700;}
 .mri-complete-list li.missing:before{content:"\2022";color:var(--mri-ink-3);}
 .mri-complete-list li.missing{color:var(--mri-ink-3);}
+
+/* ------------------------------------------------- fingerprint hero
+   The mark leads the report. The archetype is a label thousands of people
+   share; this is the part that is only theirs, so it gets the opening. */
+.fp-hero{display:flex;gap:28px;align-items:center;flex-wrap:wrap;}
+.fp-mark{flex-shrink:0;color:var(--mri-accent);line-height:0;}
+.fp-mark svg{display:block;}
+.fp-id{min-width:230px;flex:1;}
+.fp-code{font-family:var(--mri-mono);font-size:13px;letter-spacing:.04em;
+  color:var(--mri-ink-3);margin:0 0 12px;}
+@media (max-width:560px){ .fp-hero{gap:18px;} .fp-mark svg{width:140px;height:140px;} }
+
+/* ------------------------------------------------- the twin, alive
+   The twin is a model that watches you decide, so a static badge undersells
+   it. The ring scans, the core breathes, and the readouts announce
+   themselves on load. Every one of these is disabled wholesale under
+   prefers-reduced-motion below. */
+@keyframes twin-scan{ to{ transform:rotate(360deg); } }
+@keyframes twin-breathe{ 0%,100%{ opacity:.55; } 50%{ opacity:1; } }
+@keyframes twin-boot{ from{ opacity:0; transform:translateY(6px); } to{ opacity:1; transform:none; } }
+@keyframes twin-sweep{ from{ width:0; } to{ width:100%; } }
+
+.twin-scan{ animation:twin-scan var(--twin-scan-speed,26s) linear infinite; }
+.twin-core{ animation:twin-breathe 4.2s ease-in-out infinite; }
+
+/* Sections announce themselves in sequence, like a system coming online.
+   Capped at six steps so a long page never feels like it is loading slowly. */
+.twin-boot > *{ animation:twin-boot .45s cubic-bezier(.2,.7,.3,1) both; }
+.twin-boot > *:nth-child(1){ animation-delay:.02s; }
+.twin-boot > *:nth-child(2){ animation-delay:.10s; }
+.twin-boot > *:nth-child(3){ animation-delay:.18s; }
+.twin-boot > *:nth-child(4){ animation-delay:.26s; }
+.twin-boot > *:nth-child(5){ animation-delay:.34s; }
+.twin-boot > *:nth-child(n+6){ animation-delay:.42s; }
+
+.twin-status{
+  font-family:var(--mri-mono);font-size:11px;letter-spacing:.07em;
+  text-transform:uppercase;color:var(--mri-accent);margin:0 0 6px;
+  display:flex;align-items:center;gap:8px;
+}
+.twin-status:before{
+  content:"";width:7px;height:7px;border-radius:50%;
+  background:var(--mri-accent);animation:twin-breathe 2s ease-in-out infinite;
+}
+.twin-status-bar{height:2px;background:var(--mri-accent);opacity:.35;
+  animation:twin-sweep .7s cubic-bezier(.2,.7,.3,1) both;margin-bottom:18px;}
+
+@media (prefers-reduced-motion: reduce){
+  .twin-scan,.twin-core,.twin-boot > *,.twin-status:before,.twin-status-bar{ animation:none; }
+  .twin-status-bar{ width:100%; }
+}

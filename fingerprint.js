@@ -196,3 +196,70 @@ if (typeof module !== "undefined" && module.exports) {
     archetypeDeviation, fingerprintCode, buildFingerprint, traitBand,
   };
 }
+
+// ---------------------------------------------------------- the visual mark
+// The fingerprint as an actual object rather than a string of numbers.
+//
+// Deliberately not a radar chart: radars were cut from this report because
+// their axis order is arbitrary, which makes the resulting shape meaningless.
+// This encodes the same six values as concentric arcs, where arc LENGTH is
+// the score and the ring it sits on is fixed per tendency. Two people with
+// the same archetype produce visibly different marks, which is the entire
+// point, and the same person always produces the same one.
+const FP_RING_ORDER = [
+  "temporal_orientation", "risk_disposition", "financial_self_efficacy",
+  "impulse_regulation", "financial_attentiveness", "prosocial_orientation",
+];
+
+function fingerprintMarkSvg(profile, opts) {
+  const o = opts || {};
+  const size = o.size || 200;
+  const cx = 100, cy = 100;
+  const inner = 26;
+  const step = 11;
+  const gap = 3.2;
+
+  const arcs = FP_RING_ORDER.map((key, i) => {
+    const value = Math.max(0, Math.min(100, profile[key] ?? 50));
+    const r = inner + i * step;
+    // Each ring starts at a fixed offset so the mark has rotational
+    // structure rather than every arc beginning at twelve o'clock.
+    const start = -90 + i * 34;
+    // Floor of 6 degrees keeps a near-zero tendency visible as a tick: an
+    // invisible arc would read as missing data rather than as a low score.
+    const sweep = Math.max(6, (value / 100) * 320);
+    return { key, r, start, sweep, value };
+  });
+
+  const arcPath = (r, startDeg, sweepDeg) => {
+    const rad = d => (d * Math.PI) / 180;
+    const x1 = cx + r * Math.cos(rad(startDeg));
+    const y1 = cy + r * Math.sin(rad(startDeg));
+    const end = startDeg + sweepDeg;
+    const x2 = cx + r * Math.cos(rad(end));
+    const y2 = cy + r * Math.sin(rad(end));
+    const large = sweepDeg > 180 ? 1 : 0;
+    return `M${x1.toFixed(2)},${y1.toFixed(2)} A${r},${r} 0 ${large} 1 ${x2.toFixed(2)},${y2.toFixed(2)}`;
+  };
+
+  const tracks = arcs.map(a =>
+    `<circle cx="${cx}" cy="${cy}" r="${a.r}" fill="none" stroke="currentColor" stroke-opacity="0.13" stroke-width="${step - gap}"/>`
+  ).join("");
+
+  const marks = arcs.map((a, i) =>
+    `<path d="${arcPath(a.r, a.start, a.sweep)}" fill="none" stroke="currentColor"
+       stroke-opacity="${(0.42 + i * 0.09).toFixed(2)}"
+       stroke-width="${step - gap}" stroke-linecap="round"/>`
+  ).join("");
+
+  return `<svg viewBox="0 0 200 200" width="${size}" height="${size}" role="img"
+    aria-label="Your behavioural fingerprint, six tendencies drawn as arc lengths" focusable="false">
+    ${tracks}${marks}
+    <circle cx="${cx}" cy="${cy}" r="${inner - 9}" fill="currentColor" fill-opacity="0.9"/>
+  </svg>`;
+}
+
+if (typeof module !== "undefined" && module.exports) {
+  module.exports.fingerprintMarkSvg = fingerprintMarkSvg;
+  module.exports.FP_RING_ORDER = FP_RING_ORDER;
+}

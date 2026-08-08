@@ -714,6 +714,57 @@ function scenarioCharacter(text) {
   return SCENARIO_CHARACTER_NAMES.find(name => text.includes(name)) || null;
 }
 
+
+// --- real time pressure ------------------------------------------------------
+// Scenarios tagged `timed` previously only DESCRIBED urgency ("ends in 10
+// minutes") while the interface applied none. That is a validity problem, not
+// just a missed experience: the deadline finding in the Financial MRI is
+// measured on those scenarios, so if nothing actually pressures the person the
+// measurement is of a condition the product never created.
+//
+// The countdown is generous on purpose. It is long enough to read and decide
+// properly, short enough that dithering is visible to you, and running out
+// does not choose for you: it marks the decision as made under expiry and
+// leaves the choice yours. Taking the decision away would measure compliance
+// with a timer rather than behaviour under pressure.
+const SCENARIO_TIMER_SECONDS = 20;
+let scenarioTimerHandle = null;
+let scenarioTimerExpired = false;
+
+function clearScenarioTimer() {
+  if (scenarioTimerHandle) clearInterval(scenarioTimerHandle);
+  scenarioTimerHandle = null;
+}
+
+function startScenarioTimer() {
+  clearScenarioTimer();
+  scenarioTimerExpired = false;
+  const host = document.getElementById("scenario-timer");
+  if (!host) return;
+  // Motion sensitivity: the bar is the pressure, so with reduced motion the
+  // countdown still runs but is announced in text rather than animated.
+  const reduce = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  let left = SCENARIO_TIMER_SECONDS;
+  const fill = document.getElementById("scenario-timer-fill");
+  const label = document.getElementById("scenario-timer-label");
+  const paint = () => {
+    if (label) label.textContent = scenarioTimerExpired ? "Offer expired" : `${left}s left`;
+    if (fill && !reduce) fill.style.width = `${(left / SCENARIO_TIMER_SECONDS) * 100}%`;
+    host.classList.toggle("is-urgent", left <= 6 && !scenarioTimerExpired);
+    host.classList.toggle("is-expired", scenarioTimerExpired);
+  };
+  paint();
+  scenarioTimerHandle = setInterval(() => {
+    left -= 1;
+    if (left <= 0) {
+      left = 0;
+      scenarioTimerExpired = true;
+      clearScenarioTimer();
+    }
+    paint();
+  }, 1000);
+}
+
 function rollScenario() {
   decisionResolving = false;
   const card = document.getElementById("scenario-card");
@@ -779,6 +830,9 @@ function rollScenario() {
     });
   });
   document.getElementById("reroll-btn").addEventListener("click", rollScenario);
+  const timerEl = document.getElementById("scenario-timer");
+  if (timerEl) timerEl.hidden = !currentScenario.timed;
+  if (currentScenario.timed) startScenarioTimer(); else clearScenarioTimer();
   renderFirstRun();
   renderPredictionProbe();
 }
@@ -786,6 +840,8 @@ function rollScenario() {
 function applyChoice(choice, chosenIndex) {
   if (decisionResolving || !state || !currentScenario) return;
   decisionResolving = true;
+  const decidedAfterExpiry = scenarioTimerExpired;
+  clearScenarioTimer();
   if (typeof markRoadmapLevelComplete === "function") markRoadmapLevelComplete("decision-scenario");
   if (typeof markTrainingRep === "function") markTrainingRep("decision-scenario");
   const previousState = { ...state };
@@ -848,6 +904,7 @@ function applyChoice(choice, chosenIndex) {
       actual: chosenIndex,
       matched: cycleResult ? cycleResult.correct === true : false,
       timed: currentScenario.timed === true,
+      expired: decidedAfterExpiry === true,
       surface: currentScenario.surface || null,
       principle: currentScenario.principle || null,
       netWorthDelta: netWorth(state) - netWorth(previousState),

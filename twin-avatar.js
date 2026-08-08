@@ -84,13 +84,23 @@ function twinAvatarSvg(twin, opts) {
   const strokeW = 1.6 + level * 0.22;
   const coreOpacity = 0.10 + level * 0.10;
 
+  // The ring rotates and the core breathes, so the twin reads as attentive
+  // rather than as a static badge. Motion is inside the SVG so it survives
+  // re-render, and every animation is suppressed under reduced-motion by the
+  // stylesheet rather than by removing it here.
+  const speed = 26 - level * 3;   // a better-evidenced twin scans faster
   return `<svg viewBox="0 0 100 100" width="${size}" height="${size}" role="img"
     aria-label="Financial Twin, ${twin && twin.maturity ? twin.maturity.label : "forming"}"
-    focusable="false">
+    class="twin-live" focusable="false">
+    <g class="twin-scan" style="--twin-scan-speed:${speed}s;transform-origin:50px 50px;">
+      <circle cx="${cx}" cy="${cy}" r="${r}" fill="none" stroke="${p.ring}"
+              stroke-opacity="0.28" stroke-width="1"
+              stroke-dasharray="${level >= 3 ? "54 12" : "22 10"}"/>
+    </g>
     <circle cx="${cx}" cy="${cy}" r="${r}" fill="none" stroke="${p.ring}"
-            stroke-opacity="0.28" stroke-width="1"/>
+            stroke-opacity="0.12" stroke-width="1"/>
     ${nodes}
-    <circle cx="${cx}" cy="${cy}" r="25" fill="${p.glow}" fill-opacity="${coreOpacity.toFixed(2)}"/>
+    <circle class="twin-core" cx="${cx}" cy="${cy}" r="25" fill="${p.glow}" fill-opacity="${coreOpacity.toFixed(2)}"/>
     <circle cx="${cx}" cy="${cy}" r="25" fill="none" stroke="${p.core}"
             stroke-width="${strokeW.toFixed(2)}"
             ${dash !== 'none' ? `stroke-dasharray="${dash}"` : ""}/>
