@@ -31,13 +31,20 @@
     ? await syncProfileFromServer()
     : (typeof getProfile === "function" ? getProfile() : null);
 
-  if (!saved || !saved.archetype) {
-    meta.textContent = "No profile yet";
+  // The sandbox is reachable without ever taking the quiz, so decisions can
+  // exist with no profile behind them. Those decisions are still evidence and
+  // still produce the report's central findings, so only a person with
+  // NEITHER gets turned away. Gating on the profile alone hid a working report
+  // from anyone who went straight to the sandbox.
+  const localDecisions = (typeof getMriDecisions === "function") ? getMriDecisions() : [];
+  if ((!saved || !saved.archetype) && !localDecisions.length) {
+    meta.textContent = "Nothing recorded yet";
     content.innerHTML = `
       <div class="mri-empty">
         <p class="mri-empty-lab">Nothing to read yet</p>
-        <p class="mri-empty-txt">Your Financial MRI is built from decisions you actually make, so it needs a starting point. <strong>The quiz takes a couple of minutes</strong> and gives the report its first read on you.</p>
-        <a class="mri-btn" href="index.html">Start the quiz</a>
+        <p class="mri-empty-txt">Your Financial MRI is built from decisions you actually make, so it needs something to read. <strong>Either start with the quiz or go straight to the sandbox</strong>, both give the report something to work with.</p>
+        <a class="mri-btn mri-btn-sm" href="index.html">Start the quiz</a>
+        <a class="mri-btn mri-btn-ghost mri-btn-sm" href="dashboard.html" style="margin-left:8px;">Go to the sandbox</a>
       </div>`;
     return;
   }
@@ -49,9 +56,9 @@
   if (typeof pushMriDecisionToServer === "function") await pushMriDecisionToServer();
 
   let report = (typeof fetchFreeMriReport === "function") ? await fetchFreeMriReport() : null;
-  if (!report) report = buildLocalFallback(saved);
+  if (!report) report = buildLocalFallback(saved || { profile: {}, archetype: null });
 
-  render(report, saved);
+  render(report, saved || { profile: {}, archetype: null });
 
   // ---------------------------------------------------------------- fallback
   // Server unreachable. Everything derivable from localStorage still renders;
@@ -136,13 +143,20 @@
     const runnerUp = (r.archetype_ranking || [])[1];
     const persona = (typeof PERSONAS !== "undefined")
       ? PERSONAS.find(p => p.slug === r.archetype) : null;
-    parts.push(section(num(), "Who you are", `
+    // An archetype only exists once a quiz or assessment has run. Someone who
+    // went straight to the sandbox gets the same section framed around what
+    // their decisions show, rather than an empty label.
+    parts.push(section(num(), "Who you are", r.archetype ? `
       ${name ? `<h1 class="mri-name">${esc(name)}</h1>` : ""}
       <div class="mri-arch-row">
         <span class="mri-arch-primary">${esc(personaName(r.archetype))}</span>
         ${runnerUp ? `<span class="mri-arch-sub">${esc(personaName(runnerUp.slug))} leaning</span>` : ""}
       </div>
       <p class="mri-lede">${esc(persona ? persona.trait : "")}</p>
+    ` : `
+      ${name ? `<h1 class="mri-name">${esc(name)}</h1>` : ""}
+      <p class="mri-lede">You have not been matched to an archetype yet, so this report is built purely from what you did. That is the more reliable half anyway.</p>
+      <p style="margin-top:14px;"><a class="mri-btn mri-btn-ghost mri-btn-sm" href="index.html">Add the quiz for the other half</a></p>
     `));
 
     // 02 The finding
@@ -156,11 +170,14 @@
       parts.push(section(num(), "Why we think this is you", renderEvidence(r.evidence)));
     }
 
-    // 05 Tendencies
-    parts.push(section(num(), "Your six tendencies", renderTendencies(profile)));
+    // 05 Tendencies. Needs the six axes, which only the quiz or the full
+    // assessment can produce, so it is skipped rather than shown at a
+    // meaningless flat 50 across the board.
+    const hasAxes = AXIS_KEYS.some(k => typeof profile[k] === "number");
+    if (hasAxes) parts.push(section(num(), "Your six tendencies", renderTendencies(profile)));
 
     // 06 Interaction
-    const inter = (typeof mriInteraction === "function") ? mriInteraction(profile) : null;
+    const inter = (hasAxes && typeof mriInteraction === "function") ? mriInteraction(profile) : null;
     if (inter) parts.push(section(num(), "How they interact", renderInteraction(inter, profile)));
 
     // 07 Twin
@@ -228,12 +245,25 @@
           </div>
         </div>`;
     };
-    const finding = s.is_pattern
-      ? "Your pause holds, until something puts a clock on it."
-      : "Deadlines have not changed your behaviour so far.";
-    const note = s.is_pattern
-      ? `You are not impulsive. You are deliberate right up to the moment urgency enters, and then you decide differently.${s.gap_from_timed ? ` <strong>${money(s.gap_from_timed)} of your gap came from timed decisions.</strong>` : ""}`
-      : "You have behaved consistently whether or not a decision had a deadline attached. That is worth knowing too, and it is less common than you would think.";
+    // Three distinct readings, because "not a confirmed pattern" is not the
+    // same as "no difference". Asserting consistency when the two rates are
+    // visibly apart overclaims in the opposite direction, which is the same
+    // error as claiming a pattern too early.
+    const drift = s.untimed_rate - s.timed_rate;
+    let finding, note;
+    if (s.is_pattern) {
+      finding = "Your pause holds, until something puts a clock on it.";
+      note = `You are not impulsive. You are deliberate right up to the moment urgency enters, and then you decide differently.${s.gap_from_timed ? ` <strong>${money(s.gap_from_timed)} of your gap came from timed decisions.</strong>` : ""}`;
+    } else if (drift >= 0.1) {
+      finding = "Deadlines may be doing something, but not enough to call it.";
+      note = `You did what you predicted more often without a deadline than with one, but the difference is not yet big enough to separate from chance. <strong>A few more timed decisions would settle it either way.</strong>`;
+    } else if (drift <= -0.1) {
+      finding = "You do better under a deadline, not worse.";
+      note = "That is the reverse of the usual pattern. Pressure appears to focus you rather than derail you, which is worth knowing about yourself.";
+    } else {
+      finding = "Deadlines have not changed your behaviour.";
+      note = "Your prediction accuracy is close to identical with and without time pressure. That steadiness is less common than you would think.";
+    }
     return `
       <p class="mri-finding">${esc(finding)}</p>
       ${row("No deadline", s.untimed)}

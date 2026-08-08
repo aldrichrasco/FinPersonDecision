@@ -4,12 +4,23 @@
 // evidence behind it and a status that can change. The most important section
 // is not what the twin knows, it is what it has got wrong, because that is
 // where the model improves and where the person's own knowledge enters.
-(function () {
+(async function () {
   const content = document.getElementById("twin-content");
   const meta = document.getElementById("twin-meta");
   if (!content) return;
 
-  const decisions = typeof getMriDecisions === "function" ? getMriDecisions() : [];
+  // The server is the source of truth, same as the MRI report. Reading only
+  // localStorage meant a signed-in person whose browser storage had been
+  // cleared saw a twin that knew nothing, while the server held their whole
+  // history. Local is the fallback, not the primary.
+  let decisions = [];
+  try {
+    if (typeof pushMriDecisionToServer === "function") await pushMriDecisionToServer();
+    const report = (typeof fetchFreeMriReport === "function") ? await fetchFreeMriReport() : null;
+    if (report && Array.isArray(report.decisions)) decisions = report.decisions;
+  } catch (e) {}
+  if (!decisions.length && typeof getMriDecisions === "function") decisions = getMriDecisions();
+
   let twin = buildTwin(decisions);
   twin = twinApplyCorrections(twin);
 

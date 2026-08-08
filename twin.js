@@ -62,31 +62,36 @@ const TWIN_RULES = [
     },
   },
   {
-    id: "credit_for_growth",
+    id: "spends_to_grow",
     axis: "risk_disposition",
-    statement: "You borrow to fund things that could grow, not things you consume.",
+    statement: "When you part with money, it goes to something that could grow more often than to something you consume.",
     detect(decisions) {
-      const credit = decisions.filter(d =>
-        (d.netWorthDelta ?? d.net_worth_delta ?? 0) < 0 &&
-        ["credit_card", "bnpl"].includes(d.surface));
-      const growth = decisions.filter(d => d.surface === "opportunity");
+      // Both arms must be SPENDING decisions or the rate is meaningless. An
+      // earlier version compared every opportunity decision against only the
+      // ones where money actually moved, which is two different populations
+      // and produced a support rate that measured nothing.
+      const spent = d => (d.netWorthDelta ?? d.net_worth_delta ?? 0) < 0;
+      const outlays = decisions.filter(spent);
       return {
-        support: growth.length,
-        against: credit.length,
-        note: "Compares borrowing on opportunities against borrowing at checkout.",
+        support: outlays.filter(d => d.surface === "opportunity").length,
+        against: outlays.filter(d => ["credit_card", "bnpl"].includes(d.surface)).length,
+        note: "Compares where your money went, counting only decisions where it moved.",
       };
     },
   },
   {
     id: "future_over_present",
     axis: "temporal_orientation",
-    statement: "Offered less now for more later, you take the later.",
+    statement: "On decisions that trade now against later, you do what you set out to do.",
     detect(decisions) {
-      const trades = decisions.filter(d =>
+      // Deliberately measured on prediction match, not on whether the number
+      // went up. A patient choice often costs money today, so reading a
+      // positive balance change as proof of patience gets it backwards.
+      const trades = _twinPredicted(decisions).filter(d =>
         ["catch_up_later", "more_saved_is_better"].includes(d.principle));
       return {
-        support: trades.filter(d => (d.netWorthDelta ?? d.net_worth_delta ?? 0) >= 0).length,
-        against: trades.filter(d => (d.netWorthDelta ?? d.net_worth_delta ?? 0) < 0).length,
+        support: trades.filter(d => d.matched).length,
+        against: trades.filter(d => !d.matched).length,
         note: "Measured on decisions trading something now against something later.",
       };
     },

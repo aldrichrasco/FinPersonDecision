@@ -265,4 +265,8 @@ def build_free_report(profile, archetype, archetype_ranking, decisions):
         "twin": twin_match(decisions),
         "evidence": behavioural_evidence(decisions),
         "confidence": confidence(profile, decisions, archetype_ranking),
+        # Returned so the Financial Twin can build its rules from the same
+        # server-side evidence rather than falling back to whatever happens to
+        # be in this browser's local storage.
+        "decisions": decisions,
     }

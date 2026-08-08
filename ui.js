@@ -46,6 +46,16 @@ const NAV_ITEMS = [
 //     trust it with money questions.
 const MENU_GROUPS = [
   {
+    label: "Your results",
+    items: [
+      // The MRI is the product. The sandbox exists to feed it, so the report
+      // and the twin belong at the top of the nav rather than buried on the
+      // Roadmap like a side exercise.
+      { href: "report.html", label: "Financial MRI" },
+      { href: "twin.html", label: "Financial Twin" },
+    ],
+  },
+  {
     label: "Start here",
     items: [
       { href: "roadmap.html", label: "Roadmap" },
