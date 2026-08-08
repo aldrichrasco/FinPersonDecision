@@ -32,14 +32,23 @@
 
 <main id="main">
 
-  <!-- Full-bleed product banner. Deliberately OUTSIDE .wrap so it can span
-       the viewport edge to edge rather than the 920px content column.
-       demo-video.js reveals it ONLY once the file actually loads, so
-       deploying without the asset shows nothing rather than a broken
-       player — which is why the sentinel exists: a display:none element
-       never intersects, so observing the banner itself would deadlock
-       (no load -> no loadeddata -> never revealed). -->
-  <div id="demo-video-sentinel" aria-hidden="true" style="height:1px;"></div>
+  <section class="hero">
+    <div class="wrap">
+
+      <div class="hero-grid">
+        <div class="hero-copy">
+          <div class="returning-banner" id="returning-banner" hidden></div>
+          <p class="scenario-eyebrow" style="margin-bottom:10px;">The Financial MRI</p>
+          <h1 class="hero-h1"><span class="hero-h1-line">Practice being you,</span><br><span class="hero-h1-line hero-h1-line--light">with money, before it's real.</span></h1>
+          <p class="lede">Real exercises, not a quiz — each one tests how you actually decide under pressure and feeds back into your pattern, not a generic score. Nothing here touches your real accounts.</p>
+
+          <!-- Contained product demo, inside the hero column. Revealed by
+               demo-video.js only once the file genuinely loads, so shipping
+               without the asset shows nothing rather than a broken player.
+               The sentinel is what the IntersectionObserver watches: the
+               figure itself ships hidden, and a display:none element never
+               intersects, so observing it would deadlock. -->
+          <div id="demo-video-sentinel" aria-hidden="true" style="height:1px;"></div>
 
   <div class="demo-video-banner" id="demo-video-section" hidden>
     <figure class="demo-video-figure">
@@ -61,16 +70,6 @@
       emergency-fund and debt figures move in response — no real accounts involved.
     </p>
   </div>
-
-  <section class="hero">
-    <div class="wrap">
-
-      <div class="hero-grid">
-        <div class="hero-copy">
-          <div class="returning-banner" id="returning-banner" hidden></div>
-          <p class="scenario-eyebrow" style="margin-bottom:10px;">The Financial MRI</p>
-          <h1 class="hero-h1"><span class="hero-h1-line">Practice being you,</span><br><span class="hero-h1-line hero-h1-line--light">with money, before it's real.</span></h1>
-          <p class="lede">Real exercises, not a quiz — each one tests how you actually decide under pressure and feeds back into your pattern, not a generic score. Nothing here touches your real accounts.</p>
 
           <div class="hero-entry-row">
             <button class="btn btn-secondary" id="quiz-btn" type="button">Answer a few questions first</button>

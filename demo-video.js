@@ -29,8 +29,6 @@
     // Queried from the document, not closest(): the banner is a sibling of
     // .hero now (it has to sit outside .wrap to go full-bleed), so walking
     // up from it would never find the hero.
-    const hero = document.querySelector(".hero");
-    if (hero) hero.classList.add("has-demo-video");
     if (reduceMotion) {
       toggle.hidden = false;
     } else {

@@ -19,6 +19,7 @@ are declared there; attach a Postgres instance and it's used automatically.
 import csv
 import hashlib
 import io
+import json
 import os
 import re
 import secrets
@@ -58,6 +59,7 @@ import coach
 import coach_agent
 import crypto
 import mri_report
+import mri_free_report
 import llm
 import billing
 import mailer
@@ -923,6 +925,83 @@ def subscription_active(uid):
         return False
     sub = db.get_subscription(uid)
     return bool(sub and sub.get("status") in ("active", "trialing"))
+
+
+def _mri_client_key():
+    """
+    Anonymous owner key for MRI decisions.
+
+    The report is the product and it has to work before anyone signs up, so
+    decisions are keyed to a random per-browser id when there is no account.
+    Stored in the session rather than accepted from the client, so one visitor
+    cannot claim or overwrite another's evidence by guessing a key.
+    """
+    key = session.get("mri_client_key")
+    if not key:
+        key = secrets.token_urlsafe(16)
+        session["mri_client_key"] = key
+    return key
+
+
+@app.route("/api/mri/decisions", methods=["POST"])
+@rate_limit(limit=60, window=60, scope="mri")
+def mri_decisions_sync():
+    """
+    Receives the sandbox decisions that feed the Financial MRI.
+
+    The client replays its full local log rather than tracking what it has
+    already sent; db.record_mri_decisions dedupes on timestamp. That costs a
+    little bandwidth and buys immunity to the case that actually matters,
+    which is a browser losing local storage midway and silently dropping the
+    evidence the report is built on.
+    """
+    payload = request.get_json(silent=True) or {}
+    decisions = payload.get("decisions")
+    if not isinstance(decisions, list):
+        return jsonify({"error": "decisions must be a list"}), 400
+    if len(decisions) > 300:
+        decisions = decisions[-300:]
+
+    uid = current_user_id()
+    written = db.record_mri_decisions(uid, None if uid else _mri_client_key(), decisions)
+    return jsonify({"ok": True, "stored": written})
+
+
+@app.route("/api/mri/free-report")
+@rate_limit(limit=30, window=60, scope="mri")
+def mri_free_report_route():
+    """
+    The free Financial MRI. Open to anonymous visitors by design: this is the
+    product's main deliverable, and gating it behind an account would gate the
+    only thing that demonstrates why the account is worth making.
+
+    Sections arrive as null when the evidence is too thin to support them, and
+    the client renders an honest empty state rather than filling the space.
+    """
+    uid = current_user_id()
+    profile_blob = db.get_user_profile(uid) if uid else None
+    profile = (profile_blob or {}).get("profile") or {}
+    archetype = (profile_blob or {}).get("archetype")
+
+    # Anonymous visitors hold their quiz profile in localStorage only, so the
+    # client passes it up as a query param rather than being told it has no
+    # profile when it plainly does.
+    if not profile:
+        try:
+            supplied = json.loads(request.args.get("profile") or "{}")
+            if isinstance(supplied, dict):
+                profile = {k: supplied.get(k) for k in mri_free_report.AXIS_KEYS
+                           if isinstance(supplied.get(k), (int, float))}
+                archetype = archetype or (request.args.get("archetype") or None)
+        except (ValueError, TypeError):
+            profile = {}
+
+    decisions = db.get_mri_decisions(uid, None if uid else _mri_client_key())
+    ranking = mri_free_report.archetype_ranking(profile) if profile else []
+    if not archetype and ranking:
+        archetype = ranking[0]["slug"]
+
+    return jsonify(mri_free_report.build_free_report(profile, archetype, ranking, decisions))
 
 
 @app.route("/api/mri/report")

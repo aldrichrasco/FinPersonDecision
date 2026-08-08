@@ -341,3 +341,42 @@ function logGoalEvent(title, done) {
 function serverSignOut() {
   fetch(`${API_BASE_URL}/api/auth/signout`, { method: "POST", credentials: "include" }).catch(() => {});
 }
+
+// --- Financial MRI ---------------------------------------------------------
+// The report is the product, so its evidence must survive a browser that
+// clears storage. The whole local log is replayed on each push rather than
+// tracking a sync cursor; the server dedupes on timestamp, which makes a
+// replay cheap and a lost cursor harmless.
+// Returns a promise so the report can await the sync before asking the server
+// what it knows. Without that the read races ahead of the write and a browser
+// full of decisions renders as an empty report.
+function pushMriDecisionToServer() {
+  if (typeof getMriDecisions !== "function") return Promise.resolve();
+  const decisions = getMriDecisions();
+  if (!decisions.length) return Promise.resolve();
+  return fetch(`${API_BASE_URL}/api/mri/decisions`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    credentials: "include",
+    body: JSON.stringify({ decisions }),
+  }).catch(() => {});
+}
+
+// Anonymous visitors keep their quiz profile in localStorage only, so it goes
+// up as a query param. Signed-in users have it server-side already and the
+// params are ignored.
+async function fetchFreeMriReport() {
+  const params = new URLSearchParams();
+  const saved = typeof getProfile === "function" ? getProfile() : null;
+  if (saved && saved.profile) {
+    params.set("profile", JSON.stringify(saved.profile));
+    if (saved.archetype) params.set("archetype", saved.archetype);
+  }
+  try {
+    const res = await fetch(`${API_BASE_URL}/api/mri/free-report?${params}`, { credentials: "include" });
+    if (!res.ok) return null;
+    return await res.json();
+  } catch (e) {
+    return null;
+  }
+}

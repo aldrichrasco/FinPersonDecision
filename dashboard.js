@@ -15,6 +15,7 @@
 const SCENARIOS = [
   {
     text: "Your car needs a $1,200 repair to pass inspection.",
+    timed: true,
     principle: "catch_up_later",
     surface: "obligation",
     context: "About 1 in 3 U.S. drivers say an unexpected repair bill would force them into debt — AAA survey.",
@@ -158,6 +159,7 @@ const SCENARIOS = [
   },
   {
     text: "Your card issuer offers a 'pay in 4' installment option at checkout for a $600 purchase.",
+    timed: true,
     principle: "credit_is_free",
     surface: "bnpl",
     context: "Roughly half of U.S. credit cardholders carry a balance from month to month — Bankrate, 2024.",
@@ -191,6 +193,7 @@ const SCENARIOS = [
 const RECOVERY_SCENARIOS = [
   {
     text: "A creditor offers to settle your balance for 70% if you clear it within 30 days.",
+    timed: true,
     principle: "catch_up_later",
     surface: "obligation",
     zone: "recovery",
@@ -266,6 +269,7 @@ const LIVING_SCENARIOS = [
 const THEMED_SCENARIOS = {
   growth: {
     text: "A stock you've been watching just dropped 15% on no real news.",
+    timed: true,
     principle: "this_time_different",
     surface: "opportunity",
     choices: [
@@ -276,6 +280,7 @@ const THEMED_SCENARIOS = {
   },
   impulsive: {
     text: "A flash sale on something you don't need ends in 10 minutes.",
+    timed: true,
     principle: "credit_is_free",
     surface: "bnpl",
     choices: [
@@ -306,6 +311,7 @@ const THEMED_SCENARIOS = {
   },
   conservative: {
     text: "Open enrollment: a high-deductible plan with lower premiums, or a PPO with more coverage.",
+    timed: true,
     principle: "id_notice",
     surface: "subscription",
     choices: [
@@ -826,6 +832,30 @@ function applyChoice(choice, chosenIndex) {
   const activeCycle = typeof currentCycle === "function" ? currentCycle() : null;
   if (activeCycle && typeof resolveCycle === "function") {
     cycleResult = resolveCycle(chosenIndex, { decisionIndex: decisionCount });
+  }
+
+  // Persist the prediction-versus-choice comparison for the Financial MRI.
+  // This was previously computed and then discarded into telemetry only, so
+  // the report had no way to read back its own central finding. The
+  // counterfactual needs what the PREDICTED choice would have done, which is
+  // knowable only here, while the scenario's other options are still in hand.
+  if (typeof recordMriDecision === "function") {
+    const predictedIndex = cycleResult ? cycleResult.predicted : null;
+    recordMriDecision({
+      scenario: currentScenario.text,
+      choice: choice.label,
+      predicted: predictedIndex,
+      actual: chosenIndex,
+      matched: cycleResult ? cycleResult.correct === true : false,
+      timed: currentScenario.timed === true,
+      surface: currentScenario.surface || null,
+      principle: currentScenario.principle || null,
+      netWorthDelta: netWorth(state) - netWorth(previousState),
+      predictedNetWorthDelta: (predictedIndex !== null && currentScenario.choices[predictedIndex])
+        ? netWorthDeltaFor(currentScenario.choices[predictedIndex], previousState, mult)
+        : null,
+    });
+    if (typeof pushMriDecisionToServer === "function") pushMriDecisionToServer();
   }
 
   if (typeof track === "function") {
@@ -1597,6 +1627,20 @@ function setRatioPill(id, label, fillPct, status) {
 
 function netWorth(finance) {
   return (finance.savings || 0) + (finance.investments || 0) - (finance.debt || 0);
+}
+
+// What a choice WOULD have done to net worth, without applying it. Used for
+// the Financial MRI's counterfactual: the difference between the option
+// someone predicted they'd take and the one they actually took. Mirrors
+// applyChoice's arithmetic exactly, clamping included, so the comparison is
+// against the same numbers the sandbox would really have produced.
+function netWorthDeltaFor(choiceObj, baseState, mult) {
+  const projected = { ...baseState };
+  Object.entries((choiceObj && choiceObj.delta) || {}).forEach(([key, val]) => {
+    const scaled = Math.round(val * mult);
+    projected[key] = Math.max(0, (projected[key] || 0) + scaled);
+  });
+  return netWorth(projected) - netWorth(baseState);
 }
 
 function drawNetWorthChart() {

@@ -3,15 +3,16 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>FinPerson — your money personality report</title>
-<meta name="description" content="Your full money personality report — archetype, six-axis breakdown, calibration progress, and growth areas, all in one place.">
-<meta name="theme-color" content="#F2EFE6" media="(prefers-color-scheme: light)">
-<meta name="theme-color" content="#0F1524" media="(prefers-color-scheme: dark)">
+<title>FinPerson — your Financial MRI</title>
+<meta name="description" content="Your Financial MRI: what your actual decisions reveal about how you handle money, including the conditions that change your behaviour.">
+<meta name="theme-color" content="#E9EBEE" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#0C0F12" media="(prefers-color-scheme: dark)">
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%231B2A4A'/%3E%3Ctext x='16' y='22' font-family='Georgia,serif' font-size='17' fill='%23EDEFE6' text-anchor='middle'%3EFP%3C/text%3E%3C/svg%3E">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@500&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Serif:wght@400;500&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="styles.css">
+<link rel="stylesheet" href="mri.css">
 <script defer src="analytics.js"></script>
 </head>
 <body>
@@ -24,17 +25,21 @@
   </div>
 </header>
 
-<main class="wrap dash" id="main">
-  <section id="report-content">
-    <div class="skeleton-grid scenario-empty-body" id="report-status">
-      <div class="skeleton-card"></div><div class="skeleton-card"></div><div class="skeleton-card"></div>
+<main class="mri-doc" id="main">
+  <div class="mri-wrap">
+    <div class="mri-masthead">
+      <p class="mri-mast-title">Financial MRI</p>
+      <p class="mri-mast-meta" id="mri-mast-meta">Loading</p>
     </div>
-  </section>
+    <div id="mri-content">
+      <p class="mri-status">Reading your decisions&hellip;</p>
+    </div>
+  </div>
 </main>
 
 <footer class="footer">
   <div class="wrap footer-legal">
-    <p><strong>Not financial advice.</strong> This is an educational practice tool. Nothing here is a credit score, a diagnosis, or a measure of your worth.</p>
+    <p><strong>Not financial advice.</strong> This report describes decision patterns observed in a practice simulation. It is not a measure of your finances, a prediction of returns, or a diagnosis. Consult a licensed professional before making financial decisions.</p>
     <p class="footer-copy">&copy; <span id="year">2026</span> FinPerson.</p>
   </div>
 </footer>
@@ -43,14 +48,9 @@
 <script src="study.js"></script>
 <script src="data.js"></script>
 <script src="fbm.js"></script>
-<script src="idm.js"></script>
-<script src="deviation.js"></script>
 <script src="observations.js"></script>
-<script src="achievements.js"></script>
-<script src="radar-chart.js"></script>
-<script src="archetype-portraits.js"></script>
-<script src="archetype-characters.js"></script>
 <script src="api.js"></script>
+<script src="mri-data.js"></script>
 <script src="ui.js"></script>
 <script src="legal.js"></script>
 <script src="help.js"></script>

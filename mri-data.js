@@ -12,6 +12,22 @@
 // from your real decisions" cannot afford a single invented number. The page
 // renders an honest empty state instead.
 
+// Consumer-facing axis names. fbm.js's AXES.short carries the research
+// abbreviations ("Efficacy", "Attent."), which are correct for the theory page
+// and wrong for a report someone reads about themselves: one is jargon and the
+// other is a truncation that looks like a rendering fault.
+const MRI_AXIS_NAME = {
+  impulse_regulation: "Impulse",
+  risk_disposition: "Risk",
+  temporal_orientation: "Time",
+  financial_attentiveness: "Attention",
+  financial_self_efficacy: "Confidence",
+  prosocial_orientation: "Giving",
+};
+function mriAxisName(key) {
+  return MRI_AXIS_NAME[key] || (typeof AXES !== "undefined" && AXES[key] ? AXES[key].short : key);
+}
+
 const MRI_DECISIONS_KEY = "finperson_mri_decisions";
 const MRI_DECISION_CAP = 200;
 
