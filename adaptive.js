@@ -11,8 +11,11 @@
 // two patterns, and this separates them" feels like an investigation, which
 // is what the product claims to be.
 //
-// Three things make a scenario informative, in priority order:
+// Four things make a scenario informative, in priority order:
 //
+//   0. It SEPARATES TWO RIVAL EXPLANATIONS. Two rules fitting the same
+//      behaviour is worse than one wrong belief, because the model cannot
+//      tell which of its own claims to trust until the tie is broken.
 //   1. It tests a CONTESTED rule. The Twin holds a belief that evidence is
 //      currently arguing with. Resolving that is worth more than anything
 //      else, because a contested rule is actively wrong in one direction.
@@ -48,6 +51,21 @@ function scenarioAxis(scenario) {
 function adaptiveTarget(decisions, twin, profile) {
   decisions = decisions || [];
   if (decisions.length < ADAPTIVE_MIN_DECISIONS) return null;
+
+  // 0. An unresolved rivalry outranks everything. Two explanations fitting
+  //    the same behaviour is worse than one wrong belief, because the model
+  //    cannot tell which of its own claims to trust until it is settled.
+  if (typeof twinMostUnresolved === "function") {
+    const rivalry = twinMostUnresolved(decisions);
+    if (rivalry) {
+      return {
+        axis: rivalry.discriminator.axis,
+        reason: `Two explanations still fit your behaviour. This one needs ${rivalry.discriminator.needs}, which is what separates them.`,
+        kind: "rivalry",
+        rivalryId: rivalry.id,
+      };
+    }
+  }
 
   // 1. A contested rule is the most valuable thing to resolve: the Twin
   //    currently believes something the evidence is arguing with.

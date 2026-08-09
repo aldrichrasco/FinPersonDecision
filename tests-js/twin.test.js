@@ -188,3 +188,65 @@ test("decline is reported rather than hidden", () => {
   assert.strictEqual(lr.direction, "declining",
     "a metric that only appears when it flatters the product is not a metric");
 });
+
+// -------------------------------------------------- competing explanations
+const { twinCompetingExplanations, twinMostUnresolved, TWIN_RIVALS } = require("../twin.js");
+
+function cd(o) {
+  return Object.assign({
+    predicted: 0, actual: 0, matched: true, timed: false,
+    netWorthDelta: -100, surface: null,
+  }, o);
+}
+
+test("rivalries stay silent until there is anything to compare", () => {
+  assert.deepStrictEqual(twinCompetingExplanations([]), []);
+  assert.deepStrictEqual(twinCompetingExplanations([cd(), cd(), cd()]), []);
+});
+
+test("every rivalry declares the case that would separate its two sides", () => {
+  TWIN_RIVALS.forEach(r => {
+    assert.ok(r.discriminator && typeof r.discriminator.matches === "function",
+      `${r.id} needs a discriminating case, or it is two claims with no way to choose`);
+    assert.ok(r.discriminator.needs && r.discriminator.explains);
+    assert.notStrictEqual(r.a.claim, r.b.claim);
+  });
+});
+
+test("the discriminating case decides it, not the raw tally", () => {
+  // Pause fails on small amounts whether or not a clock is running, and holds
+  // on the timed decisions that carried real money. Stakes, not the clock.
+  const decisions = [
+    cd({ matched: false, timed: false, netWorthDelta: -100 }),
+    cd({ matched: false, timed: false, netWorthDelta: -200 }),
+    cd({ matched: false, timed: true, netWorthDelta: -150 }),
+    cd({ matched: true, timed: true, netWorthDelta: -2000 }),
+    cd({ matched: true, timed: true, netWorthDelta: -1500 }),
+    cd({ matched: true, timed: false, netWorthDelta: -2500 }),
+  ];
+  const r = twinCompetingExplanations(decisions).find(x => x.id === "why_the_pause_fails");
+  assert.strictEqual(r.leading, "b", "the stakes explanation should lead");
+  assert.ok(r.discriminating >= 2);
+  assert.strictEqual(r.resolved, true);
+});
+
+test("a lopsided tally alone does not resolve a rivalry", () => {
+  // One side never tested: a margin here means nothing.
+  const decisions = [
+    cd({ matched: false, timed: true, netWorthDelta: -2000 }),
+    cd({ matched: false, timed: true, netWorthDelta: -1800 }),
+    cd({ matched: true, timed: false, netWorthDelta: -5000 }),
+    cd({ matched: true, timed: false, netWorthDelta: -4000 }),
+  ];
+  const r = twinCompetingExplanations(decisions).find(x => x.id === "why_the_pause_fails");
+  assert.strictEqual(r.resolved, false,
+    "without both sides tested, a margin is an artefact of what was never asked");
+});
+
+test("the least-tested live rivalry is the one to resolve next", () => {
+  const decisions = Array(6).fill(0).map(() => cd({ matched: false, netWorthDelta: -100 }));
+  const next = twinMostUnresolved(decisions);
+  assert.ok(next, "an untested rivalry should be offered up");
+  assert.strictEqual(next.resolved, false);
+  assert.ok(next.discriminator.needs.length > 0);
+});

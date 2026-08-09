@@ -363,3 +363,122 @@ if (typeof module !== "undefined" && module.exports) {
   module.exports.twinLearningRate = twinLearningRate;
   module.exports.groupIntoSessions = groupIntoSessions;
 }
+
+// ------------------------------------------------------ competing explanations
+//
+// Two rules can explain the same observations. "You decide fast when there is
+// a deadline" and "you decide fast when the amount is small" both account for
+// a run of broken predictions, and picking whichever happened to confirm
+// first is how a model ends up confidently wrong.
+//
+// So rivals are declared explicitly, each with the condition that TELLS THEM
+// APART. A high-stakes timed decision separates clock from stakes: if the
+// pause fails there, it is the clock; if it holds, it was never the clock at
+// all. That discriminating scenario is what the sandbox should go looking for,
+// and naming it out loud is what makes this an investigation rather than a
+// classification.
+
+// Below this, a decision counts as low-stakes. Chosen so it sits under the
+// typical scenario delta rather than at some round number.
+const TWIN_LOW_STAKES = 300;
+
+const TWIN_RIVALS = [
+  {
+    id: "why_the_pause_fails",
+    question: "Why does your pause fail?",
+    a: {
+      id: "clock",
+      claim: "Because there is a clock on it.",
+      holds: d => d.timed === true && !d.matched,
+      against: d => d.timed === true && d.matched,
+    },
+    b: {
+      id: "stakes",
+      claim: "Because the amount is small enough not to matter.",
+      holds: d => Math.abs(d.netWorthDelta ?? d.net_worth_delta ?? 0) <= TWIN_LOW_STAKES && !d.matched,
+      against: d => Math.abs(d.netWorthDelta ?? d.net_worth_delta ?? 0) <= TWIN_LOW_STAKES && d.matched,
+    },
+    // The case that only one explanation survives.
+    discriminator: {
+      axis: "impulse_regulation",
+      needs: "a timed decision with real money on it",
+      explains: "A deadline on a large amount separates the two: if your pause fails there it is the clock, and if it holds the clock was never the cause.",
+      matches: d => d.timed === true && Math.abs(d.netWorthDelta ?? d.net_worth_delta ?? 0) > TWIN_LOW_STAKES,
+    },
+  },
+  {
+    id: "why_you_say_yes",
+    question: "Why do you say yes to people?",
+    a: {
+      id: "asked",
+      claim: "Because someone asked you directly.",
+      holds: d => d.surface === "family_loan" && (d.netWorthDelta ?? d.net_worth_delta ?? 0) < 0,
+      against: d => d.surface === "family_loan" && (d.netWorthDelta ?? d.net_worth_delta ?? 0) >= 0,
+    },
+    b: {
+      id: "obliged",
+      claim: "Because it felt like an obligation, whoever asked.",
+      holds: d => d.surface === "obligation" && (d.netWorthDelta ?? d.net_worth_delta ?? 0) < 0,
+      against: d => d.surface === "obligation" && (d.netWorthDelta ?? d.net_worth_delta ?? 0) >= 0,
+    },
+    discriminator: {
+      axis: "prosocial_orientation",
+      needs: "a request from someone you are not close to",
+      explains: "A request with no relationship behind it separates the two: giving there is about obligation, and declining means it was about the person.",
+      matches: d => d.surface === "obligation",
+    },
+  },
+];
+
+function scoreSide(side, decisions) {
+  const held = decisions.filter(side.holds).length;
+  const failed = decisions.filter(side.against).length;
+  return { held, failed, total: held + failed, rate: (held + failed) ? held / (held + failed) : 0 };
+}
+
+// Returns the rivalries that are genuinely live: both explanations have some
+// evidence, and neither is clearly ahead. A settled rivalry is reported as
+// resolved rather than dropped, because "we thought it might be the amount,
+// it is the clock" is the most interesting thing the model can say.
+function twinCompetingExplanations(decisions) {
+  decisions = (decisions || []).filter(d => d.predicted !== null && d.predicted !== undefined);
+  if (decisions.length < 4) return [];
+
+  return TWIN_RIVALS.map(rivalry => {
+    const a = scoreSide(rivalry.a, decisions);
+    const b = scoreSide(rivalry.b, decisions);
+    if (a.total === 0 && b.total === 0) return null;
+
+    const discriminating = decisions.filter(rivalry.discriminator.matches).length;
+    const margin = Math.abs(a.rate - b.rate);
+    // Resolved needs BOTH a clear margin and a case that could only have gone
+    // one way. A margin alone can come from one side simply never being tested.
+    const resolved = discriminating >= 2 && margin >= 0.34 && (a.total >= 2 && b.total >= 2);
+
+    return {
+      id: rivalry.id,
+      question: rivalry.question,
+      a: { ...rivalry.a, ...a },
+      b: { ...rivalry.b, ...b },
+      leading: a.rate === b.rate ? null : (a.rate > b.rate ? "a" : "b"),
+      margin: Math.round(margin * 100),
+      resolved,
+      discriminating,
+      discriminator: rivalry.discriminator,
+    };
+  }).filter(Boolean);
+}
+
+// The rivalry most worth resolving next: live, and short of the evidence that
+// would settle it. Feeds adaptive scenario selection.
+function twinMostUnresolved(decisions) {
+  const live = twinCompetingExplanations(decisions).filter(r => !r.resolved);
+  if (!live.length) return null;
+  return live.sort((x, y) => x.discriminating - y.discriminating)[0];
+}
+
+if (typeof module !== "undefined" && module.exports) {
+  module.exports.twinCompetingExplanations = twinCompetingExplanations;
+  module.exports.twinMostUnresolved = twinMostUnresolved;
+  module.exports.TWIN_RIVALS = TWIN_RIVALS;
+}

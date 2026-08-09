@@ -53,6 +53,7 @@
       renderHead(),
       renderBeliefs(),
       renderContested(),
+      renderRivals(),
       renderPrediction(),
       renderLearning(),
       renderSimulation(),
@@ -138,6 +139,57 @@
       </section>`;
   }
 
+
+  // --------------------------------------------------------------- rivals
+  // Two explanations can fit the same observations. Showing both, with the
+  // case that would separate them, is the difference between a model that
+  // investigates and one that simply asserts whichever fit first.
+  function renderRivals() {
+    const rivals = (typeof twinCompetingExplanations === "function")
+      ? twinCompetingExplanations(decisions) : [];
+    if (!rivals.length) return "";
+
+    const card = r => {
+      const lead = r.leading === "a" ? r.a : r.leading === "b" ? r.b : null;
+      const other = r.leading === "a" ? r.b : r.leading === "b" ? r.a : null;
+      return `
+        <div class="mri-ev-item" style="grid-template-columns:1fr;gap:10px;">
+          <p class="mri-inter-head" style="font-size:17px;margin:0;">${esc(r.question)}</p>
+          <div style="display:grid;gap:8px;">
+            ${[r.a, r.b].map(side => {
+              const leading = lead && side.id === lead.id;
+              return `
+                <div style="border:1px solid ${leading ? "var(--mri-accent)" : "var(--mri-rule-soft)"};
+                            background:${leading ? "var(--mri-accent-wash)" : "transparent"};
+                            border-radius:3px;padding:12px 14px;">
+                  <p style="font-size:14.5px;margin:0 0 5px;">${esc(side.claim)}</p>
+                  <p class="mri-twin-metric" style="margin:0;">Held in ${side.held} of ${side.total} decisions where it applied</p>
+                </div>`;
+            }).join("")}
+          </div>
+          ${r.resolved && lead ? `
+            <p class="mri-ev-txt" style="margin:0;">
+              <strong>Settled, for now.</strong> The highlighted explanation is better supported by ${r.margin} points, and it survived ${r.discriminating} case${r.discriminating === 1 ? "" : "s"} that could only have gone one way. The other can be set aside until something contradicts this.
+            </p>`
+            : `
+            <p class="mri-ev-txt" style="margin:0;">
+              <strong>Still open.</strong> ${esc(r.discriminator.explains)}
+              <br><span style="color:var(--mri-ink-3);">Needs ${esc(r.discriminator.needs)}. Seen ${r.discriminating} so far.</span>
+            </p>`}
+        </div>`;
+    };
+
+    return `
+      <section class="mri-sec">
+        <div class="mri-sec-head">
+          <span class="mri-sec-num">03</span>
+          <h2 class="mri-sec-title">Competing explanations</h2>
+        </div>
+        <p class="mri-note" style="margin-bottom:16px;">More than one rule can fit what you have done. Rather than picking whichever confirmed first, your twin holds both and looks for the decision that would separate them.</p>
+        <div class="mri-ev">${rivals.map(card).join("")}</div>
+      </section>`;
+  }
+
   // ------------------------------------------------------------ prediction
   // The live loop. A confirmed rule is turned into a call on a fresh scenario,
   // and the person gets to say whether it is right. Disagreement asks WHY,
@@ -148,7 +200,7 @@
       return `
         <section class="mri-sec">
           <div class="mri-sec-head">
-            <span class="mri-sec-num">03</span>
+            <span class="mri-sec-num">04</span>
             <h2 class="mri-sec-title">Test your twin</h2>
           </div>
           <div class="mri-empty">
@@ -161,7 +213,7 @@
     return `
       <section class="mri-sec">
         <div class="mri-sec-head">
-          <span class="mri-sec-num">03</span>
+          <span class="mri-sec-num">04</span>
           <h2 class="mri-sec-title">Test your twin</h2>
         </div>
         <div class="mri-twin-demo">
@@ -192,7 +244,7 @@
       return `
         <section class="mri-sec">
           <div class="mri-sec-head">
-            <span class="mri-sec-num">04</span>
+            <span class="mri-sec-num">05</span>
             <h2 class="mri-sec-title">Are you learning yourself</h2>
           </div>
           <div class="mri-empty">
@@ -217,7 +269,7 @@
     return `
       <section class="mri-sec">
         <div class="mri-sec-head">
-          <span class="mri-sec-num">04</span>
+          <span class="mri-sec-num">05</span>
           <h2 class="mri-sec-title">Are you learning yourself</h2>
         </div>
         <div class="mri-conf-top">
@@ -252,7 +304,7 @@
       return `
         <section class="mri-sec">
           <div class="mri-sec-head">
-            <span class="mri-sec-num">05</span>
+            <span class="mri-sec-num">06</span>
             <h2 class="mri-sec-title">Watch it run</h2>
           </div>
           <div class="mri-empty">
@@ -272,7 +324,7 @@
     return `
       <section class="mri-sec">
         <div class="mri-sec-head">
-          <span class="mri-sec-num">05</span>
+          <span class="mri-sec-num">06</span>
           <h2 class="mri-sec-title">Watch it run</h2>
         </div>
         <p class="mri-note" style="margin-bottom:18px;">Sixteen decisions, made three ways over the same scenarios in the same order. You supervise; nobody here is you.</p>
@@ -362,7 +414,7 @@
     return `
       <section class="mri-sec">
         <div class="mri-sec-head">
-          <span class="mri-sec-num">06</span>
+          <span class="mri-sec-num">07</span>
           <h2 class="mri-sec-title">Appearance</h2>
         </div>
         <div style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:14px;">${swatches}</div>
