@@ -239,3 +239,58 @@ test("a twin getting worse is reported as such", () => {
   assert.strictEqual(twinLabTrajectory(rows, 5).direction, "losing ground",
     "a curve that only ever points up is decoration");
 });
+
+// ------------------------------------------------------- self versus twin
+const { selfVsTwin, goalAlignment, GOAL_MIN_DECISIONS } = require("../twin-lab.js");
+
+test("self versus twin needs both forecasts before it says anything", () => {
+  assert.strictEqual(selfVsTwin(null, 1, 1), null, "no self forecast, nothing to compare");
+  assert.strictEqual(selfVsTwin(0, null, 1), null);
+  assert.strictEqual(selfVsTwin(0, 1, null), null);
+});
+
+test("the twin winning a disagreement is reported as the twin winning", () => {
+  assert.strictEqual(selfVsTwin(0, 1, 1).state, "twin_right");
+});
+
+test("the person winning a disagreement is reported, not buried", () => {
+  const r = selfVsTwin(0, 1, 0);
+  assert.strictEqual(r.state, "self_right");
+  assert.match(r.headline, /you knew yourself better/i);
+});
+
+test("agreement that turns out wrong is its own state", () => {
+  // The most informative case: the model and the person's own forecast lined
+  // up, and reality went somewhere neither anticipated.
+  assert.strictEqual(selfVsTwin(0, 0, 2).state, "both_wrong");
+  assert.strictEqual(selfVsTwin(0, 0, 0).state, "both_right");
+});
+
+// ------------------------------------------------------------- goal leg
+
+function gd(goal, serves) {
+  return { goal, servesGoal: serves };
+}
+
+test("goal alignment stays silent until the goal has been tested enough", () => {
+  assert.strictEqual(goalAlignment([]), null);
+  assert.strictEqual(goalAlignment([gd("debt", true), gd("debt", false)]), null);
+});
+
+test("decisions that never touched the goal are excluded, not counted as failures", () => {
+  // Four relevant plus a pile of irrelevant ones: the rate must reflect the
+  // four, or the figure measures the scenario mix rather than the person.
+  const rows = [gd("debt", true), gd("debt", true), gd("debt", false), gd("debt", true)]
+    .concat(Array(10).fill(0).map(() => gd("debt", null)));
+  const a = goalAlignment(rows);
+  assert.strictEqual(a.main.n, 4);
+  assert.strictEqual(a.main.rate, 75);
+});
+
+test("two different goals are never pooled into one rate", () => {
+  const rows = Array(4).fill(0).map(() => gd("debt", true))
+    .concat(Array(4).fill(0).map(() => gd("savings", false)));
+  const a = goalAlignment(rows);
+  assert.strictEqual(a.goals.length, 2, "someone who changed goal has two records, not a blend");
+  assert.strictEqual(a.mixed, true);
+});

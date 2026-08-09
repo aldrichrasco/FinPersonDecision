@@ -8,6 +8,21 @@
 // --- 1. Prediction ----------------------------------------------------------
 // Asked BEFORE the choice. Committing to a prediction is what makes the
 // subsequent outcome capable of contradicting anything.
+
+// Assignment to the primed arm is deterministic on the decision index rather
+// than a fresh coin flip, so a re-render of the same scenario cannot move a
+// decision between arms mid-flight. Nothing about the scenario or the person
+// feeds into it, which is what keeps the two arms comparable. 3 in 4, spread
+// rather than clustered: the self-knowledge gap is a headline finding, and
+// halving its sample to perfect the control would trade something people came
+// for against something only a reviewer will read.
+function shouldAskSelfPrediction(cycle) {
+  const n = (cycle && typeof cycle.decisionIndex === "number")
+    ? cycle.decisionIndex
+    : (typeof decisionCount === "number" ? decisionCount : 0);
+  return (n % 4) !== 2;
+}
+
 function renderPredictionProbe() {
   const cycle = typeof currentCycle === "function" ? currentCycle() : null;
   const host = document.getElementById("scenario-card");
@@ -26,6 +41,21 @@ function renderPredictionProbe() {
   // prediction. cycle.full is still recorded on the cycle for analysis; it is
   // simply no longer allowed to decide whether the question gets asked.
   if (!cycle || !host || !cycle.probes.predict) return;
+
+  // Held-out control condition.
+  //
+  // Asking someone to forecast their own choice primes them to be consistent
+  // with it, which makes them more predictable, which inflates the twin's
+  // accuracy through the instrument rather than through the model. Since the
+  // twin's accuracy is the product's central claim, that confound cannot just
+  // be acknowledged in a footnote.
+  //
+  // So the question is withheld on a minority of decisions at random. Those
+  // decisions still get a sealed twin call, so the twin's accuracy can be
+  // compared on primed versus unprimed scenarios and the priming effect
+  // measured instead of assumed. The rate is high enough that the
+  // self-knowledge finding keeps most of its sample.
+  if (!shouldAskSelfPrediction(cycle)) return;
 
   const wrap = document.createElement("div");
   wrap.className = "probe probe-predict";

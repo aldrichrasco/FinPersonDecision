@@ -401,3 +401,75 @@ if (typeof module !== "undefined" && module.exports) {
     twinCommit, twinLabAccuracy, twinLabTrajectory, binomTailP,
   };
 }
+
+// --- the goal leg -----------------------------------------------------------
+// Whether decisions served the objective the person set for themselves.
+//
+// Reported as a pattern and never as a verdict on a single decision, which is
+// the stance situations.js already takes: the objective is a focus, not a
+// score. Only decisions that actually moved the goal metric count, because a
+// scenario about a subscription has nothing to say about a debt goal and
+// counting it as a failure would measure the scenario mix rather than the
+// person.
+const GOAL_MIN_DECISIONS = 4;
+
+function goalAlignment(decisions) {
+  const relevant = (decisions || []).filter(d =>
+    d.goal && (d.servesGoal === true || d.servesGoal === false));
+  if (relevant.length < GOAL_MIN_DECISIONS) return null;
+
+  // Never pool across two different goals. Someone who switched from paying
+  // down debt to building savings has two records, not one blended one.
+  const byGoal = {};
+  relevant.forEach(d => { (byGoal[d.goal] = byGoal[d.goal] || []).push(d); });
+  const goals = Object.keys(byGoal)
+    .map(metric => {
+      const rows = byGoal[metric];
+      const served = rows.filter(d => d.servesGoal === true).length;
+      return { metric, n: rows.length, served, rate: Math.round((served / rows.length) * 100) };
+    })
+    .filter(g => g.n >= GOAL_MIN_DECISIONS)
+    .sort((a, b) => b.n - a.n);
+  if (!goals.length) return null;
+
+  const main = goals[0];
+  return {
+    goals, main,
+    // Stated without a target to hit. There is no correct alignment rate: a
+    // person with a debt goal still has to eat, and a product that implied
+    // 100% was the aim would be lying about how money works.
+    mixed: goals.length > 1,
+  };
+}
+
+// --- self versus twin -------------------------------------------------------
+// Four outcomes, because S and T are two separate forecasts of the same thing
+// and their agreement is itself informative. When they disagree, the choice
+// settles which of you was wrong about you, and that is the most interesting
+// two seconds in the product.
+function selfVsTwin(selfIndex, twinIndex, actualIndex) {
+  if (typeof actualIndex !== "number") return null;
+  const hasSelf = typeof selfIndex === "number";
+  const hasTwin = typeof twinIndex === "number";
+  if (!hasSelf || !hasTwin) return null;
+  const selfRight = selfIndex === actualIndex;
+  const twinRight = twinIndex === actualIndex;
+  const agreed = selfIndex === twinIndex;
+  if (agreed) {
+    return selfRight
+      ? { state: "both_right", headline: "You and your twin agreed, and you were both right." }
+      // The most informative case in the whole design: the model and the
+      // person's own forecast lined up and reality went elsewhere. Nothing
+      // in the current evidence anticipated this.
+      : { state: "both_wrong", headline: "You and your twin agreed, and you both got it wrong." };
+  }
+  if (twinRight) return { state: "twin_right", headline: "Your twin knew you better this time." };
+  if (selfRight) return { state: "self_right", headline: "You knew yourself better than the model did." };
+  return { state: "both_wrong", headline: "You disagreed, and neither of you called it." };
+}
+
+if (typeof module !== "undefined" && module.exports) {
+  module.exports.goalAlignment = goalAlignment;
+  module.exports.selfVsTwin = selfVsTwin;
+  module.exports.GOAL_MIN_DECISIONS = GOAL_MIN_DECISIONS;
+}

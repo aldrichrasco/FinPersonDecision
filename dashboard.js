@@ -353,6 +353,10 @@ let currentScenario = null;
 // The twin's sealed call on the scenario currently on screen. Set when the
 // scenario is drawn, opened only after the person has committed.
 let twinCall = null;
+// The person's own forecast for the same scenario, held so the outcome card
+// can show the two forecasts side by side. Null whenever they were not asked,
+// which is deliberate and randomised: see PREDICT_ASK_RATE.
+let predictedIndexForReveal = null;
 
 // The move this archetype defaults to, used only when nothing the person has
 // actually done covers the situation. Kept as a last resort on purpose: an
@@ -973,6 +977,8 @@ function applyChoice(choice, chosenIndex) {
   // knowable only here, while the scenario's other options are still in hand.
   if (typeof recordMriDecision === "function") {
     const predictedIndex = cycleResult ? cycleResult.predicted : null;
+    const goalLeg = goalService(currentObjective(), previousState, state);
+    predictedIndexForReveal = typeof predictedIndex === "number" ? predictedIndex : null;
     recordMriDecision({
       scenario: currentScenario.text,
       choice: choice.label,
@@ -1000,6 +1006,16 @@ function applyChoice(choice, chosenIndex) {
       // called the KIND of move is the part that reflects the model.
       twinFlavorCorrect: twinCall ? twinCall.flavor === (choice.flavor || null) : null,
       twinBasis: twinCall ? twinCall.basis : null,
+      // The goal leg. The person chose this objective themselves, so measuring
+      // against it is not the app deciding what a good decision is: it is
+      // asking whether their decisions served the thing they said they wanted.
+      // Stored per decision because the objective can change between runs, and
+      // a goal-alignment figure pooled across two different goals is noise.
+      goal: goalLeg ? goalLeg.metric : null,
+      goalDirection: goalLeg ? goalLeg.direction : null,
+      // null, not false, when there is no goal set or the metric did not move.
+      // "Did not serve the goal" and "was never about the goal" are different.
+      servesGoal: goalLeg ? goalLeg.serves : null,
       // The flavour actually chosen, which is what the path rules read.
       flavor: choice.flavor || null,
       // Needed to score against chance rather than a flat half.
@@ -1204,7 +1220,7 @@ function renderDecisionOutcome(choice, applied, previousState, score, why) {
           <small>now ${fmt(impact.next)}</small>
         </div>`).join("") : `<p class="impact-empty">No immediate financial change. Keeping the status quo is still a decision.</p>`}
     </div>
-    ${renderTwinReveal(choice)}
+    ${renderTwinReveal(choice, predictedIndexForReveal)}
     <div class="decision-result-footer">
       <span class="score-shift ${direction >= 0 ? "score-up" : "score-down"}">${direction >= 0 ? "+" : ""}${Math.round(direction)} stability</span>
       <button class="btn btn-primary next-scenario-btn" id="next-scenario-btn" type="button">Next decision</button>
@@ -1218,10 +1234,19 @@ function renderDecisionOutcome(choice, applied, previousState, score, why) {
 // did not fail to be predictable, the model failed to predict them. A miss is
 // also the more useful of the two outcomes, since it is what forces the model
 // to change, and the copy should not treat it as a disappointment.
-function renderTwinReveal(choice) {
+function renderTwinReveal(choice, selfIndex) {
   if (!twinCall || !currentScenario) return "";
   const picked = currentScenario.choices[twinCall.index];
   if (!picked) return "";
+  const chosenIdx = currentScenario.choices.indexOf(choice);
+
+  // When the person also made a forecast, the interesting event is not whether
+  // the twin was right but whether the two forecasts DISAGREED. A disagreement
+  // is settled the instant they choose, and one of the two was wrong about
+  // them. That is worth leading with over any accuracy figure.
+  const versus = (typeof selfVsTwin === "function")
+    ? selfVsTwin(selfIndex, twinCall.index, chosenIdx) : null;
+  const disagreed = versus && typeof selfIndex === "number" && selfIndex !== twinCall.index;
   const hit = currentScenario.choices.indexOf(choice) === twinCall.index;
   // Most scenarios offer two options of the same kind, so calling the kind
   // right and the option wrong is a real, separate outcome. Reporting it as a
@@ -1239,8 +1264,13 @@ function renderTwinReveal(choice) {
           : "Your twin got this wrong"}
       </p>
       <p class="twin-reveal-body">
-        Before you chose, it committed to <strong>${esc(picked.label)}</strong>${hit ? "" : `, and you took <strong>${esc(choice.label)}</strong>`}.${kindHit ? " Different option, same kind of move — which is the part it was actually predicting." : ""}
+        Before you chose, it committed to <strong>${esc(picked.label)}</strong>${hit ? "" : `, and you took <strong>${esc(choice.label)}</strong>`}.${kindHit ? " Different option, same kind of move, which is the part it was actually predicting." : ""}
       </p>
+      ${disagreed ? `
+      <p class="twin-reveal-versus">
+        <strong>${esc(versus.headline)}</strong>
+        You said <em>${esc((currentScenario.choices[selfIndex] || {}).label || "something else")}</em>, your twin said <em>${esc(picked.label)}</em>.
+      </p>` : ""}
       <p class="twin-reveal-basis">${esc(twinCall.because)}${guess ? "" : ` <span class="twin-reveal-ev">${esc(twinCall.evidence)}</span>`}</p>
     </div>`;
 }
@@ -1428,6 +1458,29 @@ function currentObjective() {
   if (typeof getSavedSituation !== "function" || typeof getSituationObjective !== "function") return null;
   const id = getSavedSituation();
   return id ? getSituationObjective(id) : null;
+}
+
+// Did this decision move the goal metric the way the person said they wanted?
+//
+// Returns null rather than false whenever the question does not apply: no
+// objective set, or the metric did not move at all. Most scenarios have
+// nothing to do with the chosen goal, and counting those as failures would
+// turn an alignment figure into a measure of how often the sandbox happened
+// to ask about debt.
+//
+// Deliberately reports the direction of a single decision and nothing else.
+// situations.js is explicit that the objective is a focus and never a score,
+// so the grading here happens across a pattern of decisions, never on one.
+function goalService(obj, before, after) {
+  if (!obj || !before || !after) return null;
+  const from = before[obj.metric];
+  const to = after[obj.metric];
+  if (typeof from !== "number" || typeof to !== "number" || from === to) {
+    return obj ? { metric: obj.metric, direction: obj.direction, serves: null } : null;
+  }
+  const moved = to - from;
+  const serves = obj.direction === "down" ? moved < 0 : moved > 0;
+  return { metric: obj.metric, direction: obj.direction, serves };
 }
 
 function resetObjectiveBaseline() {
