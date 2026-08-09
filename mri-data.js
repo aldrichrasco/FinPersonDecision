@@ -77,6 +77,15 @@ function recordMriDecision(entry) {
       optionCount: typeof entry.optionCount === "number" ? entry.optionCount : null,
       // Which instrument produced this row. See versions.js: without it, a
       // reworded scenario and a changed person look identical in the data.
+      // The goal leg. servesGoal is deliberately tri-state: true, false, and
+      // null for "this decision never touched the goal metric", which is most
+      // of them and must not be counted as a failure.
+      goal: entry.goal || null,
+      goalDirection: entry.goalDirection || null,
+      servesGoal: typeof entry.servesGoal === "boolean" ? entry.servesGoal : null,
+      experimentType: entry.experimentType || "twin_arena",
+      condition: entry.condition || null,
+      selfAsked: typeof entry.selfAsked === "boolean" ? entry.selfAsked : null,
       scenarioVersion: entry.scenarioVersion || null,
       modelVersion: entry.modelVersion
         || (typeof fpTwinStamp === "function" ? fpTwinStamp() : null),

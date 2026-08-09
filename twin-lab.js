@@ -473,3 +473,129 @@ if (typeof module !== "undefined" && module.exports) {
   module.exports.selfVsTwin = selfVsTwin;
   module.exports.GOAL_MIN_DECISIONS = GOAL_MIN_DECISIONS;
 }
+
+// --- reusable metrics -------------------------------------------------------
+// Each takes episodes and returns null when the evidence cannot support it.
+// Every one filters on what the episode actually CAPTURED rather than on
+// whether a field happens to be truthy, so a room that never asks for a
+// self-prediction is excluded from self-accuracy instead of contributing
+// zeros and dragging it toward the floor.
+
+const METRIC_MIN = 6;
+
+// episode.js owns the answer to "what can this episode support". In the
+// browser it is a global from the script tag; under Node it is required. The
+// point of routing through it rather than re-deriving the checks here is that
+// there must be exactly one definition of what a usable episode is.
+function _supports(e) {
+  if (typeof episodeSupports === "function") return episodeSupports(e);
+  if (typeof require === "function") return require("./episode.js").episodeSupports(e);
+  return {};
+}
+
+function _byCondition(episodes, minPerArm) {
+  if (typeof byCondition === "function") return byCondition(episodes, minPerArm);
+  if (typeof require === "function") return require("./experiments.js").byCondition(episodes, minPerArm);
+  return null;
+}
+
+function selfAccuracy(episodes) {
+  const rows = (episodes || []).filter(e => _supports(e).selfAccuracy);
+  if (rows.length < METRIC_MIN) return null;
+  const hits = rows.filter(e => e.predicted === e.actual).length;
+  return { n: rows.length, hits, rate: Math.round((hits / rows.length) * 100) };
+}
+
+function twinAccuracy(episodes) {
+  const rows = (episodes || []).filter(e => _supports(e).twinAccuracy);
+  if (rows.length < METRIC_MIN) return null;
+  const hit = e => (typeof e.twinFlavorCorrect === "boolean")
+    ? e.twinFlavorCorrect : e.twinPredicted === e.actual;
+  const hits = rows.filter(hit).length;
+  return { n: rows.length, hits, rate: Math.round((hits / rows.length) * 100) };
+}
+
+// The comparison the product is actually about: does the model know you
+// better than you know yourself?
+//
+// Computed ONLY over episodes carrying both forecasts. Comparing a twin rate
+// from 40 decisions against a self rate from 30 different ones would be two
+// unrelated numbers subtracted, which is worse than no number at all because
+// it looks like a result.
+function twinAdvantage(episodes) {
+  const paired = (episodes || []).filter(e => _supports(e).twinAdvantage);
+  if (paired.length < METRIC_MIN) return null;
+  const self = paired.filter(e => e.predicted === e.actual).length;
+  const twin = paired.filter(e => (typeof e.twinFlavorCorrect === "boolean")
+    ? e.twinFlavorCorrect : e.twinPredicted === e.actual).length;
+  const selfRate = self / paired.length;
+  const twinRate = twin / paired.length;
+  return {
+    n: paired.length,
+    self: Math.round(selfRate * 100),
+    twin: Math.round(twinRate * 100),
+    advantage: Math.round((twinRate - selfRate) * 100),
+    // The two forecasts are made about the same decisions by the same person,
+    // so the comparison is paired and a difference of a few points on a sample
+    // this size is nothing. Named rather than silently rounded away.
+    meaningful: paired.length >= 12 && Math.abs(twinRate - selfRate) >= 0.15,
+  };
+}
+
+// Did asking someone to forecast themselves make them more predictable?
+//
+// This is the confound the whole held-out arm exists to measure: if the twin
+// is sharply more accurate on primed decisions, part of its record belongs to
+// the instrument rather than the model.
+function primingEffect(episodes) {
+  const rows = (episodes || []).filter(e => _supports(e).twinAccuracy);
+  const primed = rows.filter(e => e.selfAsked === true);
+  const unprimed = rows.filter(e => e.selfAsked === false);
+  if (primed.length < METRIC_MIN || unprimed.length < METRIC_MIN) return null;
+  const hit = e => (typeof e.twinFlavorCorrect === "boolean")
+    ? e.twinFlavorCorrect : e.twinPredicted === e.actual;
+  const p = primed.filter(hit).length / primed.length;
+  const u = unprimed.filter(hit).length / unprimed.length;
+  return {
+    primed: { n: primed.length, rate: Math.round(p * 100) },
+    unprimed: { n: unprimed.length, rate: Math.round(u * 100) },
+    effect: Math.round((p - u) * 100),
+    // A positive effect means the twin's headline number is partly an artefact
+    // of having asked. Reported either way; a control that only speaks when it
+    // exonerates the product is not a control.
+    inflated: (p - u) >= 0.1,
+  };
+}
+
+// Does behaviour shift between experiment arms? The generic engine behind both
+// pressure sensitivity and context sensitivity, since both are the same
+// question asked of different manipulations.
+function conditionShift(episodes, minPerArm) {
+  const split = _byCondition(episodes, minPerArm);
+  if (!split) return null;
+  const arms = Object.keys(split).map(name => {
+    const rows = split[name];
+    const counts = {};
+    rows.forEach(e => { if (e.flavor) counts[e.flavor] = (counts[e.flavor] || 0) + 1; });
+    const top = Object.keys(counts).sort((a, b) => counts[b] - counts[a])[0] || null;
+    return { name, n: rows.length, dominant: top,
+             share: top ? Math.round((counts[top] / rows.length) * 100) : 0 };
+  });
+  const base = arms.find(a => a.name === "baseline" || a.name === "primed") || arms[0];
+  const shifted = arms.filter(a => a !== base && a.dominant !== base.dominant);
+  return {
+    arms, baseline: base,
+    shifted: shifted.map(a => a.name),
+    // A different dominant response under a different condition is the whole
+    // claim. Stated as observed, never as proven: the arms are within-person
+    // and unrandomised in order, so this is a signal to test, not a finding.
+    changed: shifted.length > 0,
+  };
+}
+
+if (typeof module !== "undefined" && module.exports) {
+  Object.assign(module.exports, {
+    METRIC_MIN, selfAccuracy, twinAccuracy, twinAdvantage,
+    primingEffect, conditionShift,
+  });
+}

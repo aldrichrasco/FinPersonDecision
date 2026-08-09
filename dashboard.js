@@ -995,6 +995,18 @@ function applyChoice(choice, chosenIndex) {
         : null,
       scenarioVersion: (typeof fpScenarioStamp === "function")
         ? fpScenarioStamp(currentScenario) : null,
+      // Which experiment produced this and which arm it landed in. The free
+      // sandbox is itself an experiment, named as one, so the analytics layer
+      // never has to special-case the decisions made before rooms existed.
+      experimentType: "twin_arena",
+      condition: (typeof assignCondition === "function")
+        ? assignCondition("twin_arena", decisionCount) : null,
+      // Whether we ASKED, as distinct from whether they answered. One is our
+      // design and the other is their behaviour, and the held-out arm is
+      // meaningless if the two are collapsed.
+      selfAsked: predictedIndex !== null
+        || (typeof shouldAskSelfPrediction === "function"
+            && shouldAskSelfPrediction({ decisionIndex: decisionCount })),
       // What the twin committed to before any of this was visible, and what
       // that commitment rested on. Stored together because an accuracy figure
       // that cannot separate a reasoned call from a guess is not a measure of
