@@ -152,3 +152,53 @@ def test_build_free_report_degrades_without_erroring_on_no_decisions():
     # The parts derivable from the quiz alone still populate.
     assert report["archetype"] == "steady_saver"
     assert len(report["profile"]) == 6
+
+
+# ------------------------------------------------------- instrument version
+
+def test_instrument_span_is_silent_when_evidence_is_from_one_version():
+    span = m.instrument_span([
+        _d(scenario="a", scenario_version="sandbox-1.aaaaaaaa"),
+        _d(scenario="b", scenario_version="sandbox-1.bbbbbbbb"),
+    ])
+    assert span["mixed"] is False, "different scenarios have different digests by design"
+    assert span["versions"] == ["sandbox-1"]
+
+
+def test_instrument_span_flags_two_declared_versions():
+    span = m.instrument_span([
+        _d(scenario="a", scenario_version="sandbox-1.aaaaaaaa"),
+        _d(scenario="a", scenario_version="sandbox-2.aaaaaaaa"),
+    ])
+    assert span["mixed"] is True
+    assert span["versions"] == ["sandbox-1", "sandbox-2"]
+
+
+def test_instrument_span_catches_a_scenario_edited_without_a_version_bump():
+    # The failure this whole scheme exists for: someone rewords a scenario and
+    # forgets to bump. The declared version cannot see it; the digest can.
+    span = m.instrument_span([
+        _d(scenario="Your landlord raises the rent", scenario_version="sandbox-1.aaaaaaaa"),
+        _d(scenario="Your landlord raises the rent", scenario_version="sandbox-1.99999999"),
+    ])
+    assert span["edited"] == ["Your landlord raises the rent"]
+    assert span["mixed"] is True
+
+
+def test_unstamped_rows_are_counted_not_assumed_to_match():
+    span = m.instrument_span([
+        _d(scenario="a", scenario_version="sandbox-1.aaaaaaaa"),
+        _d(scenario="a"),
+    ])
+    assert span["unstamped"] == 1
+    assert span["mixed"] is True, "unknown provenance is not the same claim as matching"
+
+
+def test_a_fully_unstamped_log_is_old_not_mixed():
+    span = m.instrument_span([_d(scenario="a"), _d(scenario="b")])
+    assert span["mixed"] is False
+    assert span["unstamped"] == 2
+
+
+def test_instrument_span_is_none_without_decisions():
+    assert m.instrument_span([]) is None

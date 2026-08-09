@@ -949,6 +949,8 @@ function applyChoice(choice, chosenIndex) {
       predictedNetWorthDelta: (predictedIndex !== null && currentScenario.choices[predictedIndex])
         ? netWorthDeltaFor(currentScenario.choices[predictedIndex], previousState, mult)
         : null,
+      scenarioVersion: (typeof fpScenarioStamp === "function")
+        ? fpScenarioStamp(currentScenario) : null,
     });
     if (typeof pushMriDecisionToServer === "function") pushMriDecisionToServer();
   }

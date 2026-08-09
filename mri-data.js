@@ -66,6 +66,11 @@ function recordMriDecision(entry) {
       // since the alternative choice's delta isn't stored anywhere else.
       predictedNetWorthDelta: typeof entry.predictedNetWorthDelta === "number"
         ? entry.predictedNetWorthDelta : null,
+      // Which instrument produced this row. See versions.js: without it, a
+      // reworded scenario and a changed person look identical in the data.
+      scenarioVersion: entry.scenarioVersion || null,
+      modelVersion: entry.modelVersion
+        || (typeof fpTwinStamp === "function" ? fpTwinStamp() : null),
     });
     localStorage.setItem(MRI_DECISIONS_KEY, JSON.stringify(log.slice(-MRI_DECISION_CAP)));
   } catch (e) {}

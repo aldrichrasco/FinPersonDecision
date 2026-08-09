@@ -247,6 +247,53 @@ def confidence(profile, decisions, archetype_ranking):
     }
 
 
+def instrument_span(decisions):
+    """
+    Which versions of the sandbox produced this evidence.
+
+    Findings below pool every decision together, which is only sound if they
+    all came from the same instrument. When a log straddles a reworded
+    scenario set, that is a real limit on what the report can claim, and the
+    page says so rather than quietly averaging across the boundary.
+
+    Rows written before stamping existed carry no version. They are counted
+    separately instead of being assumed to match, because "unknown" and "the
+    same as the current one" are different claims and only one of them is true.
+    """
+    if not decisions:
+        return None
+    versions, unstamped = set(), 0
+    for d in decisions:
+        v = d.get("scenario_version") or d.get("scenarioVersion")
+        if v:
+            versions.add(str(v).split(".")[0])
+        else:
+            unstamped += 1
+    known = sorted(versions)
+    # The declared version catches a deliberate change. This catches the
+    # careless one: the same scenario carrying two different content digests
+    # means its wording, options or costs were edited without anyone bumping
+    # the version, and the two runs are not the same measurement even though
+    # they claim to be. Digests differ across DIFFERENT scenarios by design,
+    # so the comparison is only meaningful within one scenario.
+    by_scenario = {}
+    for d in decisions:
+        v = d.get("scenario_version") or d.get("scenarioVersion")
+        name = d.get("scenario")
+        if v and name and "." in str(v):
+            by_scenario.setdefault(name, set()).add(str(v).split(".", 1)[1])
+    edited = sorted(n for n, digests in by_scenario.items() if len(digests) > 1)
+
+    return {
+        "versions": known,
+        "unstamped": unstamped,
+        "edited": edited,
+        # Only flagged when there is genuinely more than one source. A log that
+        # is entirely unstamped is old, not mixed.
+        "mixed": len(known) > 1 or bool(edited) or (len(known) >= 1 and unstamped > 0),
+    }
+
+
 def build_free_report(profile, archetype, archetype_ranking, decisions):
     """
     Assembles the free report. Every section may be None, and the caller is
@@ -260,6 +307,7 @@ def build_free_report(profile, archetype, archetype_ranking, decisions):
         "archetype_ranking": archetype_ranking[:5] if archetype_ranking else [],
         "profile": {k: round(profile.get(k) or 50) for k in AXIS_KEYS},
         "decision_count": len(decisions),
+        "instrument": instrument_span(decisions),
         "prediction_gap": prediction_gap(decisions),
         "time_pressure": time_pressure_split(decisions),
         "twin": twin_match(decisions),
