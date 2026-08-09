@@ -2734,6 +2734,7 @@ body.has-app-nav .study-badge{bottom:84px;}
   background: var(--surface-2, rgba(0, 0, 0, 0.02));
 }
 .twin-reveal-hit { border-left-color: var(--good, #3f7d58); }
+.twin-reveal-part { border-left-color: var(--accent, #6b7fa8); }
 .twin-reveal-miss { border-left-color: var(--warn, #b07a2c); }
 .twin-reveal-head {
   margin: 0 0 4px;
@@ -2751,6 +2752,7 @@ body.has-app-nav .study-badge{bottom:84px;}
   flex: none;
 }
 .twin-reveal-hit .twin-reveal-dot { background: var(--good, #3f7d58); }
+.twin-reveal-part .twin-reveal-dot { background: var(--accent, #6b7fa8); }
 .twin-reveal-miss .twin-reveal-dot { background: var(--warn, #b07a2c); }
 .twin-reveal-body { margin: 0 0 5px; font-size: 0.9rem; line-height: 1.5; }
 .twin-reveal-basis {

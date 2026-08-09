@@ -26,7 +26,8 @@ test("depth counts the current sitting, not the lifetime log", () => {
     ld({ at: 0 }), ld({ at: 1 * MIN }), ld({ at: 2 * MIN }),
     ld({ at: 300 * MIN }), ld({ at: 301 * MIN }),
   ];
-  assert.strictEqual(pathFeatures(log).depth, 2);
+  assert.strictEqual(pathFeatures(log).depth, 2,
+    "two decisions since the gap, so the upcoming one is the third of this sitting");
 });
 
 test("a loss streak counts only decisions that actually cost something", () => {
@@ -123,8 +124,18 @@ test("a flavour the scenario does not offer is never committed to", () => {
 
 // --------------------------------------------------------------- accuracy
 
+// Alternates flavour deterministically. Spreading the flavours keeps the modal
+// baseline low so these tests exercise the binomial gate rather than the
+// base-rate guard; a random pick here would make the suite flaky.
+let sdSeq = 0;
 function sd(basis, correct, options) {
-  return { twinPredicted: 0, actual: correct ? 0 : 1, twinCorrect: correct, twinBasis: basis, optionCount: options || 3 };
+  sdSeq++;
+  return {
+    twinPredicted: 0, actual: correct ? 0 : 1,
+    twinCorrect: correct, twinFlavorCorrect: correct,
+    twinBasis: basis, optionCount: options || 3,
+    flavor: sdSeq % 2 ? "growth" : "generous",
+  };
 }
 
 test("accuracy is null until the twin has actually been scored", () => {
@@ -152,10 +163,58 @@ test("beating chance is not claimed on a thin sample", () => {
   assert.strictEqual(acc.beatsChance, false, "three right in a row is not a result");
 });
 
-test("beating chance is claimed once the sample and the margin are both real", () => {
-  const rows = Array(9).fill(0).map(() => sd(LAB_BASIS.RULE, true))
-    .concat([sd(LAB_BASIS.RULE, false)]);
-  assert.strictEqual(twinLabAccuracy(rows).beatsChance, true);
+test("the old hand-picked margin would have fired on noise; the test does not", () => {
+  // 4 of 8 against a 1/3 baseline happens by luck 26% of the time. The
+  // previous gate (n>=8, rate > chance+0.12) called that a finding.
+  const rows = Array(4).fill(0).map(() => sd(LAB_BASIS.RULE, true))
+    .concat(Array(4).fill(0).map(() => sd(LAB_BASIS.RULE, false)));
+  assert.strictEqual(twinLabAccuracy(rows).beatsChance, false);
+});
+
+test("beating chance is claimed once the result is unlikely enough to be luck", () => {
+  const rows = Array(13).fill(0).map(() => sd(LAB_BASIS.RULE, true))
+    .concat([sd(LAB_BASIS.RULE, false), sd(LAB_BASIS.RULE, false)]);
+  const acc = twinLabAccuracy(rows);
+  assert.strictEqual(acc.beatsChance, true);
+  assert.ok(acc.p < 0.05, "the claim has to come with a p that supports it");
+});
+
+// ------------------------------------------------- baselines and base rates
+
+test("the guess arm does not quietly default to the most common flavour", () => {
+  // conservative is 43% of the options in the real bank. A guess that always
+  // picked it would beat a 1/k baseline while knowing nothing at all.
+  const bank = [
+    { id: "a", choices: [{ flavor: "conservative" }, { flavor: "growth" }, { flavor: "impulsive" }] },
+    { id: "b", choices: [{ flavor: "conservative" }, { flavor: "growth" }, { flavor: "impulsive" }] },
+    { id: "c", choices: [{ flavor: "conservative" }, { flavor: "growth" }, { flavor: "impulsive" }] },
+    { id: "d", choices: [{ flavor: "conservative" }, { flavor: "growth" }, { flavor: "impulsive" }] },
+    { id: "e", choices: [{ flavor: "conservative" }, { flavor: "growth" }, { flavor: "impulsive" }] },
+    { id: "f", choices: [{ flavor: "conservative" }, { flavor: "growth" }, { flavor: "impulsive" }] },
+  ];
+  const picks = bank.map(s => twinCommit(null, s, [], null).flavor);
+  assert.ok(new Set(picks).size > 1,
+    "a guess that always lands on one flavour is a tuned prior wearing the word guess");
+});
+
+test("the bar is the modal response rate when that beats uniform chance", () => {
+  // Everything the person did was conservative, so "always say conservative"
+  // is the thing to beat, not 1/3.
+  const rows = Array(12).fill(0).map(() => Object.assign(
+    sd(LAB_BASIS.RULE, true), { flavor: "conservative" }));
+  const acc = twinLabAccuracy(rows);
+  assert.strictEqual(acc.modal, 100);
+  assert.strictEqual(acc.bar, 100, "the obvious guess is the bar, not the uniform one");
+});
+
+test("scoring uses the flavour claim, not the arbitrary option index", () => {
+  // Right kind of move, wrong option: the index says miss, the claim says hit.
+  const rows = Array(6).fill(0).map(() => ({
+    twinPredicted: 0, actual: 1, twinCorrect: false, twinFlavorCorrect: true,
+    twinBasis: LAB_BASIS.RULE, optionCount: 3, flavor: "growth",
+  }));
+  assert.strictEqual(twinLabAccuracy(rows).overall.rate, 100,
+    "11 of 16 scenarios repeat a flavour, so an index match is part coin flip");
 });
 
 // ------------------------------------------------------------- trajectory

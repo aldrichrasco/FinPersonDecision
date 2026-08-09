@@ -49,15 +49,16 @@ function pathFeatures(history) {
   }
   const delta = d => (d.netWorthDelta ?? d.net_worth_delta ?? 0);
 
-  // Depth within the current sitting, not the lifetime log: fatigue resets
-  // when someone comes back tomorrow.
-  let depth = 0;
+  // How many decisions have already been made in the current sitting. The
+  // decision about to be faced is therefore number depth + 1, and rule
+  // conditions are written against that. Fatigue resets when someone comes
+  // back tomorrow, so a long gap ends the count.
+  let depth = 1;
   for (let i = log.length - 1; i > 0; i--) {
     const gap = (log[i].at || 0) - (log[i - 1].at || 0);
-    depth++;
     if (gap > LAB_SESSION_GAP_MS) break;
+    depth++;
   }
-  if (log.length === 1) depth = 1;
 
   let lossStreak = 0, gainStreak = 0;
   for (let i = log.length - 1; i >= 0; i--) {
@@ -93,9 +94,12 @@ const TWIN_PATH_RULES = [
     id: "chases_after_loss",
     axis: "risk_disposition",
     statement: "After a decision that costs you, you reach for the bigger move.",
-    // The direct opposite of the rule above, on the same trigger. Both fit a
-    // lot of people some of the time, which is exactly what the rivalry
-    // machinery in twin.js exists to settle rather than guess between.
+    // The direct opposite of the rule above, on the same trigger, so the two
+    // cannot both be right about the same person. They are currently settled
+    // by hit rate in twinPathRules, NOT by the rivalry engine in twin.js —
+    // TWIN_RIVALS carries different pairs and does not know about these. That
+    // is a weaker test than it should be, because a hit-rate comparison has no
+    // discriminating-case requirement, and it is the next thing to fix here.
     expects: "growth",
     when: p => p.lastLoss,
   },
@@ -166,8 +170,27 @@ function twinPathRules(decisions) {
     .sort((a, b) => (a.baseline - b.baseline) || (b.rate - a.rate) || (b.total - a.total));
 }
 
+// FNV-1a, kept local so this file has no load-order dependency on versions.js.
+// Used only to seed the guess, never for anything that must be secure.
+function fpDigestLocal(str) {
+  let h = 0x811c9dc5;
+  const s = String(str == null ? "" : str);
+  for (let i = 0; i < s.length; i++) {
+    h ^= s.charCodeAt(i);
+    h = Math.imul(h, 0x01000193) >>> 0;
+  }
+  return h >>> 0;
+}
+
 // Which option index carries a flavour. Returns -1 when the scenario has no
 // such option, which is normal: not every situation offers a generous move.
+//
+// NOTE: 11 of the 16 scenarios in the bank contain two options sharing a
+// flavour, so this picks arbitrarily between them most of the time. That is
+// why the scored claim is the FLAVOUR match, not the index match: the twin
+// genuinely predicts the kind of move, and pretending it predicted the exact
+// option would be counting a coin flip as skill. The index is what gets shown,
+// because "it said you'd take this one" is what a person can check.
 function indexOfFlavor(scenario, flavor) {
   if (!scenario || !flavor) return -1;
   return (scenario.choices || []).findIndex(c => c && c.flavor === flavor);
@@ -245,8 +268,19 @@ function twinCommit(twin, scenario, history, archetypeFlavor) {
   // 4. Nothing to go on. It still commits, and says so plainly, because a
   //    model that goes quiet whenever it is unsure can never be shown to be
   //    wrong and its accuracy stops meaning anything.
-  const fallback = indexOfFlavor(scenario, "conservative");
-  const idx = fallback >= 0 ? fallback : 0;
+  //
+  //    This used to default to the conservative option, which was a mistake
+  //    that quietly wrecked the whole measurement: conservative is 43% of the
+  //    options in the bank, so the arm labelled "guess" was really a tuned
+  //    modal-response prior. It would have beaten a 1/k baseline while knowing
+  //    nothing, and every per-basis comparison downstream would have inherited
+  //    that. A guess has to actually be a guess.
+  //
+  //    Seeded off the scenario so a given person meets the same guess every
+  //    time rather than a fresh roll on each render, which keeps the record
+  //    reproducible for research without biasing it toward any flavour.
+  const seed = fpDigestLocal(String(scenario.id || scenario.text || ""));
+  const idx = seed % scenario.choices.length;
   return {
     index: idx, flavor: (scenario.choices[idx] || {}).flavor || null,
     basis: LAB_BASIS.GUESS, ruleId: null,
@@ -263,20 +297,41 @@ function twinLabAccuracy(decisions) {
     typeof d.twinPredicted === "number" && typeof d.actual === "number");
   if (!scored.length) return null;
 
+  // The scored claim is the FLAVOUR, not the option index. 11 of the 16
+  // scenarios contain two options sharing a flavour, so an index match is
+  // part skill and part coin flip, and counting it as skill would inflate
+  // every figure below. Falls back to the index only for rows recorded
+  // before flavour scoring existed.
+  const hit = d => (typeof d.twinFlavorCorrect === "boolean" ? d.twinFlavorCorrect : d.twinCorrect === true);
+
   const bucket = key => {
     const rows = key ? scored.filter(d => d.twinBasis === key) : scored;
     if (!rows.length) return null;
-    const hits = rows.filter(d => d.twinCorrect === true).length;
+    const hits = rows.filter(hit).length;
     return { n: rows.length, hits, rate: Math.round((hits / rows.length) * 100) };
   };
 
   const reasoned = scored.filter(d => d.twinBasis && d.twinBasis !== LAB_BASIS.GUESS);
-  const reasonedHits = reasoned.filter(d => d.twinCorrect === true).length;
+  const reasonedHits = reasoned.filter(hit).length;
 
-  // Chance is not 50%: it is one over the number of options the twin had to
-  // choose between, averaged over the decisions actually scored. Quoting a
-  // flat baseline would flatter the model on three-option scenarios.
+  // Two baselines, and the harder one is the one that counts.
+  //
+  // 1/k is what you beat by knowing nothing about the person but something
+  // about the bank. Since 43% of the options in this bank are conservative,
+  // a predictor that always said "conservative" would clear a 1/3 baseline
+  // comfortably while having learned nothing at all. Quoting only 1/k would
+  // therefore let base-rate luck be reported as skill, which is the exact
+  // claim this whole feature exists to test.
+  //
+  // So the bar is the modal-response rate: how often the single most common
+  // flavour in the bank turns out to be what the person chose. A twin worth
+  // paying for has to beat the obvious guess, not the uniform one.
   const chance = scored.reduce((a, d) => a + (1 / Math.max(2, d.optionCount || 3)), 0) / scored.length;
+  const flavorCounts = {};
+  scored.forEach(d => { if (d.flavor) flavorCounts[d.flavor] = (flavorCounts[d.flavor] || 0) + 1; });
+  const modalN = Object.values(flavorCounts).sort((a, b) => b - a)[0] || 0;
+  const modal = scored.length ? modalN / scored.length : 0;
+  const bar = Math.max(chance, modal);
 
   return {
     overall: bucket(null),
@@ -290,9 +345,31 @@ function twinLabAccuracy(decisions) {
       ? { n: reasoned.length, hits: reasonedHits, rate: Math.round((reasonedHits / reasoned.length) * 100) }
       : null,
     chance: Math.round(chance * 100),
-    // Only claimed once there is enough to say it and the margin is real.
-    beatsChance: reasoned.length >= 8 && (reasonedHits / reasoned.length) > chance + 0.12,
+    modal: Math.round(modal * 100),
+    bar: Math.round(bar * 100),
+    // A one-sided binomial test against the harder baseline, rather than a
+    // hand-picked margin. The old gate (n >= 8 and rate > chance + 0.12) fired
+    // on pure luck 26% of the time against 1/3, and 48% against the modal
+    // rate: a coin flip presented as a finding. This asks for a result that
+    // would happen by chance less than 5% of the time, and still refuses to
+    // speak below a sample where that test means anything.
+    beatsChance: reasoned.length >= 12 &&
+      binomTailP(reasonedHits, reasoned.length, bar) < 0.05,
+    p: reasoned.length ? Number(binomTailP(reasonedHits, reasoned.length, bar).toFixed(4)) : null,
   };
+}
+
+// P(X >= k) for X ~ Binomial(n, p). Computed iteratively so the coefficients
+// stay in range for the sample sizes involved here.
+function binomTailP(k, n, p) {
+  if (!n || p <= 0) return 1;
+  if (p >= 1) return k >= n ? 1 : 0;
+  let sum = 0, term = Math.pow(1 - p, n);
+  for (let i = 0; i <= n; i++) {
+    if (i >= k) sum += term;
+    term = term * ((n - i) / (i + 1)) * (p / (1 - p));
+  }
+  return Math.min(1, Math.max(0, sum));
 }
 
 // The twin's accuracy over time, in blocks, so the learning curve is visible
@@ -302,10 +379,11 @@ function twinLabTrajectory(decisions, blockSize) {
   const size = blockSize || 5;
   const scored = (decisions || []).filter(d => typeof d.twinPredicted === "number");
   if (scored.length < size * 2) return null;
+  const hit = d => (typeof d.twinFlavorCorrect === "boolean" ? d.twinFlavorCorrect : d.twinCorrect === true);
   const blocks = [];
   for (let i = 0; i + size <= scored.length; i += size) {
     const chunk = scored.slice(i, i + size);
-    const hits = chunk.filter(d => d.twinCorrect === true).length;
+    const hits = chunk.filter(hit).length;
     blocks.push({ from: i + 1, to: i + size, rate: Math.round((hits / size) * 100) });
   }
   const first = blocks[0].rate, last = blocks[blocks.length - 1].rate;
@@ -320,6 +398,6 @@ if (typeof module !== "undefined" && module.exports) {
   module.exports = {
     LAB_BASIS, LAB_LOSS_THRESHOLD, LAB_PATH_MIN, TWIN_PATH_RULES,
     pathFeatures, evaluatePathRule, twinPathRules, indexOfFlavor,
-    twinCommit, twinLabAccuracy, twinLabTrajectory,
+    twinCommit, twinLabAccuracy, twinLabTrajectory, binomTailP,
   };
 }

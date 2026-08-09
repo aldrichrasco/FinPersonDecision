@@ -995,6 +995,10 @@ function applyChoice(choice, chosenIndex) {
       // the model, it is a measure of the option count.
       twinPredicted: twinCall ? twinCall.index : null,
       twinCorrect: twinCall ? twinCall.index === chosenIndex : null,
+      // The claim actually being tested. Most scenarios offer two options of
+      // the same kind, so an exact index match is part luck; whether the twin
+      // called the KIND of move is the part that reflects the model.
+      twinFlavorCorrect: twinCall ? twinCall.flavor === (choice.flavor || null) : null,
       twinBasis: twinCall ? twinCall.basis : null,
       // The flavour actually chosen, which is what the path rules read.
       flavor: choice.flavor || null,
@@ -1219,15 +1223,23 @@ function renderTwinReveal(choice) {
   const picked = currentScenario.choices[twinCall.index];
   if (!picked) return "";
   const hit = currentScenario.choices.indexOf(choice) === twinCall.index;
+  // Most scenarios offer two options of the same kind, so calling the kind
+  // right and the option wrong is a real, separate outcome. Reporting it as a
+  // flat miss would understate the model; reporting it as a hit would
+  // overstate it. It gets its own state and says exactly what happened.
+  const kindHit = !hit && twinCall.flavor && twinCall.flavor === choice.flavor;
   const guess = twinCall.basis === "guess";
+  const state = hit ? "hit" : kindHit ? "part" : "miss";
   return `
-    <div class="twin-reveal ${hit ? "twin-reveal-hit" : "twin-reveal-miss"}">
+    <div class="twin-reveal twin-reveal-${state}">
       <p class="twin-reveal-head">
         <span class="twin-reveal-dot" aria-hidden="true"></span>
-        ${hit ? "Your twin called this one" : "Your twin got this wrong"}
+        ${hit ? (guess ? "Your twin guessed this one" : "Your twin called this one")
+          : kindHit ? (guess ? "Your twin guessed the right kind" : "Your twin had the right instinct")
+          : "Your twin got this wrong"}
       </p>
       <p class="twin-reveal-body">
-        Before you chose, it committed to <strong>${esc(picked.label)}</strong>${hit ? "" : `, and you took <strong>${esc(choice.label)}</strong>`}.
+        Before you chose, it committed to <strong>${esc(picked.label)}</strong>${hit ? "" : `, and you took <strong>${esc(choice.label)}</strong>`}.${kindHit ? " Different option, same kind of move — which is the part it was actually predicting." : ""}
       </p>
       <p class="twin-reveal-basis">${esc(twinCall.because)}${guess ? "" : ` <span class="twin-reveal-ev">${esc(twinCall.evidence)}</span>`}</p>
     </div>`;
