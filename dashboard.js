@@ -394,6 +394,7 @@ function currentPersonaMeta() {
 // a learner in breakdown mostly meets recovery pressure but still sees the full
 // range, so the sandbox never becomes predictable.
 let lastScenarioText = null;
+let currentTarget = null;   // why this scenario was chosen, when it was targeted
 
 // Generated scenarios are prefetched one ahead and consumed synchronously, so
 // model latency never sits between a decision and the next scenario. If the
@@ -486,7 +487,27 @@ function pickScenario() {
   // Avoid repeating the scenario they just answered or the one still on screen.
   const previousTexts = new Set([lastScenarioText, currentScenario?.text].filter(Boolean));
   const fresh = pool.filter(s => !previousTexts.has(s.text));
-  const candidates = fresh.length ? fresh : pool;
+  let candidates = fresh.length ? fresh : pool;
+
+  // Adaptive targeting. Narrows toward whatever would tell us the most —
+  // a contested rule, a thin axis, a hunch close to confirming — and records
+  // why, so the sandbox can say what it is doing rather than quietly steering.
+  currentTarget = null;
+  if (typeof adaptiveTarget === "function") {
+    const decisions = typeof getMriDecisions === "function" ? getMriDecisions() : [];
+    const twin = (typeof buildTwin === "function" && decisions.length)
+      ? buildTwin(decisions) : null;
+    const profile = typeof getProfile === "function" ? (getProfile() || {}).profile : null;
+    const target = adaptiveTarget(decisions, twin, profile);
+    if (target && adaptiveShouldTarget()) {
+      const narrowed = adaptiveFilter(candidates, target);
+      if (narrowed.targeted) {
+        candidates = narrowed.pool;
+        currentTarget = target;
+      }
+    }
+  }
+
   const chosen = candidates[Math.floor(Math.random() * candidates.length)];
   lastScenarioText = chosen.text;
   return chosen;
@@ -823,6 +844,7 @@ function rollScenario() {
     </div>
     <p class="scenario-text">${esc(currentScenario.text)}</p>
     ${currentScenario.context ? `<p class="scenario-context"><span class="scenario-context-label">Real-world context</span>${esc(currentScenario.context)}</p>` : ""}
+    ${currentTarget ? `<p class="scenario-why"><span class="scenario-why-label">Why this one</span>${esc(currentTarget.reason)}</p>` : ""}
     <div class="scenario-choices">
       ${currentScenario.choices.map((c, i) => `
         <button class="choice-btn" data-i="${i}" data-flavor="${esc(c.flavor || "")}">
