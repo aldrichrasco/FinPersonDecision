@@ -68,6 +68,13 @@ function recordMriDecision(entry) {
         ? entry.predictedNetWorthDelta : null,
       // Which instrument produced this row. See versions.js: without it, a
       // reworded scenario and a changed person look identical in the data.
+      // The twin's sealed call, opened after the fact. null basis means no
+      // call was made, which is different from a call that was wrong.
+      twinPredicted: typeof entry.twinPredicted === "number" ? entry.twinPredicted : null,
+      twinCorrect: typeof entry.twinCorrect === "boolean" ? entry.twinCorrect : null,
+      twinBasis: entry.twinBasis || null,
+      flavor: entry.flavor || null,
+      optionCount: typeof entry.optionCount === "number" ? entry.optionCount : null,
       scenarioVersion: entry.scenarioVersion || null,
       modelVersion: entry.modelVersion
         || (typeof fpTwinStamp === "function" ? fpTwinStamp() : null),

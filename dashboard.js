@@ -350,6 +350,26 @@ let state = null;          // current financial state
 let currentPersona = null;
 let difficulty = "medium";
 let currentScenario = null;
+// The twin's sealed call on the scenario currently on screen. Set when the
+// scenario is drawn, opened only after the person has committed.
+let twinCall = null;
+
+// The move this archetype defaults to, used only when nothing the person has
+// actually done covers the situation. Kept as a last resort on purpose: an
+// archetype is where the twin starts, not what it knows about you.
+const ARCHETYPE_FLAVOR = {
+  guardian: "conservative", saver: "conservative", planner: "conservative",
+  builder: "growth", optimiser: "growth", striver: "growth",
+  sprinter: "impulsive", improviser: "impulsive",
+  provider: "generous", connector: "generous",
+};
+function archetypeFlavor() {
+  try {
+    const prof = typeof getProfile === "function" ? getProfile() : null;
+    const key = prof && (prof.archetype || (prof.profile && prof.profile.archetype));
+    return key ? (ARCHETYPE_FLAVOR[String(key).toLowerCase()] || null) : null;
+  } catch (e) { return null; }
+}
 let decisionCount = 0;
 let decisionResolving = false;
 let netWorthTrack = [];
@@ -809,6 +829,24 @@ function rollScenario() {
   }
   currentScenario = pickScenario();
 
+  // The twin commits, sealed, before anything is shown or clicked.
+  //
+  // Deliberately NOT revealed until afterwards. A twin that announces "you
+  // will take option 2" before you choose stops measuring you and starts
+  // steering you: some people would fall in line and some would defy it out
+  // of spite, and neither tells us anything about how they decide. Sealing it
+  // and opening it after is the same discipline as pre-registering a
+  // hypothesis, and it is the only version of this whose accuracy means
+  // anything.
+  twinCall = null;
+  if (typeof twinCommit === "function") {
+    try {
+      const log = typeof getMriDecisions === "function" ? getMriDecisions() : [];
+      const built = (typeof buildTwin === "function") ? buildTwin(log) : null;
+      twinCall = twinCommit(built, currentScenario, log, archetypeFlavor());
+    } catch (e) { twinCall = null; }
+  }
+
   // Begin the experiential cycle. DLO decides whether this decision warrants
   // the full prediction/surprise/reflection loop; titration decides how much
   // the learner can absorb right now.
@@ -951,6 +989,17 @@ function applyChoice(choice, chosenIndex) {
         : null,
       scenarioVersion: (typeof fpScenarioStamp === "function")
         ? fpScenarioStamp(currentScenario) : null,
+      // What the twin committed to before any of this was visible, and what
+      // that commitment rested on. Stored together because an accuracy figure
+      // that cannot separate a reasoned call from a guess is not a measure of
+      // the model, it is a measure of the option count.
+      twinPredicted: twinCall ? twinCall.index : null,
+      twinCorrect: twinCall ? twinCall.index === chosenIndex : null,
+      twinBasis: twinCall ? twinCall.basis : null,
+      // The flavour actually chosen, which is what the path rules read.
+      flavor: choice.flavor || null,
+      // Needed to score against chance rather than a flat half.
+      optionCount: currentScenario.choices.length,
     });
     if (typeof pushMriDecisionToServer === "function") pushMriDecisionToServer();
   }
@@ -1151,12 +1200,37 @@ function renderDecisionOutcome(choice, applied, previousState, score, why) {
           <small>now ${fmt(impact.next)}</small>
         </div>`).join("") : `<p class="impact-empty">No immediate financial change. Keeping the status quo is still a decision.</p>`}
     </div>
+    ${renderTwinReveal(choice)}
     <div class="decision-result-footer">
       <span class="score-shift ${direction >= 0 ? "score-up" : "score-down"}">${direction >= 0 ? "+" : ""}${Math.round(direction)} stability</span>
       <button class="btn btn-primary next-scenario-btn" id="next-scenario-btn" type="button">Next decision</button>
     </div>
   `;
   document.getElementById("next-scenario-btn")?.addEventListener("click", rollScenario);
+}
+
+// Opens the twin's sealed call. Shown whether it was right or wrong, and a
+// wrong call is worded as the twin's problem rather than the person's: they
+// did not fail to be predictable, the model failed to predict them. A miss is
+// also the more useful of the two outcomes, since it is what forces the model
+// to change, and the copy should not treat it as a disappointment.
+function renderTwinReveal(choice) {
+  if (!twinCall || !currentScenario) return "";
+  const picked = currentScenario.choices[twinCall.index];
+  if (!picked) return "";
+  const hit = currentScenario.choices.indexOf(choice) === twinCall.index;
+  const guess = twinCall.basis === "guess";
+  return `
+    <div class="twin-reveal ${hit ? "twin-reveal-hit" : "twin-reveal-miss"}">
+      <p class="twin-reveal-head">
+        <span class="twin-reveal-dot" aria-hidden="true"></span>
+        ${hit ? "Your twin called this one" : "Your twin got this wrong"}
+      </p>
+      <p class="twin-reveal-body">
+        Before you chose, it committed to <strong>${esc(picked.label)}</strong>${hit ? "" : `, and you took <strong>${esc(choice.label)}</strong>`}.
+      </p>
+      <p class="twin-reveal-basis">${esc(twinCall.because)}${guess ? "" : ` <span class="twin-reveal-ev">${esc(twinCall.evidence)}</span>`}</p>
+    </div>`;
 }
 
 // Legibility (PIPE precondition): translate raw deltas into a plain-language

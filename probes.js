@@ -133,7 +133,12 @@ function maybeRunPostProbes(result) {
     ? permittedProbes(result.budget) : { surprise: true, reflect: true } };
   if (!result || result.predicted === null) return;   // nothing was committed
   if (!cycle.probes.surprise) return;
-  showSurpriseProbe(result);
+  // Let the outcome and the twin's opened call land before asking. Surprise is
+  // supporting context for the reveal, not a substitute for it, and a modal
+  // that covers the thing it is asking about gets answered against the wrong
+  // information. Waits for the reveal to finish animating in.
+  const reveal = document.querySelector(".twin-reveal");
+  setTimeout(() => showSurpriseProbe(result), reveal ? 1400 : 0);
 }
 
 function showSurpriseProbe(result) {
