@@ -128,3 +128,63 @@ test("every simulation scenario is well formed", () => {
     });
   });
 });
+
+// --------------------------------------------------------- learning rate
+const { twinLearningRate, groupIntoSessions } = require("../twin.js");
+
+function td(at, matched) {
+  return { at, predicted: 0, actual: matched ? 0 : 1, matched };
+}
+const HOUR = 3600000;
+
+test("sessions split on a long gap, not on every decision", () => {
+  const decisions = [td(0, true), td(1000, true), td(5 * HOUR, true)];
+  const sessions = groupIntoSessions(decisions);
+  assert.strictEqual(sessions.length, 2);
+  assert.strictEqual(sessions[0].length, 2);
+});
+
+test("learning rate refuses a sample too thin to mean anything", () => {
+  assert.strictEqual(twinLearningRate([]), null);
+  assert.strictEqual(twinLearningRate([td(0, true), td(1, true), td(2, true)]), null,
+    "one session cannot show a trend");
+});
+
+test("sessions of one or two decisions are excluded as noise", () => {
+  // Second sitting has two decisions: a 0% or 100% there is not a data point.
+  const decisions = [
+    td(0, true), td(1, true), td(2, false), td(3, true),
+    td(5 * HOUR, false), td(5 * HOUR + 1, false),
+  ];
+  assert.strictEqual(twinLearningRate(decisions), null);
+});
+
+test("improvement is reported when self-prediction genuinely rises", () => {
+  const decisions = [
+    td(0, true), td(1, false), td(2, true), td(3, false),
+    td(5 * HOUR, true), td(5 * HOUR + 1, true), td(5 * HOUR + 2, true),
+    td(5 * HOUR + 3, false), td(5 * HOUR + 4, true),
+  ];
+  const lr = twinLearningRate(decisions);
+  assert.strictEqual(lr.first, 50);
+  assert.strictEqual(lr.last, 80);
+  assert.strictEqual(lr.direction, "improving");
+});
+
+test("a small wobble is called flat rather than dressed as improvement", () => {
+  const decisions = [
+    td(0, true), td(1, true), td(2, false), td(3, false),
+    td(5 * HOUR, true), td(5 * HOUR + 1, true), td(5 * HOUR + 2, false), td(5 * HOUR + 3, false),
+  ];
+  assert.strictEqual(twinLearningRate(decisions).direction, "flat");
+});
+
+test("decline is reported rather than hidden", () => {
+  const decisions = [
+    td(0, true), td(1, true), td(2, true), td(3, true),
+    td(5 * HOUR, false), td(5 * HOUR + 1, false), td(5 * HOUR + 2, false), td(5 * HOUR + 3, true),
+  ];
+  const lr = twinLearningRate(decisions);
+  assert.strictEqual(lr.direction, "declining",
+    "a metric that only appears when it flatters the product is not a metric");
+});

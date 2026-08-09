@@ -11,7 +11,21 @@
 function renderPredictionProbe() {
   const cycle = typeof currentCycle === "function" ? currentCycle() : null;
   const host = document.getElementById("scenario-card");
-  if (!cycle || !host || !cycle.probes.predict || !cycle.full) return;
+  // Deliberately NOT gated on cycle.full any more.
+  //
+  // The DLO gate meant prediction only ran on high-learning-opportunity
+  // scenarios, so the prediction-versus-choice comparison existed for a
+  // minority of decisions. That comparison is the product's central finding,
+  // not a research extra: the Financial MRI's headline gap, the time-pressure
+  // split and the Twin's rules are all computed from it, and each one was
+  // reading a fraction of the evidence it could have had.
+  //
+  // The titration gate below stays. probes.predict is false only when the
+  // learner has no capacity to spare (distress, or a budget level of "none"),
+  // and probing someone in that state produces compliance data rather than a
+  // prediction. cycle.full is still recorded on the cycle for analysis; it is
+  // simply no longer allowed to decide whether the question gets asked.
+  if (!cycle || !host || !cycle.probes.predict) return;
 
   const wrap = document.createElement("div");
   wrap.className = "probe probe-predict";

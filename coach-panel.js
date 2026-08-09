@@ -58,11 +58,44 @@ function setCoachPanel(open) {
   }
 }
 
+// The coach opens on what it can actually see, not a greeting.
+//
+// It was saying "I'm here if this one's tricky" while sitting on a log of
+// every decision the person had made and every prediction they had missed.
+// A coach that ignores its own evidence is replaceable by any chatbot; one
+// that opens with "earlier you predicted you'd wait, and you didn't" is not.
 function seedCoachPanel() {
+  const opener = predictionAwareOpener();
+  if (opener) { addCoachLine("assistant", opener); return; }
   const meta = typeof currentPersonaMeta === "function" ? currentPersonaMeta() : null;
   addCoachLine("assistant",
     meta ? `I'm here if this one's tricky. I won't tell you what to pick — but I can help you work out what you're weighing.`
          : `I'm here if you want to think one through.`);
+}
+
+// Built from the decision log rather than generated, so it can never claim
+// something that did not happen. Returns null when there is nothing specific
+// to say, and the generic greeting stands in.
+function predictionAwareOpener() {
+  if (typeof getMriDecisions !== "function") return null;
+  const log = getMriDecisions().filter(d => d.predicted !== null && d.predicted !== undefined);
+  if (log.length < 3) return null;
+
+  const missed = log.filter(d => !d.matched);
+  if (!missed.length) {
+    return `Something worth noting: across ${log.length} decisions you have called your own choice every time. That is rarer than it sounds. Want to talk this one through before you break the streak?`;
+  }
+
+  // A miss under time pressure is the most useful thing to raise, because it
+  // is the condition most likely to be about to repeat.
+  const timedMiss = missed.slice().reverse().find(d => d.timed);
+  const last = missed[missed.length - 1];
+  const pick = timedMiss || last;
+
+  if (timedMiss && typeof currentScenario !== "undefined" && currentScenario && currentScenario.timed) {
+    return `Before you decide — last time a decision had a clock on it, you predicted one thing and did another. This one has a clock too. What is different about it?`;
+  }
+  return `Earlier you predicted you would "${pick.choice.replace(/^(Bought|Skipped) /, "")}" and then went the other way. ${missed.length} of your ${log.length} decisions have gone like that. Want to work out what moves you?`;
 }
 
 function addCoachLine(role, text, opts = {}) {

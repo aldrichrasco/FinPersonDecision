@@ -572,7 +572,16 @@ async function selectPersona(slug, { fromCache = false, seedState = null } = {})
 // something changed rarely. Both now live in one modal (#settings-overlay),
 // reached through a single button, so the default page is just the
 // scenario; this renders the one-line summary that replaces them.
-const DIFFICULTY_DISPLAY = { easy: "Easy", medium: "Medium", hard: "Hard" };
+// Renamed from Easy/Medium/Hard. The old labels described a number being
+// multiplied, which is mechanically what happens but is not what the choice
+// is FOR: the point is how much pressure a decision carries, not how large
+// the arithmetic is. Same underlying multiplier, honest framing.
+const DIFFICULTY_DISPLAY = { easy: "Explore", medium: "Test", hard: "Stress Test" };
+const MODE_NOTE = {
+  easy: "Consequences stay light, so patterns can surface without much cost.",
+  medium: "Standard weight. Trade-offs land as written.",
+  hard: "Trade-offs sharpen, so conflicts between your goals become unavoidable.",
+};
 function renderDashSetupSummary() {
   const text = document.getElementById("dash-setup-summary-text");
   const btn = document.getElementById("dash-settings-btn");
@@ -583,7 +592,7 @@ function renderDashSetupSummary() {
     return;
   }
   const p = PERSONAS.find(p => p.slug === currentPersona);
-  text.innerHTML = `Coaching style: <strong>${esc(p ? p.name : currentPersona)}</strong> &middot; ${esc(DIFFICULTY_DISPLAY[difficulty] || difficulty)} difficulty`;
+  text.innerHTML = `Coaching style: <strong>${esc(p ? p.name : currentPersona)}</strong> &middot; ${esc(DIFFICULTY_DISPLAY[difficulty] || difficulty)} mode`;
   btn.textContent = "Change";
 }
 
@@ -666,6 +675,8 @@ function renderDifficultyChips() {
         c.setAttribute("aria-pressed", String(active));
       });
       renderDashSetupSummary();
+      const note = document.getElementById("mode-note");
+      if (note) note.textContent = MODE_NOTE[difficulty] || "";
     });
   });
 }

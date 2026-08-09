@@ -54,6 +54,7 @@
       renderBeliefs(),
       renderContested(),
       renderPrediction(),
+      renderLearning(),
       renderSimulation(),
       renderAppearance(),
       renderMethod(),
@@ -179,6 +180,69 @@
   }
 
 
+
+  // -------------------------------------------------------------- learning
+  // The product's real claim, stated as a measurement: does interacting with
+  // a model of yourself improve how well you predict yourself? Shown whether
+  // the answer is yes, no, or not yet, because a metric that only appears
+  // when it flatters the product is not a metric.
+  function renderLearning() {
+    const lr = (typeof twinLearningRate === "function") ? twinLearningRate(decisions) : null;
+    if (!lr) {
+      return `
+        <section class="mri-sec">
+          <div class="mri-sec-head">
+            <span class="mri-sec-num">04</span>
+            <h2 class="mri-sec-title">Are you learning yourself</h2>
+          </div>
+          <div class="mri-empty">
+            <p class="mri-empty-lab">Needs a second sitting</p>
+            <p class="mri-empty-txt">This tracks how well <strong>you</strong> predict your own choices, session by session. It needs at least two separate sittings of three or more decisions before a trend means anything.</p>
+            <a class="mri-btn mri-btn-sm" href="dashboard.html">Come back and decide again</a>
+          </div>
+        </section>`;
+    }
+    const verdict = {
+      improving: `Your self-prediction has improved <strong>${lr.change} points</strong> since your first sitting. You are getting better at calling your own shots.`,
+      declining: `Your self-prediction has fallen <strong>${Math.abs(lr.change)} points</strong>. That often means the scenarios are reaching conditions you had not met before, rather than that you know yourself less well.`,
+      flat: `Your self-prediction has held roughly steady. Consistency is a finding too, and it is what a stable pattern looks like.`,
+    }[lr.direction];
+
+    const max = 100;
+    const W = 560, H = 130, padL = 34, padB = 26;
+    const x = i => padL + (lr.points.length === 1 ? 0 : (i / (lr.points.length - 1)) * (W - padL - 20));
+    const y = v => 12 + (1 - v / max) * (H - 12 - padB);
+    const path = lr.points.map((p, i) => `${i ? "L" : "M"}${x(i).toFixed(1)},${y(p.selfAccuracy).toFixed(1)}`).join(" ");
+
+    return `
+      <section class="mri-sec">
+        <div class="mri-sec-head">
+          <span class="mri-sec-num">04</span>
+          <h2 class="mri-sec-title">Are you learning yourself</h2>
+        </div>
+        <div class="mri-conf-top">
+          <span class="mri-split-name">How often you called your own choice</span>
+          <span class="mri-conf-num">${lr.last}%</span>
+        </div>
+        <svg viewBox="0 0 ${W} ${H}" style="width:100%;height:auto;display:block;margin:8px 0 6px;" role="img"
+             aria-label="Self-prediction accuracy across ${lr.sessions} sessions, ending at ${lr.last} percent.">
+          <line x1="${padL}" y1="${y(0)}" x2="${W - 20}" y2="${y(0)}" stroke="var(--mri-rule)" stroke-width="1"/>
+          <line x1="${padL}" y1="${y(50)}" x2="${W - 20}" y2="${y(50)}" stroke="var(--mri-rule-soft)" stroke-width="1" stroke-dasharray="3 3"/>
+          <text x="${padL - 6}" y="${y(50) + 3}" text-anchor="end" style="font-family:var(--mri-mono);font-size:9px;fill:var(--mri-ink-3);">50%</text>
+          <text x="${padL - 6}" y="${y(100) + 3}" text-anchor="end" style="font-family:var(--mri-mono);font-size:9px;fill:var(--mri-ink-3);">100%</text>
+          <path d="${path}" fill="none" stroke="var(--mri-accent)" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/>
+          ${lr.points.map((p, i) => `<circle cx="${x(i).toFixed(1)}" cy="${y(p.selfAccuracy).toFixed(1)}" r="4"
+            fill="var(--mri-accent)" stroke="var(--mri-surface)" stroke-width="2"/>`).join("")}
+          ${lr.points.map((p, i) => `<text x="${x(i).toFixed(1)}" y="${H - 8}" text-anchor="middle"
+            style="font-family:var(--mri-mono);font-size:9px;fill:var(--mri-ink-3);">S${p.session}</text>`).join("")}
+        </svg>
+        <p class="mri-note">${verdict}</p>
+        <p class="mri-note" style="margin-top:12px;font-size:13px;color:var(--mri-ink-3);">
+          Measured across ${lr.sessions} sittings. This is the one number worth watching: it asks whether meeting a model of yourself actually makes you better at predicting yourself.
+        </p>
+      </section>`;
+  }
+
   // ------------------------------------------------------------ simulation
   // Watch the model act without you. Three agents, same scenarios, same order:
   // your learned rules, a textbook version of your archetype, and chance.
@@ -188,7 +252,7 @@
       return `
         <section class="mri-sec">
           <div class="mri-sec-head">
-            <span class="mri-sec-num">04</span>
+            <span class="mri-sec-num">05</span>
             <h2 class="mri-sec-title">Watch it run</h2>
           </div>
           <div class="mri-empty">
@@ -208,7 +272,7 @@
     return `
       <section class="mri-sec">
         <div class="mri-sec-head">
-          <span class="mri-sec-num">04</span>
+          <span class="mri-sec-num">05</span>
           <h2 class="mri-sec-title">Watch it run</h2>
         </div>
         <p class="mri-note" style="margin-bottom:18px;">Sixteen decisions, made three ways over the same scenarios in the same order. You supervise; nobody here is you.</p>
@@ -298,7 +362,7 @@
     return `
       <section class="mri-sec">
         <div class="mri-sec-head">
-          <span class="mri-sec-num">05</span>
+          <span class="mri-sec-num">06</span>
           <h2 class="mri-sec-title">Appearance</h2>
         </div>
         <div style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:14px;">${swatches}</div>

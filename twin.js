@@ -288,3 +288,78 @@ if (typeof module !== "undefined" && module.exports) {
     TWIN_DISAGREE_REASONS, TWIN_MIN_EVIDENCE, TWIN_CONFIRM_RATE, TWIN_CONTEST_RATE,
   };
 }
+
+// ---------------------------------------------------------- learning rate
+// The metric worth watching above any other.
+//
+// Two curves, both computed from the same decision log:
+//
+//   twin accuracy   how often the model's rules would have called the
+//                   decision correctly, session by session
+//   self accuracy   how often the PERSON predicted their own choice
+//
+// The second is the product's actual claim. If interacting with a model of
+// yourself improves how well you predict yourself, that is a real effect and
+// a measurable one. If it does not, the honest thing is to be able to see
+// that too, which is why this reports a flat or falling trend rather than
+// hiding it.
+
+// A session is a run of decisions with no long gap. Wall-clock gaps are the
+// only session boundary available, since nothing else marks one.
+const TWIN_SESSION_GAP_MS = 45 * 60 * 1000;
+
+function groupIntoSessions(decisions) {
+  const sorted = decisions.slice().sort((a, b) => (a.at || 0) - (b.at || 0));
+  const sessions = [];
+  let current = [];
+  sorted.forEach(d => {
+    if (!current.length) { current.push(d); return; }
+    const prev = current[current.length - 1];
+    if ((d.at || 0) - (prev.at || 0) > TWIN_SESSION_GAP_MS) {
+      sessions.push(current);
+      current = [d];
+    } else {
+      current.push(d);
+    }
+  });
+  if (current.length) sessions.push(current);
+  return sessions;
+}
+
+function twinLearningRate(decisions) {
+  const predicted = (decisions || []).filter(d =>
+    d.predicted !== null && d.predicted !== undefined);
+  if (predicted.length < 6) return null;
+
+  const sessions = groupIntoSessions(predicted)
+    // A session of one or two decisions produces a 0% or 100% accuracy that
+    // is noise, not a data point, so it is excluded from the trend.
+    .filter(s => s.length >= 3);
+  if (sessions.length < 2) return null;
+
+  const points = sessions.map((s, i) => ({
+    session: i + 1,
+    decisions: s.length,
+    selfAccuracy: Math.round((s.filter(d => d.matched).length / s.length) * 100),
+  }));
+
+  const first = points[0].selfAccuracy;
+  const last = points[points.length - 1].selfAccuracy;
+  const change = last - first;
+
+  return {
+    points,
+    first,
+    last,
+    change,
+    // Deliberately three-way. "No change" is a legitimate result and calling
+    // a two-point wobble improvement would be inventing an effect.
+    direction: change >= 8 ? "improving" : change <= -8 ? "declining" : "flat",
+    sessions: points.length,
+  };
+}
+
+if (typeof module !== "undefined" && module.exports) {
+  module.exports.twinLearningRate = twinLearningRate;
+  module.exports.groupIntoSessions = groupIntoSessions;
+}
