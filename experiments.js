@@ -28,6 +28,7 @@ const EXPERIMENTS = {
     id: "twin_arena",
     label: "Twin Arena",
     question: "Can your twin predict you better than you can?",
+    responseTypes: ["choice"],
     captures: ["predicted", "twinPredicted", "actual", "flavor", "timed",
                "netWorthDelta", "predictedNetWorthDelta", "servesGoal"],
     conditions: ["primed", "unprimed"],
@@ -37,19 +38,36 @@ const EXPERIMENTS = {
     assign: n => (n % 4) === 2 ? "unprimed" : "primed",
   },
 
-  // The room worth building next, and the only one whose value is scientific
-  // rather than experiential: it is the one that manipulates a variable rather
-  // than observing whatever the scenario happened to contain.
+  // Parametric elicitation. Registered as ready because, unlike the pressure
+  // room, it needs no authored scenarios: the information lives in the amounts
+  // rather than in a story, so one template generates a whole run.
+  trade_off_studio: {
+    id: "trade_off_studio",
+    label: "Trade-Off Studio",
+    question: "What is waiting actually worth to you?",
+    responseTypes: ["titration", "allocation", "threshold"],
+    captures: ["response", "responseType", "latencyMs"],
+    conditions: ["gain", "loss"],
+    metrics: ["discountRate", "allocationConcentration"],
+    // Gains and losses are discounted differently by most people, and running
+    // both arms is what makes that visible rather than averaging it away.
+    assign: n => (n % 2) === 0 ? "gain" : "loss",
+  },
+
+  // The room whose value is scientific rather than experiential: the only one
+  // that manipulates a variable instead of observing whichever one the
+  // scenario happened to contain.
   //
   // Registered without content on purpose. The engine is ready; the scenarios
-  // are not. Pressure Chamber needs PAIRED scenarios, the same decision under
-  // different context, and unpaired scenarios cannot measure a shift no matter
-  // how the room is coded. Declaring it here keeps the contract visible and
-  // makes it obvious that what is missing is authoring, not architecture.
+  // are not. It needs PAIRED scenarios, the same decision under each
+  // condition, and unpaired ones cannot measure a shift no matter how the room
+  // is coded. Declaring it keeps the contract visible and makes obvious that
+  // what is missing is authoring, not architecture.
   pressure_chamber: {
     id: "pressure_chamber",
     label: "Pressure Chamber",
     question: "Does pressure change what you choose?",
+    responseTypes: ["choice"],
     captures: ["predicted", "twinPredicted", "actual", "flavor", "timed",
                "netWorthDelta", "servesGoal"],
     conditions: ["baseline", "time_pressure", "social_pressure"],

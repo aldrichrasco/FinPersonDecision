@@ -38,7 +38,14 @@ const EPISODE_FIELDS = {
   prediction: ["predicted", "selfAsked", "twinPredicted", "twinBasis"],
 
   // What actually happened.
-  behaviour: ["choice", "actual", "flavor", "expired"],
+  //
+  // responseType says how to read `response`, because the lab collects more
+  // than one shape of answer and a consumer that assumes an index will
+  // silently misread an allocation. `actual` stays the choice index and is
+  // null for every non-choice format, rather than being overloaded to mean
+  // different things in different rooms.
+  behaviour: ["choice", "actual", "flavor", "expired", "responseType", "response",
+              "latencyMs"],
 
   // What it cost, and what the road not taken would have cost. The
   // counterfactual is knowable only at decision time, while the other options
@@ -58,7 +65,7 @@ const EPISODE_ALL_FIELDS = Object.keys(EPISODE_FIELDS)
 
 // Fields without which an episode cannot answer the questions the lab exists
 // to ask. An episode missing these is not a thin episode, it is a broken one.
-const EPISODE_REQUIRED = ["at", "scenario", "actual"];
+const EPISODE_REQUIRED = ["at", "scenario"];
 
 // Normalises whatever a room passes in into the canonical shape.
 //
@@ -77,6 +84,7 @@ function buildEpisode(raw) {
   // analytics layer never has to special-case "the decisions from before we
   // had rooms".
   if (out.experimentType === null) out.experimentType = "twin_arena";
+  if (out.responseType === null) out.responseType = "choice";
   return out;
 }
 
@@ -88,9 +96,28 @@ function episodeProblem(ep) {
   for (const f of EPISODE_REQUIRED) {
     if (ep[f] === null || ep[f] === undefined) return `missing ${f}`;
   }
-  if (typeof ep.actual !== "number") return "actual must be a choice index";
+  const type = ep.responseType || "choice";
+  if (type === "choice") {
+    if (typeof ep.actual !== "number") return "a choice episode needs an option index";
+  } else if (ep.response === null || ep.response === undefined) {
+    return `a ${type} episode needs a response`;
+  }
   return null;
 }
+
+// The response formats the lab can collect. Each measures something the
+// others cannot: a choice reveals direction, an allocation reveals magnitude,
+// and a titration reveals a parameter you can put a number on.
+const RESPONSE_TYPES = {
+  CHOICE: "choice",           // one option from k. Direction only.
+  ALLOCATION: "allocation",   // split a pot across buckets. Magnitude.
+  RANKING: "ranking",         // order k items. Priority structure.
+  TITRATION: "titration",     // repeated binary at varying amounts. A parameter.
+  THRESHOLD: "threshold",     // name your own number. A reservation price.
+  RECALL: "recall",           // what do you think you did last time. Self-model.
+  RULE: "rule",               // a commitment about future behaviour.
+  TEXT: "text",               // qualitative. Never scored, only read.
+};
 
 // Which questions this episode can actually answer. The analytics layer asks
 // before computing, so a metric is never derived from episodes that were
@@ -100,22 +127,34 @@ function episodeProblem(ep) {
 function episodeSupports(ep) {
   if (!ep) return {};
   const has = f => ep[f] !== null && ep[f] !== undefined;
+  const type = ep.responseType || RESPONSE_TYPES.CHOICE;
+  const isChoice = type === RESPONSE_TYPES.CHOICE;
   return {
-    selfAccuracy: has("predicted"),
-    twinAccuracy: has("twinPredicted"),
+    responseType: type,
+    // Accuracy metrics assume a choice index. An allocation is scored by
+    // distance and a titration by the parameter it estimates, so letting them
+    // into a hit-rate calculation would be comparing unlike things.
+    scorableAsChoice: isChoice,
+    selfAccuracy: isChoice && has("predicted"),
+    twinAccuracy: isChoice && has("twinPredicted"),
     // Both forecasts present, which is the only case where a disagreement
     // between them means anything.
-    twinAdvantage: has("predicted") && has("twinPredicted"),
+    twinAdvantage: isChoice && has("predicted") && has("twinPredicted"),
     goalAlignment: has("goal") && has("servesGoal"),
     counterfactual: has("predictedNetWorthDelta"),
     // The held-out arm: a twin call with no self-prediction in front of it.
-    unprimed: has("twinPredicted") && ep.selfAsked === false,
+    unprimed: isChoice && has("twinPredicted") && ep.selfAsked === false,
+    // Continuous formats carry more information per episode than a choice
+    // does, which is what lets a single template produce a usable estimate.
+    parametric: type === RESPONSE_TYPES.TITRATION || type === RESPONSE_TYPES.THRESHOLD,
+    magnitude: type === RESPONSE_TYPES.ALLOCATION,
   };
 }
 
 if (typeof module !== "undefined" && module.exports) {
   module.exports = {
     EPISODE_VERSION, EPISODE_FIELDS, EPISODE_ALL_FIELDS, EPISODE_REQUIRED,
+    RESPONSE_TYPES,
     buildEpisode, episodeProblem, episodeSupports,
   };
 }

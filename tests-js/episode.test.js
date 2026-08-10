@@ -23,9 +23,29 @@ test("a missing field is null, which is distinguishable from a captured zero", (
 });
 
 test("an episode missing what the lab needs is rejected with the reason", () => {
-  assert.match(episodeProblem(buildEpisode({ scenario: "s" })), /actual/);
+  assert.match(episodeProblem(buildEpisode({ scenario: "s" })), /option index/);
   assert.match(episodeProblem({ at: 1, actual: 0 }), /scenario/);
   assert.strictEqual(episodeProblem(buildEpisode({ scenario: "s", actual: 0 })), null);
+});
+
+test("each response format is validated on its own terms", () => {
+  // An allocation has no option index and must not be rejected for lacking
+  // one; a choice without an index is genuinely broken.
+  const alloc = buildEpisode({ scenario: "s", responseType: "allocation", response: { debt: 1 } });
+  assert.strictEqual(episodeProblem(alloc), null);
+  const emptyAlloc = buildEpisode({ scenario: "s", responseType: "allocation" });
+  assert.match(episodeProblem(emptyAlloc), /allocation/);
+});
+
+test("non-choice formats are kept out of hit-rate metrics", () => {
+  const alloc = buildEpisode({
+    scenario: "s", responseType: "allocation", response: { debt: 1 },
+    predicted: 0, twinPredicted: 1,
+  });
+  const s = episodeSupports(alloc);
+  assert.strictEqual(s.twinAccuracy, false,
+    "an allocation is scored by distance; a hit rate would compare unlike things");
+  assert.strictEqual(s.magnitude, true);
 });
 
 test("decisions from before rooms existed are named as an experiment anyway", () => {
